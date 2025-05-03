@@ -1,17 +1,14 @@
 #!/bin/bash
 
 # Env Vars
-POSTGRES_USER="portfolio-db-user"
-POSTGRES_PASSWORD=$(openssl rand -base64 12)  # Generate a random 12-character password
-POSTGRES_DB="mydatabase"
 SECRET_KEY="my-secret" # for the demo app
 NEXT_PUBLIC_SAFE_KEY="safe-key" # for the demo app
 DOMAIN_NAME="nkolosov.com"
 EMAIL="n.kolosov097@gmail.com"
 
 # Script Vars
-REPO_URL="https://github.com/leerob/next-self-host.git"
-APP_DIR=~/myapp
+REPO_URL="https://github.com/NKolosov097/portfolio.git"
+APP_DIR=~/portfolio
 SWAP_SIZE="1G"  # Swap size of 1GB
 
 # Update package list and upgrade existing packages
@@ -29,8 +26,8 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 # Install Docker
 sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" -y
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" -y
 sudo apt update
 sudo apt install docker-ce -y
 
