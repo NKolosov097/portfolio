@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "husky install",
+    "check-format": "prettier --check .",
+    "check-lint": "eslint . --ext ts --ext tsx --ext js",
+    "check-types": "tsc --pretty --noEmit",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "next": "15.3.1",
@@ -20,7 +25,11 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
+    "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.6",
+    "husky": "^8.0.0",
+    "prettier": "^3.5.3",
     "typescript": "^5"
   }
 }
