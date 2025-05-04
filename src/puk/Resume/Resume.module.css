@@ -1,0 +1,112 @@
+.section {
+  display: flex;
+  flex-direction: column;
+
+  max-width: 100%;
+  width: 100%;
+  min-height: calc(var(--aside-max-height) - var(--header-height));
+  margin-top: 25px;
+  margin-bottom: calc(100vh - var(--aside-max-height));
+
+  text-align: start;
+}
+
+.resumeDescription {
+  padding: 0;
+  margin: 2rem 0 0;
+
+  font-size: 1rem;
+  line-height: 1rem;
+}
+
+.subSection {
+  margin-top: 6rem;
+}
+
+.subSectionHeader {
+  padding: 0;
+  margin: 0;
+
+  font-size: 2rem;
+  line-height: 2rem;
+}
+
+.educationTable > table {
+  width: 100%;
+}
+
+.educationTable > table > tbody > tr:last-child > td {
+  /* stylelint-disable-next-line declaration-no-important */
+  border-block-end-color: var(--g-color-line-generic) !important;
+}
+
+.yearsColumn {
+  font-size: 1rem;
+}
+
+.educationTableHeader,
+.yearsColumn {
+  color: var(--g-color-private-white-950);
+}
+
+.educationTableHeader,
+.educationTableSubtitle {
+  padding: 0;
+  margin: 0;
+
+  font-size: 1rem;
+  line-height: 1rem;
+}
+
+.educationTableSubtitle {
+  margin-top: 0.2rem;
+
+  font-size: 0.8rem;
+  line-height: 0.8rem;
+}
+
+.educationTableDescription,
+.educationTableSubDescription {
+  font-size: 1rem;
+  line-height: 1rem;
+  text-wrap: wrap;
+}
+
+.educationTableSubDescription {
+  margin-top: 1rem;
+}
+
+.favoriteToolsList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+
+  padding: 0;
+  margin: 1rem 0 0;
+
+  list-style: none;
+}
+
+.favoriteToolItem {
+  width: 150px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  border: 1px solid var(--g-color-text-primary);
+  border-radius: 1rem;
+
+  padding: 1rem 0.5rem;
+}
+
+.favoriteToolTitle {
+  padding: 0;
+  margin: 1rem 0 0;
+
+  font-size: 0.9rem;
+}

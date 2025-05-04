@@ -1,0 +1,28 @@
+/* eslint-disable no-unused-vars */
+import { ILanguageItem } from '@/types/header.type'
+
+export const paddingFromTopAfterScroll = 85
+
+export enum ELanguage {
+  en = 'en',
+  ru = 'ru',
+}
+
+export enum ETabID {
+  home = 'home',
+  portfolio = 'portfolio',
+  aboutMe = 'aboutMe',
+  resume = 'resume',
+  contact = 'contact',
+}
+
+export const languages: ILanguageItem[] = [
+  {
+    title: 'English',
+    value: ELanguage.en,
+  },
+  {
+    title: 'Русский',
+    value: ELanguage.ru,
+  },
+]

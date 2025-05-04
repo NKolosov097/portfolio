@@ -22,11 +22,30 @@ export default defineConfig([
       import: pluginImport,
       js,
     },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './',
+        },
+        node: {
+          paths: ['src', 'public'],
+          extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+        },
+      },
+    },
     extends: [],
     rules: {
       'no-var': 'error',
       'prefer-const': 'error',
-      'no-unused-vars': 'error',
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_', // разрешает переменные, начинающиеся с _
+          varsIgnorePattern: '^_', // разрешает неиспользуемые переменные с _
+          caughtErrorsIgnorePattern: '^_', // разрешает неиспользуемые catch-параметры с _,
+        },
+      ],
       'no-shadow': 'error',
       'no-redeclare': 'error',
       'no-dupe-args': 'error',

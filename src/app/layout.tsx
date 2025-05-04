@@ -1,24 +1,23 @@
-// import { ToastContainer } from 'react-toastify'
+import { ToastContainer } from 'react-toastify'
 import { Jura } from 'next/font/google'
 import type { Metadata } from 'next'
 
-// import '@gravity-ui/uikit/styles/fonts.css'
-// import '@gravity-ui/uikit/styles/styles.css'
-// import '@/styles/globals.css'
+import '@gravity-ui/uikit/styles/fonts.css'
+import '@gravity-ui/uikit/styles/styles.css'
+import '@/styles/globals.css'
 
-// import { getRootClassName } from '@gravity-ui/uikit/server'
-// import { Providers } from '@/providers/Providers'
+import { getRootClassName } from '@gravity-ui/uikit/server'
+import { Providers } from '@/providers/Providers'
 
-// import { SkipToNavigationLink } from '@/components/SkipToNavigationLink/SkipToNavigationLink'
-// import { Aside } from '@/components/Aside/Aside'
-// import { Header } from '@/components/Header/Header'
-// import { Main } from '@/components/Main/Main'
-// import { Footer } from '@/components/Footer/Footer'
+import { Aside } from '@/components/Aside/Aside'
+import { Header } from '@/components/Header/Header'
+import { Main } from '@/components/Main/Main'
+import { Footer } from '@/components/Footer/Footer'
 
-// import { ILayout } from '@/types/layout.type'
+import { ILayout } from '@/types/layout.type'
 
-// const theme = 'dark'
-// const rootClassName = getRootClassName({ theme })
+const theme = 'dark'
+const rootClassName = getRootClassName({ theme })
 
 export const metadata: Metadata = {
   title: 'Portfolio by NKolosov097',
@@ -36,22 +35,22 @@ export async function generateStaticParams() {
   return [{ lang: 'en-US' }, { lang: 'ru' }]
 }
 
-// const getLangFromParams = async (params: ILayout['params']) =>
-//   (
-//     await params.catch((err) => {
-//       console.error(`Error with getting params: \n${err}`)
-//       return err
-//     })
-//   )?.lang || 'en'
+const getLangFromParams = async (params: ILayout['params']) =>
+  (
+    await params.catch((err) => {
+      console.error(`Error with getting params: \n${err}`)
+      return err
+    })
+  )?.lang || 'en'
 
-export default async function RootLayout({}) {
-  // const lang = await getLangFromParams(params)
+export default async function RootLayout({ params, children }: ILayout) {
+  const lang = await getLangFromParams(params)
 
   return (
-    <html lang={`en`} className={jura.className}>
-      <body>
-        {/* <Providers>
-          <SkipToNavigationLink /> 
+    <html lang={lang} className={jura.className}>
+      <body className={rootClassName}>
+        <Providers>
+          {/* <SkipToNavigationLink /> */}
 
           <Aside />
           <Header />
@@ -59,7 +58,7 @@ export default async function RootLayout({}) {
           <Footer />
 
           <ToastContainer />
-        </Providers> */}
+        </Providers>
       </body>
     </html>
   )

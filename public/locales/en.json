@@ -1,0 +1,96 @@
+{
+  "firstName": "Nikita",
+  "lastName": "Kolosov",
+  "name": "Name",
+  "phone": "Phone",
+  "location": "Location",
+  "Im": "I'm",
+
+  "skipToNavigationLink": "Skip to navigation",
+
+  "aside": {
+    "specialization": "Specialization",
+    "basedIn": "Based in",
+    "basedInPlace": "Russia, Moscow",
+    "fullYears": "Years"
+  },
+
+  "headerTabs": {
+    "home": "Home",
+    "portfolio": "Portfolio",
+    "aboutMe": "About me",
+    "resume": "Resume",
+    "contact": "Contact"
+  },
+
+  "portfolio": {
+    "header": "Check out my featured projects"
+  },
+
+  "aboutMe": {
+    "header": "Solving complex tasks in a user-friendly application",
+
+    "advantageDeploy": "commits to production",
+    "yearsOfExperience": "years of experience",
+    "projects": "projects"
+  },
+
+  "resume": {
+    "header": "Education and practical experience",
+    "educationHeader": "My education",
+    "workExperienceHeader": "Work experience",
+    "favoriteToolsHeader": "My favorite tools"
+  },
+
+  "educationTable": {
+    "emptyMessage": "No data",
+
+    "MAI": "University MAI",
+    "MAISubtitle": "System analysis and management",
+    "MAIDescription": "I studied programming in C, C++, Python, JS; databases; information security; artificial intelligence; higher mathematics.",
+    "MAISubDescription": "I analyzed big data using regression, classification, and clustering.",
+
+    "Hexlet": "Hexlet",
+    "HexletSubtitle": "JavaScript Developer",
+    "HexletDescription": "Studied layout, testing, data abstraction, protocols, OOP, asynchronous programming, TypeScript",
+
+    "YandexPracticum": "Yandex Practicum",
+    "YandexPracticumSubtitle": "React Developer",
+    "YandexPracticumDescription": "Immersed in React, Linters, WebPack, Ise, RTK, Routing and security, Animations, Websocket, Deploy projects"
+  },
+
+  "contact": {
+    "header": "Let's make something awesome together!",
+
+    "labelOfName": "Name",
+    "placeholderOfName": "Peter Parker",
+    "requireName": "Enter your name",
+    "invalidTypeOfName": "A name could be only string",
+
+    "labelOfEmail": "Email",
+    "placeholderOfEmail": "example@gmail.com",
+    "requireEmail": "Enter your Email",
+    "incorrectEmail": "Incorrect Email",
+
+    "labelOfCompany": "Company",
+    "placeholderOfCompanyName": "NKolosov Company",
+    "invalidTypeOfCompanyName": "A company name could be only string",
+
+    "labelOfProfession": "Profession",
+    "placeholderOfProfession": "Super Cool CEO",
+    "invalidTypeOfProfession": "A profession could be only string",
+
+    "labelOfMessage": "Message to Nikita 😏",
+    "placeholderOfMessage": "You're cool!",
+    "requireMessage": "Enter a message to developer 🙂",
+    "invalidTypeOfMessage": "A message could be only string",
+
+    "sendMessage": "Send message"
+  },
+
+  "notFound": {
+    "title": "There is no such page",
+    "description": "But don't worry! There's a lot to see on the main page :)",
+    "backBtn": "Go back to the main page"
+  }
+}

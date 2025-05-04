@@ -1,0 +1,137 @@
+.section {
+  display: flex;
+  flex-direction: column;
+
+  min-height: calc(var(--aside-max-height) - var(--header-height));
+  margin-top: 25px;
+  margin-bottom: calc(100vh - var(--aside-max-height));
+
+  text-align: start;
+}
+
+.advantagesList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+
+  margin: 2rem 0 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.advantage {
+  width: calc(33% - 1.5rem);
+  min-width: 300px;
+
+  border: 1px solid var(--g-color-private-white-950);
+  border-radius: 20px;
+
+  padding: 1rem 1.5rem;
+}
+
+.advantageHeader {
+  width: 100%;
+
+  font-size: 3rem;
+  line-height: 3rem;
+  text-align: center;
+
+  margin: 0;
+  padding: 0;
+}
+
+.advantageDescription {
+  width: 100%;
+
+  font-size: 1.2rem;
+  line-height: 1.2rem;
+  text-align: center;
+
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.contentContainer {
+  width: 100%;
+
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+
+  margin-top: 2rem;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 1rem;
+
+  min-width: 350px;
+}
+
+.contentDescription {
+  padding: 0;
+  margin: 0;
+}
+
+.contentContactContainer {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 1.5rem;
+
+  padding: 0;
+  margin: 0;
+
+  list-style: none;
+}
+
+.contentContactHeader {
+  padding: 0 0 0.17rem;
+  margin: 0;
+
+  font-size: 0.85rem;
+  line-height: 0.85rem;
+  letter-spacing: 0.1rem;
+}
+
+.contentContactDescription {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.contentContactDescription,
+.contentContactDescription > button {
+  padding: 0;
+  margin: 0;
+
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.1rem;
+}
+
+.contentContactDescription > button {
+  background-color: transparent;
+
+  outline: none;
+  border: none;
+
+  cursor: pointer;
+}
+
+.copyBtn span {
+  color: var(--g-color-line-brand);
+}
+
+@media screen and (width <= 1024px) {
+  .section {
+    justify-content: center;
+    align-items: center;
+  }
+}

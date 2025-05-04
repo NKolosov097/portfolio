@@ -1,0 +1,71 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  min-height: calc(var(--aside-max-height) - var(--header-height));
+  margin-top: 25px;
+  margin-bottom: calc(100vh - var(--aside-max-height));
+
+  text-align: start;
+}
+
+.header,
+.profession {
+  margin: 0;
+
+  font-size: 6rem;
+  line-height: 6rem;
+
+  color: var(--g-color-line-brand);
+  text-align: start;
+}
+
+.header {
+  margin: 1rem 0 0;
+}
+
+@media screen and (width <= 1440px) {
+  .header,
+  .profession {
+    font-size: 5rem;
+    line-height: 5rem;
+  }
+}
+
+@media screen and (width <= 1280px) {
+  .header,
+  .profession {
+    font-size: 4rem;
+    line-height: 4rem;
+  }
+}
+
+@media screen and (width <= 1024px) {
+  .header,
+  .profession {
+    font-size: 3rem;
+    line-height: 3rem;
+  }
+}
+
+@media screen and (width <= 900px) {
+  .header {
+    font-size: 2.3rem;
+    line-height: 2.3rem;
+  }
+}
+
+@media screen and (width <= 1024px) {
+  .section {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .header,
+  .profession {
+    font-size: 3.5rem;
+    line-height: 3.5rem;
+    text-align: center;
+  }
+}

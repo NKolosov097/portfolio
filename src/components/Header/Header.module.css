@@ -1,0 +1,38 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  max-width: var(--max-width);
+  width: 100%;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  background-color: var(--root-bg-color);
+
+  padding: var(--body-padding);
+  margin: 0 auto;
+
+  z-index: 1;
+}
+
+.tabs {
+  width: fit-content;
+  box-shadow: none;
+}
+
+.header .drawerBtn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media screen and (width <= 1024px) {
+  .header .drawerBtn {
+    opacity: 1;
+    pointer-events: all;
+  }
+}

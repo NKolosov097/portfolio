@@ -1,0 +1,17 @@
+.button:has(a) {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  opacity: 0;
+
+  z-index: 2;
+}
+
+.button:has(a:focus) {
+  opacity: 1;
+}
+
+.button a {
+  color: var(--g-color-line-brand);
+  font-size: 1rem;
+}

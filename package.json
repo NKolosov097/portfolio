@@ -17,27 +17,61 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@bem-react/classname": "^1.6.0",
+    "@gravity-ui/icons": "^2.13.0",
+    "@gravity-ui/navigation": "^3.3.4",
+    "@hookform/resolvers": "^5.0.1",
+    "axios": "^1.9.0",
+    "bem-cn-lite": "^4.1.0",
+    "i18next": "^25.0.2",
     "next": "15.3.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.56.2",
     "react-i18next": "^15.5.1",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "zod": "^3.24.3",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
+    "@eslint/eslintrc": "^3.3.1",
+    "@gravity-ui/browserslist-config": "^4.3.0",
+    "@gravity-ui/components": "^4.1.2",
+    "@gravity-ui/uikit": "^7.10.0",
+    "@svgr/webpack": "^8.1.0",
+    "@types/node": "^20.17.32",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.3",
+    "cypress": "^14.3.2",
+    "eslint": "^9.26.0",
     "eslint-config-next": "15.3.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.6",
-    "husky": "^8.0.0",
+    "eslint-plugin-prettier": "^5.3.1",
+    "husky": "^8.0.3",
     "prettier": "^3.5.3",
     "stylelint": "^16.19.1",
     "stylelint-config-prettier-scss": "^1.0.0",
     "stylelint-config-standard-scss": "^14.0.0",
-    "typescript": "^5"
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "browserslist": [
+    "extends @gravity-ui/browserslist-config"
+  ],
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix --quiet",
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ]
   }
 }

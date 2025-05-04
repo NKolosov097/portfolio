@@ -1,0 +1,64 @@
+.section {
+  display: flex;
+  flex-direction: column;
+
+  min-height: calc(var(--aside-max-height) - var(--header-height));
+  margin-top: 25px;
+  margin-bottom: calc(100vh - var(--aside-max-height));
+
+  text-align: start;
+}
+
+.container {
+  display: grid;
+  grid-template:
+    'name email'
+    'company profession'
+    'message message' 1fr / 1fr 1fr;
+  gap: 1rem;
+
+  margin: 1rem 0;
+}
+
+.name {
+  grid-area: name;
+}
+
+.email {
+  grid-area: email;
+}
+
+.company {
+  grid-area: company;
+}
+
+.profession {
+  grid-area: profession;
+}
+
+.message {
+  grid-area: message;
+}
+
+.submitBtn {
+  margin-top: 1rem;
+  margin-right: auto;
+}
+
+@media screen and (width <= 1024px) {
+  .section {
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@media screen and (width <= 900px) {
+  .container {
+    grid-template:
+      'name'
+      'email'
+      'company'
+      'profession'
+      'message' 1fr / 1fr;
+  }
+}

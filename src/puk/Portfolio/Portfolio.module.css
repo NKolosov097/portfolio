@@ -1,0 +1,30 @@
+.section {
+  display: flex;
+  flex-direction: column;
+
+  min-height: calc(var(--aside-max-height) - var(--header-height));
+  padding-top: 1rem;
+  margin-top: 25px;
+  margin-bottom: calc(100vh - var(--aside-max-height));
+
+  text-align: start;
+}
+
+.projectsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  width: 100%;
+  margin: 2rem 0 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+@media screen and (width <= 1024px) {
+  .section {
+    justify-content: center;
+    align-items: center;
+  }
+}

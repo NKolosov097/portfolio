@@ -1,0 +1,142 @@
+.container {
+  color: #fff;
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 500px;
+  overflow: hidden auto;
+
+  padding: 10px;
+}
+
+.titleWrapper {
+  width: 100%;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  margin: 0 auto;
+}
+
+.fullname {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  letter-spacing: 0.13rem;
+
+  font-size: 1.5rem;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  border-radius: 1.2rem;
+
+  box-shadow: 0px 0px 15px 5px rgba(255, 255, 255, 0.15);
+}
+
+.block {
+  width: 100%;
+  margin-top: 1rem;
+
+  text-align: start;
+}
+
+.block > h2,
+.block > p {
+  margin: 0;
+
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.1rem;
+}
+
+.block > p {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.nav,
+.nav > ul {
+  width: 100%;
+  list-style: none;
+
+  margin: 0;
+  padding: 0;
+}
+
+.nav > ul {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.nav > ul > li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #000;
+  border-radius: 50%;
+  background-color: var(--g-color-private-white-950);
+
+  width: 44px;
+  height: 44px;
+
+  transition: box-shadow 0.25s ease-in-out;
+}
+
+.nav > ul > li:hover {
+  box-shadow: 0px 0px 15px 5px rgba(255, 255, 255, 0.15);
+}
+
+.nav > ul > li > a {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
+  font-size: 24px;
+
+  color: #000;
+}
+
+.drawerItemContent {
+  position: sticky;
+  top: 0;
+
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: space-between;
+
+  max-height: var(--aside-max-height);
+  height: 100vh;
+
+  margin: auto;
+  padding: 10px;
+
+  overflow-y: auto;
+}
+
+@media screen and (width <= 1024px) {
+  .container {
+    display: none;
+  }
+}
