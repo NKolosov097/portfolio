@@ -1,4 +1,4 @@
-#!/bin/bash
+portfolio#!/bin/bash
 
 # Env Vars
 SECRET_KEY="my-secret" # for the demo app
@@ -75,8 +75,8 @@ echo "NEXT_PUBLIC_SAFE_KEY=$NEXT_PUBLIC_SAFE_KEY" >> "$APP_DIR/.env"
 sudo apt install nginx -y
 
 # Remove old Nginx config (if it exists)
-sudo rm -f /etc/nginx/sites-available/myapp
-sudo rm -f /etc/nginx/sites-enabled/myapp
+sudo rm -f /etc/nginx/sites-available/portfolio
+sudo rm -f /etc/nginx/sites-enabled/portfolio
 
 # Stop Nginx temporarily to allow Certbot to run in standalone mode
 sudo systemctl stop nginx
@@ -95,7 +95,7 @@ if [ ! -f /etc/letsencrypt/ssl-dhparams.pem ]; then
 fi
 
 # Create Nginx config with reverse proxy, SSL support, rate limiting, and streaming support
-sudo cat > /etc/nginx/sites-available/myapp <<EOL
+sudo cat > /etc/nginx/sites-available/portfolio <<EOL
 limit_req_zone \$binary_remote_addr zone=mylimit:10m rate=10r/s;
 
 server {
@@ -134,12 +134,12 @@ server {
 EOL
 
 # Create symbolic link if it doesn't already exist
-sudo ln -s /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/myapp
+sudo ln -s /etc/nginx/sites-available/portfolio /etc/nginx/sites-enabled/portfolio
 
 # Restart Nginx to apply the new configuration
 sudo systemctl restart nginx
 
-# Build and run the Docker containers from the app directory (~/myapp)
+# Build and run the Docker containers from the app directory (~/portfolio)
 cd $APP_DIR
 sudo docker-compose up --build -d
 
