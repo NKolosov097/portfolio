@@ -3,7 +3,7 @@
 import styles from './Contact.module.css'
 
 import { useTranslation } from 'react-i18next'
-import { Form } from '@/puk/Contact/components/Form/Form'
+import { Form } from '@/home-sections/Contact/components/Form/Form'
 import { Tag } from '@/components/Tag/Tag'
 
 import { ETabID } from '@/constants/header.constants'

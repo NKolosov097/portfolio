@@ -1,4 +1,4 @@
-import styles from '@/puk/AboutMe/AboutMe.module.css'
+import styles from '@/home-sections/AboutMe/AboutMe.module.css'
 
 import { IAdvantage } from '@/types/aboutMe.type'
 

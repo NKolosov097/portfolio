@@ -11,7 +11,7 @@ import { defaultContactForm } from '@/constants/contact.constant'
 import { getContactSchema } from '@/schemas/Contact/Contact.schema'
 import { IContactSchema } from '@/types/contact.types'
 
-import styles from '@/puk/Contact/Contact.module.css'
+import styles from '@/home-sections/Contact/Contact.module.css'
 import { sendMessage } from '@/requests/contact/contact.query'
 
 export const Form = () => {

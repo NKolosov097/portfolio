@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import styles from '@/puk/Resume/Resume.module.css'
+import styles from '@/home-sections/Resume/Resume.module.css'
 
 import Image from 'next/image'
 // eslint-disable-next-line import/named
