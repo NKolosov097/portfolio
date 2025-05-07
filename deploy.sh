@@ -1,4 +1,4 @@
-portfolio#!/bin/bash
+#!/bin/bash
 
 # Env Vars
 SECRET_KEY="my-secret" # for the demo app
