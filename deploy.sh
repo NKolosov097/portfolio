@@ -9,7 +9,7 @@ EMAIL="n.kolosov2003@mail.ru"
 # Script Vars
 REPO_URL="https://github.com/NKolosov097/portfolio.git"
 APP_DIR=~/portfolio
-SWAP_SIZE="1G"  # Swap size of 1GB
+SWAP_SIZE="2G"  # Swap size of 1GB
 
 # Update package list and upgrade existing packages
 sudo apt update && sudo apt upgrade -y
