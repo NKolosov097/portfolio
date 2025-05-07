@@ -9,105 +9,117 @@ EMAIL="n.kolosov2003@mail.ru"
 # Script Vars
 REPO_URL="https://github.com/NKolosov097/portfolio.git"
 APP_DIR=~/portfolio
-SWAP_SIZE="2G"  # Swap size of 1GB
+SWAP_SIZE="2G"  # Swap size of 2GB
 
 # Update package list and upgrade existing packages
+echo "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
-# Add Swap Space
-echo "Adding swap space..."
-sudo fallocate -l $SWAP_SIZE /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-
-# Make swap permanent
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+# Add Swap Space (only if doesn't exist)
+echo "Checking swap space..."
+if [ ! -f /swapfile ]; then
+  echo "Creating swap file..."
+  sudo fallocate -l $SWAP_SIZE /swapfile
+  sudo chmod 600 /swapfile
+  sudo mkswap /swapfile
+  sudo swapon /swapfile
+  echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+else
+  echo "Swap file already exists, skipping creation."
+fi
 
 # Install Docker
-sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" -y
+echo "Installing Docker dependencies..."
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+
+echo "Adding Docker repository..."
+# Remove any existing Ubuntu repository entries
+sudo rm -f /etc/apt/sources.list.d/docker*.list
+# Add correct Debian repository
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+echo "Installing Docker..."
 sudo apt update
-sudo apt install docker-ce -y
+sudo apt install -y docker-ce docker-ce-cli containerd.io
 
 # Install Docker Compose
+echo "Installing Docker Compose..."
+COMPOSE_VERSION="v2.24.0"
 sudo rm -f /usr/local/bin/docker-compose
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose --retry 3 --retry-delay 5
 
-# Wait for the file to be fully downloaded before proceeding
+# Verify download
 if [ ! -f /usr/local/bin/docker-compose ]; then
   echo "Docker Compose download failed. Exiting."
   exit 1
 fi
 
 sudo chmod +x /usr/local/bin/docker-compose
-
-# Ensure Docker Compose is executable and in path
 sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-# Verify Docker Compose installation
-docker-compose --version
-if [ $? -ne 0 ]; then
+# Verify installation
+if ! docker-compose --version; then
   echo "Docker Compose installation failed. Exiting."
   exit 1
 fi
 
-RUN echo "https://mirror.yandex.ru/mirrors/alpine/v3.21/main/" > /etc/apk/repositories && \
-    echo "https://mirror.yandex.ru/mirrors/alpine/v3.21/community/" >> /etc/apk/repositories && \
-    apk update && \
-    apk add --no-cache libc6-compat git
-
-# Ensure Docker starts on boot and start Docker service
+# Ensure Docker starts on boot
+echo "Configuring Docker to start on boot..."
 sudo systemctl enable docker
 sudo systemctl start docker
 
 # Clone the Git repository
+echo "Setting up application directory..."
 if [ -d "$APP_DIR" ]; then
   echo "Directory $APP_DIR already exists. Pulling latest changes..."
   cd $APP_DIR && git pull
 else
   echo "Cloning repository from $REPO_URL..."
   git clone $REPO_URL $APP_DIR
-  cd $APP_DIR
+  cd $APP_DIR || exit 1
 fi
 
-# These are just for the demo of env vars
+# Set up environment variables
+echo "Configuring environment variables..."
 echo "SECRET_KEY=$SECRET_KEY" >> "$APP_DIR/.env"
 echo "NEXT_PUBLIC_SAFE_KEY=$NEXT_PUBLIC_SAFE_KEY" >> "$APP_DIR/.env"
 
 # Install Nginx
-sudo apt install nginx -y
+echo "Installing Nginx..."
+sudo apt install -y nginx
 
-# Remove old Nginx config (if it exists)
+# Configure Nginx
+echo "Configuring Nginx..."
 sudo rm -f /etc/nginx/sites-available/portfolio
 sudo rm -f /etc/nginx/sites-enabled/portfolio
 
-# Stop Nginx temporarily to allow Certbot to run in standalone mode
+# Stop Nginx temporarily for Certbot
 sudo systemctl stop nginx
 
-# Obtain SSL certificate using Certbot standalone mode
-sudo apt install certbot -y
-sudo certbot certonly --standalone -d $DOMAIN_NAME --non-interactive --agree-tos -m $EMAIL
+# Install Certbot and obtain SSL certificate
+echo "Setting up SSL certificate..."
+sudo apt install -y certbot
+sudo certbot certonly --standalone -d $DOMAIN_NAME --non-interactive --agree-tos -m $EMAIL --quiet
 
-# Ensure SSL files exist or generate them
+# Ensure SSL files exist
+echo "Configuring SSL files..."
 if [ ! -f /etc/letsencrypt/options-ssl-nginx.conf ]; then
-  sudo wget https://raw.githubusercontent.com/certbot/certbot/main/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf -P /etc/letsencrypt/
+  sudo wget -q https://raw.githubusercontent.com/certbot/certbot/main/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf -P /etc/letsencrypt/
 fi
 
 if [ ! -f /etc/letsencrypt/ssl-dhparams.pem ]; then
   sudo openssl dhparam -out /etc/letsencrypt/ssl-dhparams.pem 2048
 fi
 
-# Create Nginx config with reverse proxy, SSL support, rate limiting, and streaming support
-sudo cat > /etc/nginx/sites-available/portfolio <<EOL
+# Create Nginx config
+echo "Creating Nginx configuration..."
+sudo tee /etc/nginx/sites-available/portfolio > /dev/null <<EOL
 limit_req_zone \$binary_remote_addr zone=mylimit:10m rate=10r/s;
 
 server {
     listen 80;
     server_name $DOMAIN_NAME;
-
-    # Redirect all HTTP requests to HTTPS
     return 301 https://\$host\$request_uri;
 }
 
@@ -120,7 +132,6 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    # Enable rate limiting
     limit_req zone=mylimit burst=20 nodelay;
 
     location / {
@@ -130,34 +141,33 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
-
-        # Disable buffering for streaming support
         proxy_buffering off;
         proxy_set_header X-Accel-Buffering no;
     }
 }
 EOL
 
-# Create symbolic link if it doesn't already exist
+# Enable Nginx config
 sudo ln -s /etc/nginx/sites-available/portfolio /etc/nginx/sites-enabled/portfolio
-
-# Restart Nginx to apply the new configuration
 sudo systemctl restart nginx
 
-# Build and run the Docker containers from the app directory (~/portfolio)
-cd $APP_DIR
+# Build and run Docker containers
+echo "Building and starting Docker containers..."
+cd $APP_DIR || exit 1
 sudo docker-compose up --build -d
 
-# Check if Docker Compose started correctly
+# Verify containers are running
+echo "Verifying containers are running..."
 if ! sudo docker-compose ps | grep "Up"; then
   echo "Docker containers failed to start. Check logs with 'docker-compose logs'."
   exit 1
 fi
 
 # Output final message
-echo "Deployment complete. Your Next.js app is now running. 
-Next.js is available at https://$DOMAIN_NAME.
-
-The .env file has been created with the following values:
-- SECRET_KEY
-- NEXT_PUBLIC_SAFE_KEY"
+echo -e "\n\033[1;32mDeployment complete!\033[0m"
+echo "Your Next.js app is now running at:"
+echo -e "\033[1;34mhttps://$DOMAIN_NAME\033[0m"
+echo -e "\nYou can check the status of containers with:"
+echo "  cd $APP_DIR && docker-compose ps"
+echo -e "\nTo view logs:"
+echo "  cd $APP_DIR && docker-compose logs -f"
