@@ -1,4 +1,4 @@
-FROM node:22-bullseye AS base
+FROM node:22-alpine AS base
 
 ### Dependencies ###
 FROM base AS deps
