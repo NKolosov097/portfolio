@@ -53,6 +53,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+RUN echo "https://mirror.yandex.ru/mirrors/alpine/v3.21/main/" > /etc/apk/repositories && \
+    echo "https://mirror.yandex.ru/mirrors/alpine/v3.21/community/" >> /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache libc6-compat git
+
 # Ensure Docker starts on boot and start Docker service
 sudo systemctl enable docker
 sudo systemctl start docker
