@@ -35,7 +35,6 @@ i18n
       lookupQuerystring: 'lang',
     },
     lowerCaseLng: true,
-    debug: true,
   })
 
 export default i18n
