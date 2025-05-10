@@ -2,7 +2,7 @@
 
 import { PropsWithChildren } from 'react'
 
-import { LanguageProvider } from './Language.provider.tsx'
+import { LanguageProvider } from './Language.provider'
 import { I18nProvider } from './I18.provider'
 import { ThemeProvider } from './Theme.provider'
 import { AsideStoreProvider } from './stores/AsideStore.provider'
