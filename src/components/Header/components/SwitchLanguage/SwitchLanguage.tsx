@@ -37,8 +37,9 @@ export const LanguageSwitcher = () => {
           setLanguage(value as ELanguage)
           push(`${pathname}?lang=${value}`)
         },
+        selected: i18n.language === value,
       })),
-    [i18n, pathname, push, setLanguage],
+    [i18n.language, pathname, push, setLanguage],
   )
 
   return <DropdownMenu hideOnScroll renderSwitcher={Switcher} items={dropdownMenuItems} size="xl" />

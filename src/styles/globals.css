@@ -49,6 +49,10 @@ body,
   background-color: var(--g-color-base-background);
 }
 
+.g-dropdown-menu__popup-content .g-menu .g-menu__item_selected {
+  background-color: transparent;
+}
+
 .g-menu__item {
   border-bottom: 1px solid transparent;
   transition: border-color 0.25s ease-in-out;
