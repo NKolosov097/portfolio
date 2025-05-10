@@ -26,6 +26,8 @@ body,
   --min-height-footer: 40px;
 
   --g-card-background-color: rgba(32, 32, 32, 0.4);
+  --g-color-private-red-550-solid: #ff0000;
+  --g-color-text-danger: var(--g-color-private-red-550-solid);
 
   min-width: var(--min-width);
   margin: 0 auto;
@@ -97,7 +99,7 @@ body,
   color: var(--g-color-line-brand);
 }
 
-body {
+body:not(.error-body) {
   position: relative;
 
   max-width: var(--max-width);
@@ -109,6 +111,70 @@ body {
   gap: 0 var(--body-horizontal-gap);
 
   padding: var(--header-height) var(--body-padding) 0;
+}
+
+.error-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  max-width: var(--max-width);
+
+  padding: var(--header-height) var(--body-padding) 0;
+}
+
+.error-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.error-header {
+  width: 100%;
+  text-align: center;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.error-description {
+  width: 100%;
+  text-align: center;
+  font-size: 1.3rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.error-body .error-body-btn {
+  color: var(--g-color-text-danger);
+  font-weight: 600;
+  height: 36px;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+.not-found-section {
+  margin-top: 2rem;
+}
+
+.not-found-header {
+  width: 100%;
+
+  text-align: center;
+  font-size: 1.8rem;
+
+  margin: 0;
+}
+
+.not-found-description,
+.not-found-link {
+  font-size: 1rem;
+}
+
+.not-found-description {
+  margin: 1rem 0;
 }
 
 aside {
@@ -186,28 +252,6 @@ footer,
   font-size: 0.85rem;
   letter-spacing: 0.05rem;
   color: var(--g-color-line-brand);
-}
-
-.not-found-section {
-  margin-top: 2rem;
-}
-
-.not-found-header {
-  width: 100%;
-
-  text-align: center;
-  font-size: 1.8rem;
-
-  margin: 0;
-}
-
-.not-found-description,
-.not-found-link {
-  font-size: 1rem;
-}
-
-.not-found-description {
-  margin: 1rem 0;
 }
 
 .gn-drawer > .gn-drawer__veil {

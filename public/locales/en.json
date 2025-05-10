@@ -1,4 +1,16 @@
 {
+  "error": {
+    "wentWrong": "Something went wrong...",
+    "description": "Error",
+    "reloadPage": "Reload page"
+  },
+
+  "notFound": {
+    "title": "There is no such page",
+    "description": "But don't worry! There's a lot to see on the main page :)",
+    "backBtn": "Go back to the main page"
+  },
+
   "firstName": "Nikita",
   "lastName": "Kolosov",
   "name": "Name",
@@ -86,11 +98,5 @@
     "invalidTypeOfMessage": "A message could be only string",
 
     "sendMessage": "Send message"
-  },
-
-  "notFound": {
-    "title": "There is no such page",
-    "description": "But don't worry! There's a lot to see on the main page :)",
-    "backBtn": "Go back to the main page"
   }
 }
