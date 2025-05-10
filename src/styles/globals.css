@@ -45,6 +45,10 @@ body,
   box-shadow: var(--g-card-background-color);
 }
 
+.g-dropdown-menu__popup-content .g-menu {
+  background-color: var(--g-color-base-background);
+}
+
 .g-menu__item {
   border-bottom: 1px solid transparent;
   transition: border-color 0.25s ease-in-out;

@@ -1,6 +1,7 @@
-import { ToastContainer } from 'react-toastify'
-import { Jura } from 'next/font/google'
+import { PropsWithChildren, Suspense } from 'react'
 import type { Metadata } from 'next'
+
+import { ToastContainer } from 'react-toastify'
 
 import '@gravity-ui/uikit/styles/fonts.css'
 import '@gravity-ui/uikit/styles/styles.css'
@@ -14,8 +15,6 @@ import { Header } from '@/components/Header/Header'
 import { Main } from '@/components/Main/Main'
 import { Footer } from '@/components/Footer/Footer'
 
-import { ILayout } from '@/types/layout.type'
-
 const theme = 'dark'
 const rootClassName = getRootClassName({ theme })
 
@@ -24,32 +23,11 @@ export const metadata: Metadata = {
   description: 'Portfolio about super developer @NKolosov097!',
 }
 
-const jura = Jura({
-  weight: ['400', '600', '700'],
-  style: ['normal'],
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap',
-})
-
-export async function generateStaticParams() {
-  return [{ lang: 'en-US' }, { lang: 'ru' }]
-}
-
-const getLangFromParams = async (params: ILayout['params']) =>
-  (
-    await params.catch((err) => {
-      console.error(`Error with getting params: \n${err}`)
-      return err
-    })
-  )?.lang || 'en'
-
-export default async function RootLayout({ params, children }: ILayout) {
-  const lang = await getLangFromParams(params)
-
+export default async function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang={lang} className={jura.className}>
-      <body className={rootClassName}>
-        <Providers>
+    <Suspense>
+      <Providers>
+        <body className={rootClassName} suppressHydrationWarning={true}>
           {/* <SkipToNavigationLink /> */}
 
           <Aside />
@@ -58,8 +36,8 @@ export default async function RootLayout({ params, children }: ILayout) {
           <Footer />
 
           <ToastContainer />
-        </Providers>
-      </body>
-    </html>
+        </body>
+      </Providers>
+    </Suspense>
   )
 }

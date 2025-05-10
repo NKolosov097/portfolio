@@ -3,12 +3,12 @@ import { ILanguageItem } from '@/types/header.type'
 
 export const paddingFromTopAfterScroll = 85
 
-export enum ELanguage {
+export const enum ELanguage {
   en = 'en',
   ru = 'ru',
 }
 
-export enum ETabID {
+export const enum ETabID {
   home = 'home',
   portfolio = 'portfolio',
   aboutMe = 'aboutMe',
