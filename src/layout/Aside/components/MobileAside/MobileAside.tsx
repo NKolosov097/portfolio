@@ -2,11 +2,11 @@
 
 import { useCallback } from 'react'
 
-import styles from '@/components/Aside/aside.module.css'
+import styles from '@/layout/Aside/aside.module.css'
 
 import { Drawer, DrawerItem } from '@gravity-ui/navigation'
 
-import { AsideContent } from '@/components/Aside/components/AsideContent/AsideContent'
+import { AsideContent } from '@/layout/Aside/components/AsideContent/AsideContent'
 
 import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 

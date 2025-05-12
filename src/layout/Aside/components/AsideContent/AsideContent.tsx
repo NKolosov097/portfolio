@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import styles from '@/components/Aside/aside.module.css'
+import styles from '@/layout/Aside/aside.module.css'
 
 import { Ghost } from '@gravity-ui/icons'
 

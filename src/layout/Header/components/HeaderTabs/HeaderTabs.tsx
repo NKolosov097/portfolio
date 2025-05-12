@@ -1,6 +1,6 @@
 'use client'
 
-import styles from '@/components/Header/Header.module.css'
+import styles from '@/layout/Header/Header.module.css'
 
 import { useCallback, useEffect, useMemo } from 'react'
 import { usePathname } from 'next/navigation'

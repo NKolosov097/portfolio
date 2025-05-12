@@ -1,0 +1,12 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  min-height: calc(var(--aside-max-height) - var(--header-height));
+  margin-top: 25px;
+  margin-bottom: calc(100vh - var(--aside-max-height));
+
+  text-align: center;
+}

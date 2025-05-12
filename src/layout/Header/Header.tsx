@@ -2,7 +2,7 @@ import styles from './Header.module.css'
 
 import { HeaderTabs } from './components/HeaderTabs/HeaderTabs'
 import { LanguageSwitcher } from './components/SwitchLanguage/SwitchLanguage'
-import { MobileAside } from '@/components/Aside/components/MobileAside/MobileAside'
+import { MobileAside } from '@/layout/Aside/components/MobileAside/MobileAside'
 
 export const Header = () => {
   return (
