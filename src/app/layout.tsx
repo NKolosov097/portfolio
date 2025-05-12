@@ -15,6 +15,8 @@ import { Header } from '@/layout/Header/Header'
 import { Main } from '@/layout/Main/Main'
 import { Footer } from '@/layout/Footer/Footer'
 
+import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
+
 const theme = 'dark'
 const rootClassName = getRootClassName({ theme })
 
@@ -54,9 +56,9 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: PropsWithChildren) {
   return (
-    <Suspense>
+    <Suspense fallback={<LoaderSection />}>
       <Providers>
-        <body className={rootClassName} suppressHydrationWarning={true}>
+        <body className={rootClassName}>
           {/* <SkipToNavigationLink /> */}
 
           <Aside />
