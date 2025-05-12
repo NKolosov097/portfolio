@@ -8,8 +8,8 @@ import { ELanguage } from '@/constants/header.constants'
 import en from '@public/locales/en.json'
 import ru from '@public/locales/ru.json'
 
-const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window?.location?.search : {})
-const lng = urlParams?.get('lang') || ELanguage.en
+// const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window?.location?.search : {})
+// const lng = urlParams?.get('lang') || ELanguage.en
 
 i18n
   // .use(Backend)
@@ -24,7 +24,7 @@ i18n
         translation: ru,
       },
     },
-    lng,
+    lng: ELanguage.en,
     fallbackLng: ELanguage.en,
     interpolation: {
       escapeValue: false,
