@@ -1,6 +1,6 @@
 import i18n from 'i18next'
-// import Backend from 'i18next-http-backend'
-// import LanguageDetector from 'i18next-browser-languagedetector'
+import Backend from 'i18next-http-backend'
+import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
 import { ELanguage } from '@/constants/header.constants'
@@ -12,8 +12,8 @@ import ru from '@public/locales/ru.json'
 // const lng = urlParams?.get('lang') || ELanguage.en
 
 i18n
-  // .use(Backend)
-  // .use(LanguageDetector)
+  .use(Backend)
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {

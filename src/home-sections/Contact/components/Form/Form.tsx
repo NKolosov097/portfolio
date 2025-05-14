@@ -58,7 +58,7 @@ export const Form = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className={styles?.form}>
       <div className={styles.container}>
         <TextInput
           {...register('name')}
