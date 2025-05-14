@@ -4,7 +4,7 @@ import { exec } from 'child_process'
 
 const SECRET = 'GITHUB_WEBHOOK_SECRET_KEY_BY_NKOLOSOV' // Должен совпадать с GitHub Webhook Secret
 const PORT = 3001 // Порт для вебхука (не должен конфликтовать с Next.js)
-const APP_DIR = '~/portfolio' // Путь к проекту
+const APP_DIR = '~/portfolio'
 
 const server = createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/webhook') {
