@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Env Vars
-SECRET_KEY="my-secret" # for the demo app
-NEXT_PUBLIC_SAFE_KEY="safe-key" # for the demo app
+SECRET_KEY="my-secret" 
+NEXT_PUBLIC_SAFE_KEY="safe-key" 
 DOMAIN_NAME="nkolosov.com"
 EMAIL="n.kolosov2003@mail.ru"
 
@@ -33,7 +33,7 @@ echo "Installing Docker dependencies..."
 sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
 
 echo "Adding Docker repository..."
-# Remove any existing Ubuntu repository entries
+# Remove any existing Debian repository entries
 sudo rm -f /etc/apt/sources.list.d/docker*.list
 # Add correct Debian repository
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
