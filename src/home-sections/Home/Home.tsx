@@ -10,6 +10,8 @@ import { Tag } from '@/components/Tag/Tag'
 export const Home = () => {
   const { t } = useTranslation()
 
+  console.log('TESTING CONSOLE.LOG')
+
   return (
     <section id={ETabID.home} className={styles.section}>
       <Tag title={t('headerTabs.home')} />
