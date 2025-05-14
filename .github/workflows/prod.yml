@@ -1,0 +1,20 @@
+name: prod
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: debian-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: ./deploy.sh
