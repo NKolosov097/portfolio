@@ -6,7 +6,7 @@ const { exec } = require('child_process')
 
 const SECRET = 'GITHUB_WEBHOOK_SECRET_KEY_BY_NKOLOSOV'
 const PORT = 3001
-const APP_DIR = '/root/portfolio' // Исправлено: ~ не работает в Node.js
+const APP_DIR = '/root/portfolio'
 
 const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/webhook') {
