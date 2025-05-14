@@ -1,52 +1,59 @@
-import { createServer } from 'http'
-import { createHmac } from 'crypto'
-import { exec } from 'child_process'
+'use strict'
 
-const SECRET = 'GITHUB_WEBHOOK_SECRET_KEY_BY_NKOLOSOV' // Должен совпадать с GitHub Webhook Secret
-const PORT = 3001 // Порт для вебхука (не должен конфликтовать с Next.js)
-const APP_DIR = '~/portfolio' // Путь к проекту
+const http = require('http')
+const crypto = require('crypto')
+const { exec } = require('child_process')
 
-const server = createServer((req, res) => {
+const SECRET = 'GITHUB_WEBHOOK_SECRET_KEY_BY_NKOLOSOV'
+const PORT = 3001
+const APP_DIR = '/root/portfolio' // Исправлено: ~ не работает в Node.js
+
+const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/webhook') {
     let body = ''
     req.on('data', (chunk) => (body += chunk))
     req.on('end', () => {
-      const sig = req.headers['x-hub-signature-256'] || ''
-      const hmac = createHmac('sha256', SECRET)
-      const digest = hmac.update(body).digest('hex')
-      const calculatedSig = `sha256=${digest}`
+      try {
+        const sig = req.headers['x-hub-signature-256'] || ''
+        const hmac = crypto.createHmac('sha256', SECRET)
+        const digest = hmac.update(body).digest('hex')
+        const calculatedSig = `sha256=${digest}`
 
-      if (sig !== calculatedSig) {
-        console.error('⚠️ Invalid signature')
-        res.writeHead(403, { 'Content-Type': 'text/plain' })
-        return res.end('Forbidden')
-      }
+        if (sig !== calculatedSig) {
+          console.error('⚠️ Invalid signature')
+          return res.writeHead(403).end('Forbidden')
+        }
 
-      const payload = JSON.parse(body)
-      if (payload.ref === 'refs/heads/main') {
-        console.log('🔔 Received push to main branch, rebuilding...')
+        const payload = JSON.parse(body)
+        if (payload.ref === 'refs/heads/main') {
+          console.log('🔔 Received push to main branch, rebuilding...')
 
-        exec(
-          `cd ${APP_DIR} && docker-compose down && docker-compose up --build -d`,
-          (err, stdout) => {
-            if (err) {
-              console.error('❌ Rebuild failed:', err)
-              res.writeHead(500, { 'Content-Type': 'text/plain' })
-              return res.end('Rebuild failed')
-            }
-            console.log('✅ Rebuild successful:', stdout)
-            res.writeHead(200, { 'Content-Type': 'text/plain' })
-            res.end('Rebuild OK')
-          },
-        )
-      } else {
-        res.writeHead(200, { 'Content-Type': 'text/plain' })
-        res.end('Ignoring non-main branch push')
+          // Добавляем подробное логирование
+          const buildProcess = exec(
+            `cd ${APP_DIR} && docker-compose down && docker-compose up --build -d`,
+            (err, stdout, stderr) => {
+              if (err) {
+                console.error('❌ Rebuild failed:', err, stderr)
+                return res.writeHead(500).end('Rebuild failed')
+              }
+              console.log('✅ Rebuild successful:', stdout)
+              res.writeHead(200).end('Rebuild OK')
+            },
+          )
+
+          // Логирование в реальном времени
+          buildProcess.stdout.on('data', (data) => console.log(data.toString()))
+          buildProcess.stderr.on('data', (data) => console.error(data.toString()))
+        } else {
+          res.writeHead(200).end('Ignoring non-main branch push')
+        }
+      } catch (e) {
+        console.error('⚠️ Error:', e)
+        res.writeHead(500).end('Internal error')
       }
     })
   } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' })
-    res.end('Not found')
+    res.writeHead(404).end('Not found')
   }
 })
 

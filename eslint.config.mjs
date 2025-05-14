@@ -85,6 +85,7 @@ export default defineConfig([
       '*.d.ts',
       '*.config.js',
       '*.config.mjs',
+      'webhook.js',
     ],
   },
 ])
