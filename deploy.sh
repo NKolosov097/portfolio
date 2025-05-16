@@ -134,6 +134,19 @@ server {
 
     limit_req zone=mylimit burst=20 nodelay;
 
+    location /_next/static/ {
+        alias ~/portfolio/.next/static/;
+        expires 365d;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /static/ {
+        alias ~/portfolio/public/static/;
+        expires 30d;
+        access_log off;
+    }
+
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
