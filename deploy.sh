@@ -115,55 +115,55 @@ fi
 # Create Nginx config
 echo "Creating Nginx configuration..."
 sudo tee /etc/nginx/sites-available/portfolio > /dev/null <<EOL
-limit_req_zone \$binary_remote_addr zone=mylimit:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=mylimit:10m rate=10r/s;
 
 server {
     listen 80;
-    server_name $DOMAIN_NAME;
-    return 301 https://\$host\$request_uri;
+    server_name nkolosov.com;
+    return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name $DOMAIN_NAME;
+    server_name nkolosov.com;
 
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/nkolosov.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/nkolosov.com/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
     limit_req zone=mylimit burst=20 nodelay;
 
-    location /_next/static/ {
-        alias ~/portfolio/.next/static/;
-        expires 365d;
-        access_log off;
-        add_header Cache-Control "public, immutable";
-    }
+#    location /_next/static/ {
+#        alias ~/portfolio/.next/static/;
+#        expires 365d;
+#        access_log off;
+#        add_header Cache-Control "public, immutable";
+#    }
 
-    location /static/ {
-        alias ~/portfolio/public/static/;
-        expires 30d;
-        access_log off;
-    }
+#    location /static/ {
+#        alias ~/portfolio/public/static/;
+#        expires 30d;
+#        access_log off;
+#    }
 
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
         proxy_buffering off;
         proxy_set_header X-Accel-Buffering no;
     }
 
     location /hooks/ {
         proxy_pass http://127.0.0.1:9000/hooks/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+#        proxy_set_header Host ;
+#        proxy_set_header X-Real-IP ;
+#        proxy_set_header X-Forwarded-For ;
+#        proxy_set_header X-Forwarded-Proto ;
     }
 }
 EOL
