@@ -26,4 +26,3 @@ jobs:
             pnpm install
             pnpm run build
             pm2 restart portfolio || pm2 start --name portfolio pnpm -- start
-            pnpm run start
