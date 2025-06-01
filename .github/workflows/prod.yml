@@ -17,12 +17,11 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          script: export NVM_DIR=~/.nvm
+          script: |
+            export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
-            node -v
             cd /var/www/portfolio
             git pull origin main
             pnpm install
             pnpm run build
-            kill -9 `lsof -t -i:80`
             pnpm run start
