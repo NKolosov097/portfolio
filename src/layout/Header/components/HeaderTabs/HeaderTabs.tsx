@@ -26,8 +26,6 @@ export const HeaderTabs = () => {
   const { currentTab, setCurrentTab, isClicked, setIsClicked } = useHeaderStore((state) => state)
   const { setIsOpenDrawer } = useAsideStore((state) => state)
 
-  console.log('WE HERE DOUBLE CRYA')
-
   const tabs: ITab[] = useMemo(
     () => [
       {

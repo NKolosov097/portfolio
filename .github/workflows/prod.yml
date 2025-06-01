@@ -1,0 +1,28 @@
+name: prod
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            node -v
+            cd ~/autodeploy-min
+            git pull origin main
+            pnpm install
+            pnpm run build
+            kill -9 `lsof -t -i:80`
+            pnpm run start
