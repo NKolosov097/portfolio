@@ -20,7 +20,7 @@ jobs:
           script: export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
             node -v
-            cd ~/autodeploy-min
+            cd /var/www/portfolio
             git pull origin main
             pnpm install
             pnpm run build
