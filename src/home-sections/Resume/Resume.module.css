@@ -110,3 +110,10 @@
 
   font-size: 0.9rem;
 }
+
+@media screen and (width <= 1024px) {
+  .section {
+    justify-content: center;
+    align-items: center;
+  }
+}

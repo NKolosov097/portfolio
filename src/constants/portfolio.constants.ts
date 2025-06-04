@@ -1,4 +1,4 @@
-import { IProject } from '@/types/portfolio.type'
+import { IProject } from '@/home-sections/Portfolio/types/portfolio.type'
 
 export const projects: IProject[] = [
   {

@@ -1,4 +1,4 @@
-import { IAsideSocialLink } from '@/types/aside.type'
+import { IAsideSocialLink } from '@/layout/Aside/types/aside.type'
 import Image from 'next/image'
 
 export const asideSocialLinks: IAsideSocialLink[] = [

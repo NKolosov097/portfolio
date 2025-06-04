@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { getContactSchema } from '@/schemas/Contact/Contact.schema'
+import { getContactSchema } from '@/home-sections/Contact/schemas/send-message.schema'
 
 export const defaultContactForm: z.infer<ReturnType<typeof getContactSchema>> = {
   name: '',

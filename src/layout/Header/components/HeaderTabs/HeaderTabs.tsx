@@ -14,7 +14,7 @@ import { Person } from '@gravity-ui/icons'
 import { ETabID, paddingFromTopAfterScroll } from '@/constants/header.constants'
 import { getElementPosition, scrollTo } from '@/helpers/scrollTo'
 
-import { IPosition } from '@/types/header.type'
+import { IPosition } from '@/layout/Header/types/header.type'
 
 import { useHeaderStore } from '@/providers/stores/HeaderStore.provider'
 import { useAsideStore } from '@/providers/stores/AsideStore.provider'

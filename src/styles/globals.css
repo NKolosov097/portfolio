@@ -200,6 +200,7 @@ main {
       var(--body-horizontal-gap) - 5px
   );
   min-height: calc(100vh - var(--min-height-footer));
+  height: max-content;
   grid-area: main;
 
   margin: 0 auto;

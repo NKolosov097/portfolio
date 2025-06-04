@@ -1,16 +1,17 @@
-/* eslint-disable no-unused-vars */
-
 import styles from '@/home-sections/Resume/Resume.module.css'
 
 import Image from 'next/image'
 // eslint-disable-next-line import/named
 import { TableColumnConfig } from '@gravity-ui/uikit'
 
-import { IFavoriteTool } from '@/types/resume.type'
+import { IFavoriteTool } from '@/home-sections/Resume/types/resume.type'
 
 export const enum EEducationTableColumn {
+  // eslint-disable-next-line no-unused-vars
   years = 'years',
+  // eslint-disable-next-line no-unused-vars
   title = 'title',
+  // eslint-disable-next-line no-unused-vars
   description = 'description',
 }
 

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { ILanguageItem } from '@/types/header.type'
+import { ILanguageItem } from '@/layout/Header/types/header.type'
 
 export const paddingFromTopAfterScroll = 85
 

@@ -11,7 +11,7 @@ import { Globe } from '@gravity-ui/icons'
 import { I18nContext } from '@/contexts/i18'
 
 import { ELanguage, languages } from '@/constants/header.constants'
-import { ISwitcherLanguageProps } from '@/types/header.type'
+import { ISwitcherLanguageProps } from '@/layout/Header/types/header.type'
 
 const Switcher = (props: ISwitcherLanguageProps) => (
   <Button {...props} aria-label="change language" size="l" view="flat">

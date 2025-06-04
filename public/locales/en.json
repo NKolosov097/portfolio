@@ -97,6 +97,7 @@
     "requireMessage": "Enter a message to developer 🙂",
     "invalidTypeOfMessage": "A message could be only string",
 
-    "sendMessage": "Send message"
+    "sendMessage": "Send message",
+    "successfulSubmitTitle": "The message was sent successfully! Thanks 😉"
   }
 }

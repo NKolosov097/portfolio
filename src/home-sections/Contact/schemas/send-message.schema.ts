@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { IContactSchema } from '@/types/contact.types'
+import { IContactSchema } from '@/home-sections/Contact/types/contact.type'
 
 export const getContactSchema = (errorsMsgs: IContactSchema) =>
   z.object({

@@ -1,6 +1,6 @@
 import styles from '@/home-sections/AboutMe/AboutMe.module.css'
 
-import { IAdvantage } from '@/types/aboutMe.type'
+import { IAdvantage } from '@/home-sections/AboutMe/types/aboutMe.type'
 
 export const Advantage = ({ title, description }: IAdvantage) => {
   return (

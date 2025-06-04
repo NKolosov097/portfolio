@@ -12,7 +12,7 @@ import { Advantage } from './components/Advantage/Advantage'
 
 import { ETabID } from '@/constants/header.constants'
 import { phone, email } from '@/constants/constants'
-import { IAdvantage } from '@/types/aboutMe.type'
+import { IAdvantage } from '@/home-sections/AboutMe/types/aboutMe.type'
 import { copyTextToClipboard } from '@/helpers/clipboard'
 
 interface ICopyTooltipText {
