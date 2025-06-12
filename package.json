@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.28.0",
     "@gravity-ui/browserslist-config": "^4.3.0",
     "@gravity-ui/components": "^4.1.2",
     "@gravity-ui/uikit": "^7.10.0",

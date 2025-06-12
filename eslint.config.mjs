@@ -86,6 +86,9 @@ export default defineConfig([
       '*.config.js',
       '*.config.mjs',
       'webhook.js',
+      'prisma/@',
+      'prisma/migrations',
+      'src/generated',
     ],
   },
 ])
