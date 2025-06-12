@@ -85,8 +85,8 @@
     "incorrectEmail": "Incorrect Email",
 
     "labelOfCompany": "Company",
-    "placeholderOfCompanyName": "NKolosov Company",
-    "invalidTypeOfCompanyName": "A company name could be only string",
+    "placeholderOfcompany": "NKolosov Company",
+    "invalidTypeOfcompany": "A company name could be only string",
 
     "labelOfProfession": "Profession",
     "placeholderOfProfession": "Super Cool CEO",

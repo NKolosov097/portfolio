@@ -18,9 +18,9 @@ export const getContactSchema = (errorsMsgs: IContactSchema) =>
       })
       ?.trim()
       .email({ message: errorsMsgs?.email?.incorrectEmail }),
-    companyName: z
+    company: z
       .string({
-        invalid_type_error: errorsMsgs?.companyName?.invalidType,
+        invalid_type_error: errorsMsgs?.company?.invalidType,
       })
       ?.trim(),
     profession: z

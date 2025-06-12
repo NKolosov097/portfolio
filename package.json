@@ -16,11 +16,16 @@
     "lint": "npm run lint:js && npm run lint:styles && npm run lint:prettier && next lint",
     "format": "prettier --write ."
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@bem-react/classname": "^1.6.0",
     "@gravity-ui/icons": "^2.13.0",
     "@gravity-ui/navigation": "^3.3.4",
     "@hookform/resolvers": "^5.0.1",
+    "@prisma/client": "^6.9.0",
+    "@prisma/extension-accelerate": "^2.0.1",
     "axios": "^1.9.0",
     "bem-cn-lite": "^4.1.0",
     "i18next": "^25.0.2",
@@ -53,9 +58,11 @@
     "eslint-plugin-prettier": "^5.3.1",
     "husky": "^8.0.3",
     "prettier": "^3.5.3",
+    "prisma": "^6.9.0",
     "stylelint": "^16.19.1",
     "stylelint-config-prettier-scss": "^1.0.0",
     "stylelint-config-standard-scss": "^14.0.0",
+    "tsx": "^4.20.1",
     "typescript": "^5.8.3"
   },
   "engines": {

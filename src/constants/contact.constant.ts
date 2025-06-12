@@ -5,7 +5,7 @@ import { getContactSchema } from '@/home-sections/Contact/schemas/send-message.s
 export const defaultContactForm: z.infer<ReturnType<typeof getContactSchema>> = {
   name: '',
   email: '',
-  companyName: '',
+  company: '',
   profession: '',
   message: '',
 }

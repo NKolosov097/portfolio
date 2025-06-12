@@ -85,8 +85,8 @@
     "incorrectEmail": "Некорректный Email",
 
     "labelOfCompany": "Компания",
-    "placeholderOfCompanyName": "NKolosov Company",
-    "invalidTypeOfCompanyName": "Название компании может быть только строкой",
+    "placeholderOfcompany": "NKolosov Company",
+    "invalidTypeOfcompany": "Название компании может быть только строкой",
 
     "labelOfProfession": "Профессия",
     "placeholderOfProfession": "Супер Пупер CEO",

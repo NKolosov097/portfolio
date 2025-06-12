@@ -32,8 +32,8 @@ export const Form = () => {
         requireEmail: t('contact.requireEmail'),
         incorrectEmail: t('contact.incorrectEmail'),
       },
-      companyName: {
-        invalidType: t('contact.invalidTypeOfCompanyName'),
+      company: {
+        invalidType: t('contact.invalidTypeOfcompany'),
       },
       profession: {
         invalidType: t('contact.invalidTypeOfProfession'),
@@ -120,12 +120,12 @@ export const Form = () => {
         />
 
         <TextInput
-          {...register('companyName')}
+          {...register('company')}
           label={t('contact.labelOfCompany')}
           className={styles.company}
-          placeholder={t('contact.placeholderOfCompanyName')}
-          error={!!errors?.companyName?.message}
-          errorMessage={errors?.companyName?.message}
+          placeholder={t('contact.placeholderOfcompany')}
+          error={!!errors?.company?.message}
+          errorMessage={errors?.company?.message}
           disabled={isLoading}
           errorPlacement="outside"
           view="clear"

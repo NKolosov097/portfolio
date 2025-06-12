@@ -7,7 +7,7 @@ export interface IContactSchema {
     requireEmail: string
     incorrectEmail: string
   }
-  companyName: {
+  company: {
     invalidType: string
   }
   profession: {
