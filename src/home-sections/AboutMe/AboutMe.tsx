@@ -52,7 +52,7 @@ export const AboutMe = () => {
       },
       {
         id: 'yearsOfExperience',
-        title: '2+',
+        title: '4+',
         description: t('aboutMe.yearsOfExperience'),
       },
       {

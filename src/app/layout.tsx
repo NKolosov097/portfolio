@@ -1,7 +1,7 @@
 import { PropsWithChildren, Suspense } from 'react'
-import type { Metadata, Viewport } from 'next'
-
 import { ToastContainer } from 'react-toastify'
+import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
 
 import '@gravity-ui/uikit/styles/fonts.css'
 import '@gravity-ui/uikit/styles/styles.css'
@@ -17,6 +17,13 @@ import { Footer } from '@/layout/Footer/Footer'
 
 import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
 
+const inter = Inter({
+  weight: ['400', '600', '700'],
+  style: ['normal'],
+  subsets: ['latin', 'cyrillic'],
+  display: 'swap',
+})
+
 const theme = 'dark'
 const rootClassName = getRootClassName({ theme })
 
@@ -24,8 +31,6 @@ export const metadata: Metadata = {
   title: 'Portfolio NKolosov097',
   description: 'Portfolio about super developer @NKolosov097!',
   metadataBase: new URL('https://nkolosov.com'),
-
-  // Open Graph - for social network
   openGraph: {
     title: 'Portfolio NKolosov097',
     description: 'Portfolio about super developer @NKolosov097!',
@@ -33,13 +38,21 @@ export const metadata: Metadata = {
     siteName: 'NKolosov097 Portfolio',
     images: [
       {
-        url: '/og-image.jpg', // или { url: "...", width: 1200, height: 630 }
+        url: '/og-image.jpg',
         width: 800,
         height: 600,
       },
     ],
     locale: 'en_US',
     type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 }
 
@@ -54,21 +67,20 @@ export const viewport: Viewport = {
   viewportFit: 'auto',
 }
 
-export default async function RootLayout({ children }: PropsWithChildren) {
+export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <Suspense fallback={<LoaderSection />}>
-      <Providers>
-        <body className={rootClassName}>
-          {/* <SkipToNavigationLink /> */}
-
-          <Aside />
-          <Header />
-          <Main>{children}</Main>
-          <Footer />
-
-          <ToastContainer />
-        </body>
-      </Providers>
-    </Suspense>
+    <html lang="en" className={inter.className} suppressHydrationWarning>
+      <body className={rootClassName}>
+        <Suspense fallback={<LoaderSection />}>
+          <Providers>
+            <Aside />
+            <Header />
+            <Main>{children}</Main>
+            <Footer />
+            <ToastContainer />
+          </Providers>
+        </Suspense>
+      </body>
+    </html>
   )
 }

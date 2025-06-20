@@ -17,7 +17,7 @@ export const Home = () => {
       <h2 className={styles.header}>
         {t('Im')} {t('firstName')} {t('lastName')}
       </h2>
-      <h3 className={styles.profession}>Front-end Developer</h3>
+      <h3 className={styles.profession}>Fullstack Developer</h3>
     </section>
   )
 }

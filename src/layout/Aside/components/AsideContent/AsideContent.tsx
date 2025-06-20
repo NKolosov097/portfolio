@@ -37,7 +37,7 @@ export const AsideContent = () => {
 
       <div className={styles.block}>
         <h2>{t('aside.specialization')}: </h2>
-        <p>Front-end Developer</p>
+        <p>Fullstack Developer</p>
       </div>
 
       <div className={styles.block}>
