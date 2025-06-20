@@ -17,7 +17,7 @@
     "format": "prettier --write ."
   },
   "prisma": {
-    "seed": "tsx ./prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@bem-react/classname": "^1.6.0",
