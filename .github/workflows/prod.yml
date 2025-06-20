@@ -18,10 +18,41 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            # Настройка окружения
             export NVM_DIR=~/.nvm
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export NODE_ENV=production
+
+            # Переход в директорию проекта
             cd /var/www/portfolio
+
+            # Вывод информации для диагностики
+            echo "Current directory: $(pwd)"
+            echo "Node version: $(node -v)"
+
+            # Обновление кода из репозитория
             git pull origin main
+
+            # Установка зависимостей
             pnpm install
+
+            # Сборка проекта
+            echo "Starting build process..."
             pnpm run build
-            pm2 restart portfolio || pm2 start --name portfolio pnpm -- start
+
+            # Проверка успешности сборки
+            if [ ! -d ".next" ]; then
+              echo "Build failed, .next directory not found"
+              exit 1
+            fi
+
+            echo "Contents of .next directory after build:"
+            ls -la .next
+
+            # Перезапуск приложения с помощью PM2
+            echo "Restarting application with PM2..."
+            pm2 delete portfolio || true
+            pm2 start "pnpm start" --name portfolio --cwd /var/www/portfolio
+            pm2 save
+
+            echo "Deployment completed successfully"
