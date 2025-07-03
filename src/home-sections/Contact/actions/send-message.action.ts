@@ -92,7 +92,9 @@ export async function sendMessage(
       sendTo: parsed.data.email,
       subject: 'Message was sent to NKolosov',
       text: 'Thank you so much for sending me message! I really appreciate it! Have a nice day 🙃',
-      html: await getContactMailHtml(parsed.data.message),
+      html: await getContactMailHtml(parsed.data.message).catch((error) => {
+        console.error('Error with getting contact mail html: ', error)
+      }),
     })
   } catch (error) {
     console.error('Error with sending mail: ', error)
