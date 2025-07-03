@@ -6,6 +6,7 @@ import { getContactSchema } from '@/home-sections/Contact/schemas/send-message.s
 import { IContactSchema } from '@/home-sections/Contact/types/contact.type'
 
 import prisma from '@/lib/prisma'
+import { getContactMailHtml, sendMail } from '@/lib/mail'
 
 export interface ISendMessageFormState {
   success: boolean
@@ -84,6 +85,17 @@ export async function sendMessage(
         errors: { globalError: [errorMsg] },
       }
     }
+  }
+
+  try {
+    await sendMail({
+      sendTo: parsed.data.email,
+      subject: 'Message was sent to NKolosov',
+      text: 'Thank you so much for sending me message! I really appreciate it! Have a nice day 🙃',
+      html: await getContactMailHtml(parsed.data.message),
+    })
+  } catch (error) {
+    console.error('Error with sending mail: ', error)
   }
 
   return {

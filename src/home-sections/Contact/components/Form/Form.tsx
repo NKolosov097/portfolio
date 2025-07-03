@@ -7,7 +7,7 @@ import { Button, Loader, TextArea, TextInput } from '@gravity-ui/uikit'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import { defaultContactForm } from '@/constants/contact.constant'
+import { defaultContactForm } from '@/constants/contact.constants'
 
 import { getContactSchema } from '@/home-sections/Contact/schemas/send-message.schema'
 import { IContactSchema } from '@/home-sections/Contact/types/contact.type'
@@ -70,7 +70,7 @@ export const Form = () => {
     let timeoutId: NodeJS.Timeout | null = null
 
     if (isSubmitSuccessful && formState.success) {
-      timeoutId = setTimeout(reset, 3500)
+      // timeoutId = setTimeout(reset, 3500)
     }
 
     return () => {

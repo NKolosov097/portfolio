@@ -70,7 +70,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
-      <body className={rootClassName}>
+      <body className={rootClassName} suppressHydrationWarning>
         <Suspense fallback={<LoaderSection />}>
           <Providers>
             <Aside />
