@@ -70,7 +70,7 @@ export const Form = () => {
     let timeoutId: NodeJS.Timeout | null = null
 
     if (isSubmitSuccessful && formState.success) {
-      // timeoutId = setTimeout(reset, 3500)
+      timeoutId = setTimeout(reset, 3500)
     }
 
     return () => {
