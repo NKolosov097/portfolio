@@ -1,11 +1,12 @@
 'use client'
 
 import Image from 'next/image'
+import { useTranslation } from 'react-i18next'
+
 import styles from '@/layout/Aside/aside.module.css'
 
 import { Ghost } from '@gravity-ui/icons'
 
-import { useTranslation } from 'react-i18next'
 import { asideSocialLinks } from '@/constants/aside.constants'
 
 export const AsideContent = () => {
@@ -35,20 +36,22 @@ export const AsideContent = () => {
         />
       </div>
 
-      <div className={styles.block}>
-        <h2>{t('aside.specialization')}: </h2>
-        <p>Fullstack Developer</p>
-      </div>
+      <ul className={styles.list}>
+        <li className={styles.block}>
+          <h2>{t('aside.specialization')}: </h2>
+          <p>Fullstack Developer</p>
+        </li>
 
-      <div className={styles.block}>
-        <h2>{t('aside.basedIn')}: </h2>
-        <p>{t('aside.basedInPlace')}</p>
-      </div>
+        <li className={styles.block}>
+          <h2>{t('aside.basedIn')}: </h2>
+          <p>{t('aside.basedInPlace')}</p>
+        </li>
 
-      <div className={styles.block}>
-        <h2>{t('aside.fullYears')}: </h2>
-        <p>22 y.o.</p>
-      </div>
+        <li className={styles.block}>
+          <h2>{t('aside.fullYears')}: </h2>
+          <p>22 y.o.</p>
+        </li>
+      </ul>
 
       <nav className={styles.nav}>
         <ul>

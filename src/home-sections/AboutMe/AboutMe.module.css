@@ -145,3 +145,9 @@
     align-items: center;
   }
 }
+
+@media screen and (width <= 400px) {
+  .contentContactDescription {
+    flex-wrap: wrap;
+  }
+}

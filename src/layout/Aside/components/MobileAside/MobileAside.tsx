@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 
 import styles from '@/layout/Aside/aside.module.css'
 
@@ -15,6 +15,20 @@ export const MobileAside = () => {
 
   const handleCloseDrawer = useCallback(() => {
     setIsOpenDrawer(false)
+  }, [])
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024) {
+        setIsOpenDrawer(false)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   return (

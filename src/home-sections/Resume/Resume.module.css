@@ -31,6 +31,10 @@
   line-height: 2rem;
 }
 
+.educationTable {
+  max-width: calc(100vw - 2 * var(--body-padding));
+}
+
 .educationTable > table {
   width: 100%;
 }

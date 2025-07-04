@@ -106,9 +106,9 @@ body:not(.error-body) {
 
   display: grid;
   grid-template:
-    'aside main'
-    'footer footer' 1fr / var(--aside-width) 1fr;
-  gap: 0 var(--body-horizontal-gap);
+    'main main'
+    'footer footer' 1fr / 1fr;
+  gap: 0;
 
   padding: var(--header-height) var(--body-padding) 0;
 }
@@ -178,27 +178,21 @@ body:not(.error-body) {
 }
 
 aside {
-  position: sticky;
-  top: calc(var(--header-height));
+  position: fixed;
+  top: 50%;
   left: var(--body-padding);
-
-  grid-area: aside;
+  transform: translateY(-50%);
+  max-height: 700px;
+  height: 100%;
   display: flex;
-
-  width: 100%;
-  max-height: var(--aside-max-height);
-  height: 100vh;
 
   border-radius: 20px;
 }
 
 main {
-  /* stylelint-disable-next-line value-no-vendor-prefix */
-  min-width: -webkit-fill-available;
-  max-width: calc(
-    var(--max-width) - var(--body-padding) - var(--body-padding) - var(--aside-width) -
-      var(--body-horizontal-gap) - 5px
-  );
+  position: sticky;
+  left: calc(var(--aside-width) + 4 * var(--body-padding) + 1px + 1px);
+  max-width: calc(var(--max-width) - var(--aside-width) - 4 * var(--body-padding));
   min-height: calc(100vh - var(--min-height-footer));
   height: max-content;
   grid-area: main;
@@ -262,6 +256,14 @@ footer,
 .gn-drawer > .gn-drawer__item {
   position: fixed;
   z-index: 1;
+}
+
+@media screen and (height <= 740px) {
+  aside {
+    top: var(--body-padding);
+    bottom: var(--body-padding);
+    transform: translateY(0);
+  }
 }
 
 @media screen and (width <= 1440px) {

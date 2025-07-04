@@ -1,22 +1,17 @@
 .header {
   position: fixed;
   top: 0;
-  left: 0;
+  /* 1px - border of aside */
+  left: calc(var(--aside-width) + var(--body-padding) + 1px + 1px);
   right: 0;
-
   max-width: var(--max-width);
-  width: 100%;
-
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-
   background-color: var(--root-bg-color);
-
   padding: var(--body-padding);
   margin: 0 auto;
-
   z-index: 1;
 }
 
@@ -26,12 +21,18 @@
 }
 
 .header .drawerBtn {
+  display: none;
   opacity: 0;
   pointer-events: none;
 }
 
 @media screen and (width <= 1024px) {
+  .header {
+    left: 0;
+  }
+
   .header .drawerBtn {
+    display: block;
     opacity: 1;
     pointer-events: all;
   }

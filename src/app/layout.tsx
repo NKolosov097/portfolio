@@ -73,8 +73,8 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <body className={rootClassName} suppressHydrationWarning>
         <Suspense fallback={<LoaderSection />}>
           <Providers>
-            <Aside />
             <Header />
+            <Aside />
             <Main>{children}</Main>
             <Footer />
             <ToastContainer />
