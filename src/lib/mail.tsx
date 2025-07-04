@@ -13,8 +13,8 @@ import {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   host: SMTP_SERVER_HOST,
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
   auth: {
     user: SMTP_SERVER_USERNAME,
     pass: SMTP_SERVER_PASSWORD,
