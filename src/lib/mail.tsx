@@ -13,8 +13,8 @@ import {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   host: SMTP_SERVER_HOST,
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
   auth: {
     user: SMTP_SERVER_USERNAME,
     pass: SMTP_SERVER_PASSWORD,
@@ -39,41 +39,45 @@ export const sendMail = async ({
     return
   }
 
-  const info = await transporter
-    .sendMail({
-      from: SMTP_SERVER_USERNAME,
-      to: sendTo || SITE_MAIL_RECIEVER,
-      subject: subject,
-      text: text,
-      html: html ?? '',
-    })
-    .then((res) => {
-      console.log('Message was sent. Info: ', res)
-      return res
-    })
-    .catch((error) => {
-      console.error('Error with sending mail: ', error)
-      return error
-    })
+  try {
+    const info = await transporter
+      .sendMail({
+        from: SMTP_SERVER_USERNAME,
+        to: sendTo || SITE_MAIL_RECIEVER,
+        subject: subject,
+        text: text,
+        html: html ?? '',
+      })
+      .then((res) => {
+        console.log('Message was sent. Info: ', res)
+        return res
+      })
+      .catch((error) => {
+        console.error('Error with sending mail: ', error)
+        return error
+      })
 
-  await transporter
-    .sendMail({
-      from: SMTP_SERVER_USERNAME,
-      to: SITE_MAIL_RECIEVER,
-      subject: subject,
-      text: text,
-      html: html ?? '',
-    })
-    .then((res) => {
-      console.log('Message was sent. Info: ', res)
-      return res
-    })
-    .catch((error) => {
-      console.error('Error with sending mail: ', error)
-      return error
-    })
+    await transporter
+      .sendMail({
+        from: SMTP_SERVER_USERNAME,
+        to: SITE_MAIL_RECIEVER,
+        subject: subject,
+        text: text,
+        html: html ?? '',
+      })
+      .then((res) => {
+        console.log('Message was sent. Info: ', res)
+        return res
+      })
+      .catch((error) => {
+        console.error('Error with sending mail: ', error)
+        return error
+      })
 
-  return info
+    return info
+  } catch (error) {
+    console.error('Error with sending nail: ', error)
+  }
 }
 
 export const getContactMailHtml = async (message: string) => `
