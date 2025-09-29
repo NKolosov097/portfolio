@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database для разработки
+  postgres:
+    image: postgres:16-alpine
+    container_name: portfolio_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-dev_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    networks:
+      - portfolio_dev_network
+
+  # Redis для разработки
+  redis:
+    image: redis:7-alpine
+    container_name: portfolio_redis_dev
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6380}:6379'
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - portfolio_dev_network
+
+  # Adminer для управления БД
+  adminer:
+    image: adminer:latest
+    container_name: portfolio_adminer
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - '${ADMINER_PORT:-8080}:8080'
+    networks:
+      - portfolio_dev_network
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+networks:
+  portfolio_dev_network:
+    driver: bridge

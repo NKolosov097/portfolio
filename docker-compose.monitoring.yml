@@ -1,0 +1,99 @@
+# Мониторинг и метрики
+# Для активации: docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+
+version: '3.8'
+
+services:
+  # Prometheus для сбора метрик
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: portfolio_prometheus
+    restart: unless-stopped
+    ports:
+      - '${PROMETHEUS_PORT:-9090}:9090'
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - portfolio_network
+    profiles:
+      - monitoring
+
+  # Grafana для визуализации
+  grafana:
+    image: grafana/grafana:latest
+    container_name: portfolio_grafana
+    restart: unless-stopped
+    ports:
+      - '${GRAFANA_PORT:-3001}:3000'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=monitoring.nkolosov.com
+      - GF_SERVER_ROOT_URL=https://monitoring.nkolosov.com
+    networks:
+      - portfolio_network
+    profiles:
+      - monitoring
+
+  # Node Exporter для системных метрик
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: portfolio_node_exporter
+    restart: unless-stopped
+    ports:
+      - '9100:9100'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - portfolio_network
+    profiles:
+      - monitoring
+
+  # Cadvisor для Docker метрик
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: portfolio_cadvisor
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    networks:
+      - portfolio_network
+    profiles:
+      - monitoring
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  portfolio_network:
+    external: true
