@@ -15,7 +15,7 @@ NC='\033[0m'
 
 # Configuration
 PROJECT_NAME="portfolio"
-BACKUP_DIR="/var/backups/${PROJECT_NAME}"
+BACKUP_DIR="./backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
 
@@ -140,7 +140,6 @@ backup_logs() {
     local logs_backup="${BACKUP_DIR}/logs/logs_${TIMESTAMP}.tar.gz"
     local logs_dirs=(
         "/var/log/nginx"
-        "/var/log/${PROJECT_NAME}"
         "./logs"
     )
     

@@ -16,25 +16,41 @@ NC='\033[0m' # No Color
 # Configuration
 PROJECT_NAME="portfolio"
 DOCKER_COMPOSE_FILE="docker-compose.yml"
-BACKUP_DIR="/var/backups/${PROJECT_NAME}"
-LOG_FILE="/var/log/${PROJECT_NAME}-deploy.log"
+BACKUP_DIR="./backups"
+LOG_FILE="./logs/${PROJECT_NAME}-deploy.log"
 
 # Functions
 log() {
-    echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}" | tee -a "$LOG_FILE"
+    local message="${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}"
+    echo -e "$message"
+    if [ -w "$(dirname "$LOG_FILE")" ] 2>/dev/null; then
+        echo -e "$message" >> "$LOG_FILE" 2>/dev/null || true
+    fi
 }
 
 error() {
-    echo -e "${RED}[ERROR] $1${NC}" | tee -a "$LOG_FILE"
+    local message="${RED}[ERROR] $1${NC}"
+    echo -e "$message"
+    if [ -w "$(dirname "$LOG_FILE")" ] 2>/dev/null; then
+        echo -e "$message" >> "$LOG_FILE" 2>/dev/null || true
+    fi
     exit 1
 }
 
 warning() {
-    echo -e "${YELLOW}[WARNING] $1${NC}" | tee -a "$LOG_FILE"
+    local message="${YELLOW}[WARNING] $1${NC}"
+    echo -e "$message"
+    if [ -w "$(dirname "$LOG_FILE")" ] 2>/dev/null; then
+        echo -e "$message" >> "$LOG_FILE" 2>/dev/null || true
+    fi
 }
 
 info() {
-    echo -e "${BLUE}[INFO] $1${NC}" | tee -a "$LOG_FILE"
+    local message="${BLUE}[INFO] $1${NC}"
+    echo -e "$message"
+    if [ -w "$(dirname "$LOG_FILE")" ] 2>/dev/null; then
+        echo -e "$message" >> "$LOG_FILE" 2>/dev/null || true
+    fi
 }
 
 # Check if running as root or with sudo (optional for Docker operations)
@@ -76,6 +92,8 @@ setup_directories() {
     
     # Set proper permissions
     chmod 755 "$BACKUP_DIR"
+    chmod 755 "./logs"
+    touch "$LOG_FILE"
     chmod 644 "$LOG_FILE" 2>/dev/null || true
     
     log "Directories setup completed"
