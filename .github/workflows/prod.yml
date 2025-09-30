@@ -383,7 +383,12 @@ jobs:
             # Настройка Docker daemon для более стабильной работы
             echo "🔧 Optimizing Docker daemon configuration..."
             sudo mkdir -p /etc/docker
-            sudo tee /etc/docker/daemon.json > /dev/null <<DOCKER_CONFIG
+            if [ -f "./docker/daemon.json" ]; then
+              echo "📋 Using optimized daemon.json configuration"
+              sudo cp ./docker/daemon.json /etc/docker/daemon.json
+            else
+              echo "📝 Creating basic daemon.json configuration"
+              sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
 {
   "log-driver": "json-file",
   "log-opts": {
@@ -391,25 +396,12 @@ jobs:
     "max-file": "3"
   },
   "storage-driver": "overlay2",
-  "default-ulimits": {
-    "memlock": {
-      "Name": "memlock",
-      "Hard": -1,
-      "Soft": -1
-    },
-    "nofile": {
-      "Name": "nofile",
-      "Hard": 65536,
-      "Soft": 65536
-    }
-  },
   "max-concurrent-downloads": 3,
   "max-concurrent-uploads": 5,
-  "registry-mirrors": [
-    "https://mirror.gcr.io"
-  ]
+  "registry-mirrors": ["https://mirror.gcr.io"]
 }
-DOCKER_CONFIG
+EOF
+            fi
             
             # Перезапускаем Docker для применения настроек
             sudo systemctl restart docker
