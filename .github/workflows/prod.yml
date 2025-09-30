@@ -40,25 +40,65 @@ jobs:
           echo "Directory contents:"
           ls -la
 
-          # Создаем архив с исключениями
-          tar -czf portfolio-deploy.tar.gz \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='.next' \
-            --exclude='logs' \
-            --exclude='*.log' \
-            --exclude='.env*' \
-            --exclude='coverage' \
-            --exclude='.nyc_output' \
-            --exclude='cypress/videos' \
-            --exclude='cypress/screenshots' \
-            --exclude='.cache' \
-            --exclude='dist' \
-            --exclude='build' \
-            --exclude='.DS_Store' \
-            --exclude='*.tmp' \
-            --exclude='*.temp' \
-            .
+          # Создаем временную директорию для чистой копии
+          mkdir -p /tmp/portfolio-build
+
+          # Копируем только нужные файлы, исключая ненужные
+          echo "📋 Copying files to temporary directory..."
+          if command -v rsync >/dev/null 2>&1; then
+            rsync -av \
+              --exclude='.git' \
+              --exclude='node_modules' \
+              --exclude='.next' \
+              --exclude='logs' \
+              --exclude='*.log' \
+              --exclude='.env*' \
+              --exclude='coverage' \
+              --exclude='.nyc_output' \
+              --exclude='cypress/videos' \
+              --exclude='cypress/screenshots' \
+              --exclude='.cache' \
+              --exclude='dist' \
+              --exclude='build' \
+              --exclude='.DS_Store' \
+              --exclude='*.tmp' \
+              --exclude='*.temp' \
+              --exclude='.github' \
+              --exclude='.husky' \
+              ./ /tmp/portfolio-build/
+          else
+            # Fallback: используем cp с find для исключения файлов
+            echo "rsync not available, using cp with find..."
+            find . -type f \
+              ! -path './.git/*' \
+              ! -path './node_modules/*' \
+              ! -path './.next/*' \
+              ! -path './logs/*' \
+              ! -name '*.log' \
+              ! -name '.env*' \
+              ! -path './coverage/*' \
+              ! -path './.nyc_output/*' \
+              ! -path './cypress/videos/*' \
+              ! -path './cypress/screenshots/*' \
+              ! -path './.cache/*' \
+              ! -path './dist/*' \
+              ! -path './build/*' \
+              ! -name '.DS_Store' \
+              ! -name '*.tmp' \
+              ! -name '*.temp' \
+              ! -path './.github/*' \
+              ! -path './.husky/*' \
+              -exec cp --parents {} /tmp/portfolio-build/ \;
+          fi
+
+          # Создаем архив из временной директории
+          echo "🗜️ Creating archive from clean copy..."
+          cd /tmp
+          tar -czf portfolio-deploy.tar.gz -C portfolio-build .
+
+          # Перемещаем архив обратно в рабочую директорию
+          mv portfolio-deploy.tar.gz $GITHUB_WORKSPACE/
+          cd $GITHUB_WORKSPACE
 
           # Проверяем создание архива
           if [ -f "portfolio-deploy.tar.gz" ]; then
@@ -70,6 +110,9 @@ jobs:
             echo "❌ Failed to create archive"
             exit 1
           fi
+
+          # Очистка временной директории
+          rm -rf /tmp/portfolio-build
 
       - name: Upload deployment package
         run: |
