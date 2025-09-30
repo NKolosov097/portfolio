@@ -363,10 +363,7 @@ jobs:
             echo "🐳 Starting Docker deployment..."
             if [ -f "./scripts/deploy.sh" ]; then
               # Запускаем от пользователя portfolio с активной группой docker
-              sudo -u portfolio newgrp docker << 'DEPLOY_EOF'
-                cd /home/portfolio/current
-                ./scripts/deploy.sh
-DEPLOY_EOF
+              sudo -u portfolio sg docker -c "cd /home/portfolio/current && ./scripts/deploy.sh"
             else
               echo "❌ Deploy script not found!"
               exit 1
