@@ -235,10 +235,17 @@ jobs:
             if [ -d "current" ]; then
               echo "📦 Creating backup of current version..."
               if [ -f "./current/scripts/backup.sh" ]; then
-                sudo ./current/scripts/backup.sh database || echo "⚠️  Backup failed, continuing..."
+                echo "🗄️ Attempting database backup..."
+                sudo ./current/scripts/backup.sh database 2>/dev/null || echo "⚠️  Database backup failed (this is normal for first deployment)"
+              else
+                echo "ℹ️  No backup script found in current version"
               fi
+              
+              echo "📁 Moving current version to backup..."
               mv current backup-$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
               echo "✅ Backup created"
+            else
+              echo "ℹ️  No existing version to backup (first deployment)"
             fi
             
             # Распаковываем новую версию
@@ -258,19 +265,63 @@ jobs:
               elif [ -f "env.example" ]; then
                 echo "🔧 Creating production .env from template..."
                 
-                # Генерируем безопасные пароли и ключи
-                DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
-                NEXTAUTH_SECRET=$(openssl rand -base64 32)
-                ENCRYPTION_KEY=$(openssl rand -base64 24)
+                # Генерируем безопасные пароли и ключи (только буквы и цифры)
+                DB_PASSWORD=$(openssl rand -hex 16)
+                NEXTAUTH_SECRET=$(openssl rand -hex 32) 
+                ENCRYPTION_KEY=$(openssl rand -hex 16)
                 
-                # Создаем .env файл
-                sed -e "s/portfolio_password/$DB_PASSWORD/g" \
-                    -e "s/your-super-secret-jwt-secret-key-here/$NEXTAUTH_SECRET/g" \
-                    -e "s/your-32-character-encryption-key/$ENCRYPTION_KEY/g" \
-                    env.example > .env
+                echo "📝 Generated secure credentials"
+                echo "DB Password: $DB_PASSWORD (length: ${#DB_PASSWORD})"
+                echo "NextAuth Secret: ${NEXTAUTH_SECRET:0:10}... (length: ${#NEXTAUTH_SECRET})"
+                echo "Encryption Key: ${ENCRYPTION_KEY:0:10}... (length: ${#ENCRYPTION_KEY})"
+                
+                # Создаем .env файл более безопасным способом
+                echo "🔄 Processing env.example..."
+                cp env.example .env.tmp
+                
+                # Используем более простые замены по одной с проверкой ошибок
+                echo "🔄 Replacing database password..."
+                if ! sed -i "s/portfolio_password/$DB_PASSWORD/g" .env.tmp; then
+                  echo "❌ Failed to replace database password with sed"
+                  exit 1
+                fi
+                
+                echo "🔄 Replacing NextAuth secret..."
+                if ! sed -i "s/your-super-secret-jwt-secret-key-here/$NEXTAUTH_SECRET/g" .env.tmp; then
+                  echo "❌ Failed to replace NextAuth secret with sed"
+                  exit 1
+                fi
+                
+                echo "🔄 Replacing encryption key..."
+                if ! sed -i "s/your-32-character-encryption-key/$ENCRYPTION_KEY/g" .env.tmp; then
+                  echo "❌ Failed to replace encryption key with sed"
+                  exit 1
+                fi
+                
+                # Проверяем, что замены прошли успешно
+                if grep -q "portfolio_password\|your-super-secret-jwt-secret-key-here\|your-32-character-encryption-key" .env.tmp; then
+                  echo "⚠️ Some placeholders were not replaced, using alternative method..."
+                  
+                  # Альтернативный метод с awk
+                  awk -v db_pass="$DB_PASSWORD" -v auth_secret="$NEXTAUTH_SECRET" -v enc_key="$ENCRYPTION_KEY" '
+                  {
+                    gsub(/portfolio_password/, db_pass)
+                    gsub(/your-super-secret-jwt-secret-key-here/, auth_secret)
+                    gsub(/your-32-character-encryption-key/, enc_key)
+                    print
+                  }' env.example > .env
+                  rm .env.tmp
+                else
+                  # Перемещаем готовый файл
+                  mv .env.tmp .env
+                fi
                 
                 echo "✅ Production .env file created with secure passwords"
                 echo "🔧 Don't forget to configure SMTP settings for email functionality"
+                
+                # Проверяем результат
+                echo "📋 First 10 lines of .env:"
+                head -10 .env
               else
                 echo "❌ No .env template found!"
                 exit 1
@@ -328,7 +379,7 @@ jobs:
             docker compose ps || echo "Docker compose not running yet"
             
             echo "🔍 Checking running containers..."
-            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
           EOF
 
           # Ждем запуска приложения
