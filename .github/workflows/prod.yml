@@ -349,14 +349,24 @@ jobs:
             # Добавляем в группу docker (после установки Docker)
             sudo usermod -aG docker portfolio || true
             
+            # Убеждаемся что Docker daemon запущен и доступен
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            
+            # Устанавливаем права на Docker socket если нужно
+            sudo chmod 666 /var/run/docker.sock || true
+            
             # Устанавливаем права на директорию
             sudo chown -R portfolio:portfolio . 2>/dev/null || true
             
             # Запускаем деплой через Docker
             echo "🐳 Starting Docker deployment..."
             if [ -f "./scripts/deploy.sh" ]; then
-              # Запускаем от пользователя portfolio
-              sudo -u portfolio bash -c "cd $(pwd) && ./scripts/deploy.sh"
+              # Запускаем от пользователя portfolio с активной группой docker
+              sudo -u portfolio newgrp docker << 'DEPLOY_EOF'
+                cd /home/portfolio/current
+                ./scripts/deploy.sh
+DEPLOY_EOF
             else
               echo "❌ Deploy script not found!"
               exit 1

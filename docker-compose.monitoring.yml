@@ -1,8 +1,6 @@
 # Мониторинг и метрики
 # Для активации: docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 
-version: '3.8'
-
 services:
   # Prometheus для сбора метрик
   prometheus:
