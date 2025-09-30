@@ -356,14 +356,19 @@ jobs:
             # Устанавливаем права на Docker socket если нужно
             sudo chmod 666 /var/run/docker.sock || true
             
-            # Устанавливаем права на директорию
+            # Создаем Docker конфигурационную директорию для пользователя portfolio
+            sudo mkdir -p /home/portfolio/.docker
+            sudo chown -R portfolio:portfolio /home/portfolio/.docker
+            sudo chmod 755 /home/portfolio/.docker
+            
+            # Устанавливаем права на директорию проекта
             sudo chown -R portfolio:portfolio . 2>/dev/null || true
             
             # Запускаем деплой через Docker
             echo "🐳 Starting Docker deployment..."
             if [ -f "./scripts/deploy.sh" ]; then
-              # Запускаем от пользователя portfolio с активной группой docker
-              sudo -u portfolio sg docker -c "cd /home/portfolio/current && ./scripts/deploy.sh"
+              # Запускаем от имени пользователя portfolio с правильными переменными окружения
+              sudo -u portfolio -i bash -c "cd /home/portfolio/current && ./scripts/deploy.sh"
             else
               echo "❌ Deploy script not found!"
               exit 1
