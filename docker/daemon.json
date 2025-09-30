@@ -1,0 +1,36 @@
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "storage-driver": "overlay2",
+  "default-ulimits": {
+    "memlock": {
+      "Name": "memlock",
+      "Hard": -1,
+      "Soft": -1
+    },
+    "nofile": {
+      "Name": "nofile",
+      "Hard": 65536,
+      "Soft": 65536
+    }
+  },
+  "max-concurrent-downloads": 3,
+  "max-concurrent-uploads": 5,
+  "registry-mirrors": [
+    "https://mirror.gcr.io"
+  ],
+  "dns": ["8.8.8.8", "8.8.4.4", "1.1.1.1"],
+  "mtu": 1500,
+  "features": {
+    "buildkit": true
+  },
+  "builder": {
+    "gc": {
+      "enabled": true,
+      "defaultKeepStorage": "20GB"
+    }
+  }
+}

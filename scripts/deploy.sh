@@ -131,8 +131,31 @@ build_application() {
     # Pull latest base images
     docker compose -f "$DOCKER_COMPOSE_FILE" pull postgres redis nginx
     
-    # Build application with cache for faster builds and progress output
-    docker compose -f "$DOCKER_COMPOSE_FILE" build --progress=plain app
+    # Build application with enhanced reliability and progress output
+    echo "🔧 Setting up build environment..."
+    
+    # Настройка переменных окружения для более надежной сборки
+    export DOCKER_BUILDKIT=1
+    export COMPOSE_DOCKER_CLI_BUILD=1
+    export BUILDKIT_PROGRESS=plain
+    
+    # Попытка сборки с повторными попытками
+    for attempt in 1 2 3; do
+        echo "🔨 Build attempt $attempt/3..."
+        
+        if timeout 1800 docker compose -f "$DOCKER_COMPOSE_FILE" build --progress=plain --no-cache app; then
+            log "Application build completed successfully on attempt $attempt"
+            break
+        else
+            if [ $attempt -eq 3 ]; then
+                error "Application build failed after 3 attempts"
+            else
+                warning "Build attempt $attempt failed, cleaning up and retrying..."
+                docker system prune -f --volumes || true
+                sleep 30
+            fi
+        fi
+    done
     
     log "Application build completed"
 }

@@ -15,6 +15,7 @@ jobs:
   deploy:
     name: Deploy to nkolosov.com
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     environment:
       name: production
@@ -191,10 +192,15 @@ jobs:
           echo "✅ Package uploaded successfully"
 
       - name: Deploy application
-        timeout-minutes: 30
+        timeout-minutes: 45
         run: |
           ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -o ConnectTimeout=10 ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
             set -e
+            
+            # Настройка Docker для более надежной работы в CI/CD
+            export DOCKER_BUILDKIT=1
+            export COMPOSE_DOCKER_CLI_BUILD=1
+            export BUILDKIT_PROGRESS=plain
             
             echo "🚀 Starting deployment to nkolosov.com..."
             echo "Current user: $(whoami)"
@@ -365,11 +371,63 @@ jobs:
             # Устанавливаем права на директорию проекта
             sudo chown -R portfolio:portfolio . 2>/dev/null || true
             
+            # Запуск диагностики Docker перед деплоем
+            echo "🔍 Running Docker diagnostics..."
+            if [ -f "./scripts/docker-diagnostics.sh" ]; then
+              chmod +x ./scripts/docker-diagnostics.sh
+              ./scripts/docker-diagnostics.sh config || echo "⚠️ Docker diagnostics completed with warnings"
+            else
+              echo "ℹ️ Docker diagnostics script not found, skipping..."
+            fi
+            
+            # Настройка Docker daemon для более стабильной работы
+            echo "🔧 Optimizing Docker daemon configuration..."
+            sudo mkdir -p /etc/docker
+            sudo tee /etc/docker/daemon.json > /dev/null <<DOCKER_CONFIG
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "storage-driver": "overlay2",
+  "default-ulimits": {
+    "memlock": {
+      "Name": "memlock",
+      "Hard": -1,
+      "Soft": -1
+    },
+    "nofile": {
+      "Name": "nofile",
+      "Hard": 65536,
+      "Soft": 65536
+    }
+  },
+  "max-concurrent-downloads": 3,
+  "max-concurrent-uploads": 5,
+  "registry-mirrors": [
+    "https://mirror.gcr.io"
+  ]
+}
+DOCKER_CONFIG
+            
+            # Перезапускаем Docker для применения настроек
+            sudo systemctl restart docker
+            sleep 10
+            
+            # Проверяем Docker
+            echo "🔍 Verifying Docker configuration..."
+            docker info | grep -E "Storage Driver|Logging Driver" || true
+            
+            # Очистка Docker перед сборкой для освобождения места
+            echo "🧹 Cleaning up Docker resources..."
+            docker system prune -f --volumes || true
+            
             # Запускаем деплой через Docker
             echo "🐳 Starting Docker deployment..."
             if [ -f "./scripts/deploy.sh" ]; then
               # Запускаем от имени пользователя portfolio с правильными переменными окружения
-              sudo -u portfolio -i bash -c "cd /home/portfolio/current && ./scripts/deploy.sh"
+              sudo -u portfolio -i bash -c "cd /home/portfolio/current && export DOCKER_BUILDKIT=1 && export COMPOSE_DOCKER_CLI_BUILD=1 && export BUILDKIT_PROGRESS=plain && ./scripts/deploy.sh"
             else
               echo "❌ Deploy script not found!"
               exit 1
