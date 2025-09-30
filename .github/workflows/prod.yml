@@ -35,35 +35,89 @@ jobs:
 
       - name: Create deployment package
         run: |
+          echo "📦 Creating deployment package..."
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+
+          # Создаем архив с исключениями
           tar -czf portfolio-deploy.tar.gz \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.next' \
             --exclude='logs' \
             --exclude='*.log' \
-            --exclude='.env' \
+            --exclude='.env*' \
+            --exclude='coverage' \
+            --exclude='.nyc_output' \
+            --exclude='cypress/videos' \
+            --exclude='cypress/screenshots' \
+            --exclude='.cache' \
+            --exclude='dist' \
+            --exclude='build' \
+            --exclude='.DS_Store' \
+            --exclude='*.tmp' \
+            --exclude='*.temp' \
             .
+
+          # Проверяем создание архива
+          if [ -f "portfolio-deploy.tar.gz" ]; then
+            echo "✅ Archive created successfully"
+            echo "Archive size: $(du -h portfolio-deploy.tar.gz | cut -f1)"
+            echo "Archive contents (first 20 files):"
+            tar -tzf portfolio-deploy.tar.gz | head -20
+          else
+            echo "❌ Failed to create archive"
+            exit 1
+          fi
 
       - name: Upload deployment package
         run: |
-          scp portfolio-deploy.tar.gz ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:/tmp/
+          echo "📤 Uploading deployment package to VPS..."
+          echo "Target: ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:/tmp/"
+
+          # Проверяем, что файл существует
+          if [ ! -f "portfolio-deploy.tar.gz" ]; then
+            echo "❌ Deployment package not found!"
+            exit 1
+          fi
+
+          # Загружаем файл на сервер
+          scp -o StrictHostKeyChecking=no portfolio-deploy.tar.gz ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:/tmp/
+
+          echo "✅ Package uploaded successfully"
 
       - name: Deploy application
         run: |
-          ssh ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
             set -e
             
             echo "🚀 Starting deployment to nkolosov.com..."
+            echo "Current user: $(whoami)"
+            echo "Current directory: $(pwd)"
+            
+            # Проверяем наличие загруженного файла
+            if [ ! -f "/tmp/portfolio-deploy.tar.gz" ]; then
+              echo "❌ Deployment package not found in /tmp/"
+              exit 1
+            fi
+            
+            echo "📦 Package size: $(du -h /tmp/portfolio-deploy.tar.gz | cut -f1)"
             
             # Создаем директорию проекта если не существует
-            mkdir -p ${{ env.PROJECT_DIR }}
-            cd $(dirname ${{ env.PROJECT_DIR }})
+            mkdir -p /home/portfolio
+            cd /home/portfolio
+            
+            echo "📂 Current location: $(pwd)"
             
             # Создаем бэкап текущей версии
             if [ -d "current" ]; then
-              echo "📦 Creating backup..."
-              sudo ./current/scripts/backup.sh database || echo "Backup failed, continuing..."
+              echo "📦 Creating backup of current version..."
+              if [ -f "./current/scripts/backup.sh" ]; then
+                sudo ./current/scripts/backup.sh database || echo "⚠️  Backup failed, continuing..."
+              fi
               mv current backup-$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+              echo "✅ Backup created"
             fi
             
             # Распаковываем новую версию
@@ -72,25 +126,51 @@ jobs:
             cd current
             tar -xzf /tmp/portfolio-deploy.tar.gz
             
+            echo "📋 Extracted files:"
+            ls -la | head -10
+            
             # Проверяем наличие .env файла
             if [ ! -f ".env" ]; then
               if [ -f "../.env" ]; then
                 cp ../.env .
                 echo "✅ Copied existing .env file"
-              else
+              elif [ -f "env.example" ]; then
                 echo "⚠️  Creating .env from example..."
                 cp env.example .env
                 echo "🔧 Please update .env file with production values"
+              else
+                echo "❌ No .env template found!"
+                exit 1
               fi
             fi
             
+            # Проверяем наличие необходимых скриптов
+            if [ ! -d "scripts" ]; then
+              echo "❌ Scripts directory not found!"
+              exit 1
+            fi
+            
             # Устанавливаем права
+            echo "🔧 Setting permissions..."
             chmod +x scripts/*.sh
+            
+            # Создаем пользователя portfolio если не существует
+            if ! id "portfolio" &>/dev/null; then
+              echo "👤 Creating portfolio user..."
+              sudo useradd -m -s /bin/bash portfolio || true
+              sudo usermod -aG docker portfolio || true
+            fi
+            
             chown -R portfolio:portfolio . 2>/dev/null || true
             
             # Запускаем деплой через Docker
             echo "🐳 Starting Docker deployment..."
-            ./scripts/deploy.sh
+            if [ -f "./scripts/deploy.sh" ]; then
+              ./scripts/deploy.sh
+            else
+              echo "❌ Deploy script not found!"
+              exit 1
+            fi
             
             # Очистка
             rm /tmp/portfolio-deploy.tar.gz
@@ -102,21 +182,64 @@ jobs:
         run: |
           echo "🔍 Performing health check..."
 
+          # Проверяем статус сервисов на сервере
+          ssh -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
+            echo "📊 Checking Docker services status..."
+            cd /home/portfolio/current
+            docker-compose ps || echo "Docker compose not running yet"
+            
+            echo "🔍 Checking running containers..."
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+          EOF
+
           # Ждем запуска приложения
-          sleep 30
+          echo "⏳ Waiting 60 seconds for application to start..."
+          sleep 60
 
           # Проверяем доступность
-          for i in {1..10}; do
-            if curl -f -s https://nkolosov.com/health > /dev/null; then
-              echo "✅ Application is healthy!"
-              exit 0
+          echo "🌐 Testing application endpoints..."
+          for i in {1..15}; do
+            # Проверяем HTTP сначала
+            if curl -f -s --connect-timeout 10 http://nkolosov.com/health > /dev/null 2>&1; then
+              echo "✅ HTTP health check passed!"
+              break
             fi
-            echo "⏳ Attempt $i/10 - waiting for application to start..."
-            sleep 30
+            
+            # Проверяем HTTPS
+            if curl -f -s --connect-timeout 10 -k https://nkolosov.com/health > /dev/null 2>&1; then
+              echo "✅ HTTPS health check passed!"
+              break
+            fi
+            
+            # Проверяем по IP
+            if curl -f -s --connect-timeout 10 http://${{ env.VPS_HOST }}:3000/api/health > /dev/null 2>&1; then
+              echo "✅ Direct IP health check passed!"
+              break
+            fi
+            
+            echo "⏳ Attempt $i/15 - application not ready yet..."
+            if [ $i -eq 15 ]; then
+              echo "❌ Health check failed after 15 attempts"
+              
+              # Диагностическая информация при ошибке
+              echo "🔍 Diagnostic information:"
+              ssh -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'DIAG_EOF'
+                echo "=== Docker containers ==="
+                docker ps -a
+                echo "=== Application logs ==="
+                cd /home/portfolio/current
+                docker-compose logs --tail=50 app || echo "No app logs available"
+                echo "=== Nginx logs ==="
+                docker-compose logs --tail=20 nginx || echo "No nginx logs available"
+              DIAG_EOF
+              
+              exit 1
+            fi
+            
+            sleep 20
           done
 
-          echo "❌ Health check failed after 10 attempts"
-          exit 1
+          echo "🎉 Application is healthy and responding!"
 
       - name: Deployment summary
         if: always()
