@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  VPS_HOST: '79.174.78.124'
-  VPS_USER: 'root'
-  PROJECT_DIR: '/home/portfolio/current'
+  VPS_HOST: ${{ secrets.VPS_HOST }}
+  VPS_USER: ${{ secrets.VPS_USER }}
+  PROJECT_DIR: ${{ secrets.PROJECT_DIR }}
 
 jobs:
   deploy:
@@ -32,6 +32,11 @@ jobs:
       - name: Add VPS to known hosts
         run: |
           ssh-keyscan -H ${{ env.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          echo "🔐 Testing SSH connection to VPS..."
+          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} "echo '✅ SSH connection successful!' && whoami && pwd"
 
       - name: Create deployment package
         run: |
@@ -125,8 +130,15 @@ jobs:
             exit 1
           fi
 
-          # Загружаем файл на сервер
-          scp -o StrictHostKeyChecking=no portfolio-deploy.tar.gz ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:/tmp/
+          echo "📊 Package info:"
+          ls -lh portfolio-deploy.tar.gz
+
+          # Загружаем файл на сервер с подробным выводом
+          echo "🔄 Starting upload..."
+          scp -v -o ConnectTimeout=30 -o StrictHostKeyChecking=no portfolio-deploy.tar.gz ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:/tmp/
+
+          # Проверяем успешность загрузки
+          ssh -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} "ls -lh /tmp/portfolio-deploy.tar.gz"
 
           echo "✅ Package uploaded successfully"
 
