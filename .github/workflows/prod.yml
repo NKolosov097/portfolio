@@ -191,8 +191,9 @@ jobs:
           echo "✅ Package uploaded successfully"
 
       - name: Deploy application
+        timeout-minutes: 30
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -o ConnectTimeout=10 ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
             set -e
             
             echo "🚀 Starting deployment to nkolosov.com..."

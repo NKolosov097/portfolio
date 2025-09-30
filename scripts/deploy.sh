@@ -124,11 +124,15 @@ backup_database() {
 build_application() {
     log "Building application..."
     
+    # Set Docker BuildKit for faster builds
+    export DOCKER_BUILDKIT=1
+    export COMPOSE_DOCKER_CLI_BUILD=1
+    
     # Pull latest base images
     docker compose -f "$DOCKER_COMPOSE_FILE" pull postgres redis nginx
     
-    # Build application
-    docker compose -f "$DOCKER_COMPOSE_FILE" build --no-cache app
+    # Build application with cache for faster builds and progress output
+    docker compose -f "$DOCKER_COMPOSE_FILE" build --progress=plain app
     
     log "Application build completed"
 }
@@ -237,6 +241,11 @@ main() {
     fi
     
     backup_database
+    
+    # Clean up any dangling resources before build
+    log "Cleaning up Docker resources before build..."
+    docker system prune -f --volumes || true
+    
     build_application
     deploy_application
     run_migrations
