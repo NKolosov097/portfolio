@@ -2,3 +2,8 @@
 next.config.js
 pnpm-lock.yaml
 .next
+.github/workflows/
+*.yml
+*.yaml
+scripts/
+docker/

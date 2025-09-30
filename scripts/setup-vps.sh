@@ -1,12 +1,11 @@
 #!/bin/bash
 
 # ===============================================
-# VPS Server Setup Script for Portfolio App
+# Скрипт первоначальной настройки VPS для nkolosov.com
 # ===============================================
 
 set -e
 
-# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -30,312 +29,363 @@ info() {
     echo -e "${BLUE}[INFO] $1${NC}"
 }
 
-# Check if running as root
+# Проверка прав root
 check_root() {
-    if [[ $EUID -ne 0 ]]; then
-        error "This script must be run as root"
+    if [ "$EUID" -ne 0 ]; then
+        error "Этот скрипт должен быть запущен от имени root"
     fi
 }
 
-# Update system packages
+# Обновление системы
 update_system() {
-    log "Updating system packages..."
-    
-    apt update && apt upgrade -y
-    apt install -y curl wget git vim htop unzip software-properties-common \
-        apt-transport-https ca-certificates gnupg lsb-release ufw fail2ban
-    
-    log "System packages updated"
+    log "Обновление системы..."
+    apt update
+    apt upgrade -y
+    apt install -y curl wget git unzip htop nano vim software-properties-common apt-transport-https ca-certificates gnupg lsb-release
 }
 
-# Install Docker
+# Установка Docker
 install_docker() {
-    log "Installing Docker..."
+    log "Установка Docker..."
     
-    # Remove old versions
+    # Удаляем старые версии если есть
     apt remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
     
-    # Add Docker's official GPG key
+    # Добавляем официальный GPG ключ Docker
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     
-    # Add Docker repository
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+    # Добавляем репозиторий Docker
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
     
-    # Install Docker
+    # Устанавливаем Docker
     apt update
-    apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     
-    # Start and enable Docker
+    # Запускаем и включаем автозапуск Docker
     systemctl start docker
     systemctl enable docker
     
-    # Add user to docker group
-    if [ -n "$SUDO_USER" ]; then
-        usermod -aG docker "$SUDO_USER"
-        log "Added $SUDO_USER to docker group"
-    fi
+    # Проверяем установку
+    docker --version
+    docker compose version
     
-    log "Docker installed successfully"
+    log "Docker установлен успешно"
 }
 
-# Install Docker Compose
-install_docker_compose() {
-    log "Installing Docker Compose..."
+# Создание пользователя portfolio
+create_portfolio_user() {
+    log "Создание пользователя portfolio..."
     
-    # Install Docker Compose v2 (if not already installed with Docker)
-    if ! docker compose version &>/dev/null; then
-        COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
-        curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        chmod +x /usr/local/bin/docker-compose
+    # Создаем пользователя если не существует
+    if ! id "portfolio" &>/dev/null; then
+        useradd -m -s /bin/bash portfolio
+        log "Пользователь portfolio создан"
+    else
+        log "Пользователь portfolio уже существует"
     fi
     
-    log "Docker Compose installed successfully"
+    # Добавляем в группу docker
+    usermod -aG docker portfolio
+    
+    # Создаем директории
+    mkdir -p /home/portfolio
+    chown -R portfolio:portfolio /home/portfolio
+    
+    log "Пользователь portfolio настроен"
 }
 
-# Configure firewall
-configure_firewall() {
-    log "Configuring firewall..."
+# Настройка файрвола
+setup_firewall() {
+    log "Настройка файрвола..."
     
-    # Reset UFW
+    # Устанавливаем ufw если не установлен
+    apt install -y ufw
+    
+    # Сбрасываем правила
     ufw --force reset
     
-    # Default policies
+    # Базовые правила
     ufw default deny incoming
     ufw default allow outgoing
     
-    # Allow SSH (current connection)
+    # Разрешаем SSH
     ufw allow ssh
     ufw allow 22/tcp
     
-    # Allow HTTP and HTTPS
+    # Разрешаем HTTP и HTTPS
     ufw allow 80/tcp
     ufw allow 443/tcp
     
-    # Allow PostgreSQL (only from localhost)
-    ufw allow from 127.0.0.1 to any port 5432
-    
-    # Enable firewall
+    # Включаем файрвол
     ufw --force enable
     
-    log "Firewall configured"
+    log "Файрвол настроен"
 }
 
-# Configure fail2ban
-configure_fail2ban() {
-    log "Configuring fail2ban..."
+# Настройка Nginx (базовая)
+setup_nginx() {
+    log "Установка и настройка Nginx..."
     
-    cat > /etc/fail2ban/jail.local << EOF
-[DEFAULT]
-bantime = 3600
-findtime = 600
-maxretry = 3
-backend = systemd
+    apt install -y nginx
+    
+    # Создаем базовую конфигурацию
+    cat > /etc/nginx/sites-available/nkolosov.com << 'EOF'
+server {
+    listen 80;
+    server_name nkolosov.com www.nkolosov.com;
 
-[sshd]
-enabled = true
-port = ssh
-logpath = %(sshd_log)s
-backend = %(sshd_backend)s
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
 
-[nginx-http-auth]
-enabled = true
-port = http,https
-logpath = /var/log/nginx/error.log
-
-[nginx-limit-req]
-enabled = true
-port = http,https
-logpath = /var/log/nginx/error.log
-maxretry = 10
+    location /health {
+        proxy_pass http://localhost:3000/api/health;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 EOF
 
-    systemctl enable fail2ban
-    systemctl restart fail2ban
+    # Включаем сайт
+    ln -sf /etc/nginx/sites-available/nkolosov.com /etc/nginx/sites-enabled/
     
-    log "Fail2ban configured"
+    # Удаляем дефолтный сайт
+    rm -f /etc/nginx/sites-enabled/default
+    
+    # Проверяем конфигурацию
+    nginx -t
+    
+    # Перезапускаем Nginx
+    systemctl restart nginx
+    systemctl enable nginx
+    
+    log "Nginx настроен"
 }
 
-# Setup swap file
-setup_swap() {
-    log "Setting up swap file..."
+# Настройка SSL с помощью Certbot
+setup_ssl() {
+    log "Установка Certbot для SSL..."
     
-    # Check if swap already exists
-    if swapon --show | grep -q "/swapfile"; then
-        warning "Swap file already exists"
-        return
-    fi
+    # Устанавливаем certbot
+    apt install -y certbot python3-certbot-nginx
     
-    # Create 2GB swap file
-    fallocate -l 2G /swapfile
-    chmod 600 /swapfile
-    mkswap /swapfile
-    swapon /swapfile
-    
-    # Make it permanent
-    echo '/swapfile none swap sw 0 0' >> /etc/fstab
-    
-    # Configure swappiness
-    echo 'vm.swappiness=10' >> /etc/sysctl.conf
-    
-    log "Swap file configured (2GB)"
+    log "Certbot установлен. SSL сертификат будет настроен после первого деплоя приложения"
 }
 
-# Configure system limits
-configure_limits() {
-    log "Configuring system limits..."
+# Создание директории для логов
+setup_logging() {
+    log "Настройка системы логирования..."
     
-    cat >> /etc/security/limits.conf << EOF
-* soft nofile 65536
-* hard nofile 65536
-* soft nproc 65536
-* hard nproc 65536
-EOF
-
-    # Configure systemd limits
-    mkdir -p /etc/systemd/system.conf.d
-    cat > /etc/systemd/system.conf.d/limits.conf << EOF
-[Manager]
-DefaultLimitNOFILE=65536
-DefaultLimitNPROC=65536
-EOF
-
-    log "System limits configured"
-}
-
-# Setup log rotation
-setup_logrotate() {
-    log "Setting up log rotation..."
+    mkdir -p /var/log/portfolio
+    chown portfolio:portfolio /var/log/portfolio
     
-    cat > /etc/logrotate.d/portfolio << EOF
-/var/log/portfolio-*.log {
+    # Настройка ротации логов
+    cat > /etc/logrotate.d/portfolio << 'EOF'
+/var/log/portfolio/*.log {
     daily
     missingok
     rotate 30
     compress
     delaycompress
     notifempty
-    create 0644 root root
-}
-
-/var/log/nginx/*.log {
-    daily
-    missingok
-    rotate 30
-    compress
-    delaycompress
-    notifempty
-    create 0644 www-data www-data
+    create 0644 portfolio portfolio
     postrotate
-        docker kill -s USR1 portfolio_nginx 2>/dev/null || true
+        docker restart portfolio_app 2>/dev/null || true
     endscript
 }
 EOF
 
-    log "Log rotation configured"
+    log "Система логирования настроена"
 }
 
-# Create application user
-create_app_user() {
-    log "Creating application user..."
+# Настройка системных ресурсов
+optimize_system() {
+    log "Оптимизация системных ресурсов..."
     
-    if ! id "portfolio" &>/dev/null; then
-        useradd -m -s /bin/bash portfolio
-        usermod -aG docker portfolio
-        
-        # Create SSH directory
-        mkdir -p /home/portfolio/.ssh
-        chmod 700 /home/portfolio/.ssh
-        chown portfolio:portfolio /home/portfolio/.ssh
-        
-        log "Application user 'portfolio' created"
-    else
-        warning "User 'portfolio' already exists"
-    fi
-}
-
-# Setup monitoring
-setup_monitoring() {
-    log "Setting up basic monitoring..."
-    
-    # Install htop, iotop, nethogs for monitoring
-    apt install -y htop iotop nethogs ncdu
-    
-    # Create monitoring script
-    cat > /usr/local/bin/portfolio-status << 'EOF'
-#!/bin/bash
-echo "=== Portfolio Application Status ==="
-echo "Date: $(date)"
-echo
-echo "=== System Resources ==="
-free -h
-echo
-df -h
-echo
-echo "=== Docker Containers ==="
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-echo
-echo "=== Application Logs (last 10 lines) ==="
-docker logs portfolio_app --tail 10 2>/dev/null || echo "App container not running"
+    # Увеличиваем лимиты файлов
+    cat >> /etc/security/limits.conf << 'EOF'
+portfolio soft nofile 65536
+portfolio hard nofile 65536
 EOF
 
-    chmod +x /usr/local/bin/portfolio-status
+    # Настройки sysctl для производительности
+    cat >> /etc/sysctl.conf << 'EOF'
+# Portfolio app optimizations
+net.core.somaxconn = 65536
+net.core.netdev_max_backlog = 5000
+net.ipv4.tcp_max_syn_backlog = 65536
+net.ipv4.tcp_keepalive_time = 600
+vm.swappiness = 10
+EOF
+
+    sysctl -p
     
-    log "Monitoring tools installed"
+    log "Система оптимизирована"
 }
 
-# Main setup function
+# Создание базового .env файла
+create_env_template() {
+    log "Создание шаблона .env файла..."
+    
+    mkdir -p /home/portfolio
+    
+    # Генерируем случайные пароли
+    DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
+    NEXTAUTH_SECRET=$(openssl rand -base64 32)
+    ENCRYPTION_KEY=$(openssl rand -base64 24)
+    
+    cat > /home/portfolio/.env << EOF
+# Production Configuration for nkolosov.com
+NODE_ENV=production
+PORT=3000
+HOSTNAME=0.0.0.0
+
+# Next.js Settings
+NEXT_TELEMETRY_DISABLED=1
+NEXTAUTH_URL=https://nkolosov.com
+NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+
+# Database Configuration
+DATABASE_URL=postgresql://portfolio_user:${DB_PASSWORD}@postgres:5432/portfolio
+POSTGRES_DB=portfolio
+POSTGRES_USER=portfolio_user
+POSTGRES_PASSWORD=${DB_PASSWORD}
+POSTGRES_PORT=5432
+
+# Redis Configuration
+REDIS_URL=redis://redis:6379
+REDIS_PORT=6379
+
+# Email Configuration (настройте вручную)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM=noreply@nkolosov.com
+
+# Security
+ENCRYPTION_KEY=${ENCRYPTION_KEY}
+CORS_ORIGIN=https://nkolosov.com
+
+# Monitoring & Logging
+LOG_LEVEL=info
+
+# Docker Compose Ports
+APP_PORT=3000
+NGINX_HTTP_PORT=80
+NGINX_HTTPS_PORT=443
+
+# SSL Configuration
+SSL_CERT_PATH=/etc/nginx/ssl/cert.pem
+SSL_KEY_PATH=/etc/nginx/ssl/private.key
+
+# Backup Configuration
+BACKUP_SCHEDULE=0 2 * * *
+BACKUP_RETENTION_DAYS=30
+EOF
+
+    chown portfolio:portfolio /home/portfolio/.env
+    chmod 600 /home/portfolio/.env
+    
+    log ".env шаблон создан в /home/portfolio/.env"
+}
+
+# Проверка установки
+verify_installation() {
+    log "Проверка установки..."
+    
+    # Проверяем Docker
+    if docker --version >/dev/null 2>&1; then
+        log "✅ Docker установлен: $(docker --version)"
+    else
+        error "❌ Docker не установлен"
+    fi
+    
+    # Проверяем Docker Compose
+    if docker compose version >/dev/null 2>&1; then
+        log "✅ Docker Compose установлен: $(docker compose version)"
+    else
+        error "❌ Docker Compose не установлен"
+    fi
+    
+    # Проверяем Nginx
+    if nginx -v >/dev/null 2>&1; then
+        log "✅ Nginx установлен: $(nginx -v 2>&1)"
+    else
+        error "❌ Nginx не установлен"
+    fi
+    
+    # Проверяем пользователя
+    if id portfolio >/dev/null 2>&1; then
+        log "✅ Пользователь portfolio создан"
+    else
+        error "❌ Пользователь portfolio не создан"
+    fi
+    
+    # Проверяем группы пользователя
+    if groups portfolio | grep -q docker; then
+        log "✅ Пользователь portfolio добавлен в группу docker"
+    else
+        error "❌ Пользователь portfolio не в группе docker"
+    fi
+    
+    log "Проверка завершена успешно!"
+}
+
+# Показать информацию о следующих шагах
+show_next_steps() {
+    echo ""
+    echo -e "${BLUE}=== VPS настроен успешно! ===${NC}"
+    echo -e "🖥️  Сервер: $(hostname -I | awk '{print $1}')"
+    echo -e "🌐 Домен: nkolosov.com"
+    echo -e "📁 Директория проекта: /home/portfolio"
+    echo ""
+    echo -e "${BLUE}=== Следующие шаги ===${NC}"
+    echo -e "1. Настройте DNS записи домена на IP сервера"
+    echo -e "2. Обновите .env файл: ${YELLOW}nano /home/portfolio/.env${NC}"
+    echo -e "3. Запустите деплой через GitHub Actions"
+    echo -e "4. Настройте SSL: ${YELLOW}certbot --nginx -d nkolosov.com -d www.nkolosov.com${NC}"
+    echo ""
+    echo -e "${BLUE}=== Полезные команды ===${NC}"
+    echo -e "Просмотр логов: ${YELLOW}docker logs portfolio_app${NC}"
+    echo -e "Статус сервисов: ${YELLOW}docker ps${NC}"
+    echo -e "Перезапуск Nginx: ${YELLOW}systemctl restart nginx${NC}"
+    echo ""
+}
+
+# Главная функция
 main() {
-    log "Starting VPS setup for Portfolio application..."
+    log "Начинаем настройку VPS сервера для nkolosov.com..."
     
     check_root
     update_system
     install_docker
-    install_docker_compose
-    setup_swap
-    configure_limits
-    configure_firewall
-    configure_fail2ban
-    setup_logrotate
-    create_app_user
-    setup_monitoring
+    create_portfolio_user
+    setup_firewall
+    setup_nginx
+    setup_ssl
+    setup_logging
+    optimize_system
+    create_env_template
+    verify_installation
+    show_next_steps
     
-    log "VPS setup completed successfully!"
-    log ""
-    log "Next steps:"
-    log "1. Copy your application code to /home/portfolio/"
-    log "2. Configure your .env file"
-    log "3. Run the deployment script: ./scripts/deploy.sh"
-    log "4. Configure SSL certificates (Let's Encrypt recommended)"
-    log ""
-    log "Useful commands:"
-    log "- portfolio-status: Check application status"
-    log "- docker logs portfolio_app: View application logs"
-    log "- systemctl status fail2ban: Check fail2ban status"
-    log ""
-    warning "Please reboot the server to ensure all changes take effect"
+    log "Настройка VPS завершена успешно! 🎉"
 }
 
-# Handle script arguments
-case "${1:-setup}" in
-    "setup")
-        main
-        ;;
-    "docker")
-        install_docker
-        install_docker_compose
-        ;;
-    "firewall")
-        configure_firewall
-        ;;
-    "monitoring")
-        setup_monitoring
-        ;;
-    *)
-        echo "Usage: $0 {setup|docker|firewall|monitoring}"
-        echo "  setup      - Complete VPS setup (default)"
-        echo "  docker     - Install Docker and Docker Compose only"
-        echo "  firewall   - Configure firewall only"
-        echo "  monitoring - Setup monitoring tools only"
-        exit 1
-        ;;
-esac
+# Обработка прерывания
+trap 'echo -e "\n${RED}Настройка прервана пользователем${NC}"; exit 1' INT
+
+# Запуск
+main "$@"

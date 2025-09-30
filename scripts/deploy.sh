@@ -37,10 +37,16 @@ info() {
     echo -e "${BLUE}[INFO] $1${NC}" | tee -a "$LOG_FILE"
 }
 
-# Check if running as root or with sudo
+# Check if running as root or with sudo (optional for Docker operations)
 check_privileges() {
     if [[ $EUID -ne 0 ]]; then
-        error "This script must be run as root or with sudo"
+        warning "Not running as root. Some operations may require sudo privileges."
+        # Check if user is in docker group
+        if groups $USER | grep -q docker; then
+            log "User is in docker group, proceeding..."
+        else
+            error "User is not in docker group and not running as root. Please add user to docker group or run with sudo."
+        fi
     fi
 }
 
@@ -52,8 +58,8 @@ check_dependencies() {
         error "Docker is not installed. Please install Docker first."
     fi
     
-    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-        error "Docker Compose is not installed. Please install Docker Compose first."
+    if ! docker compose version &> /dev/null; then
+        error "Docker Compose is not available. Please install Docker Compose plugin."
     fi
     
     log "Dependencies check passed"

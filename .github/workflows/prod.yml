@@ -199,6 +199,33 @@ jobs:
             echo "Current user: $(whoami)"
             echo "Current directory: $(pwd)"
             
+            # Проверяем и устанавливаем Docker если нужно
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "🐳 Docker не найден, устанавливаем..."
+              
+              # Создаем временный скрипт установки
+              cat > /tmp/install-docker.sh << 'DOCKER_SCRIPT'
+#!/bin/bash
+set -e
+echo "Установка Docker..."
+apt update
+apt install -y ca-certificates curl gnupg lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+systemctl start docker
+systemctl enable docker
+echo "Docker установлен: $(docker --version)"
+DOCKER_SCRIPT
+              
+              chmod +x /tmp/install-docker.sh
+              sudo /tmp/install-docker.sh
+              rm /tmp/install-docker.sh
+            else
+              echo "✅ Docker уже установлен: $(docker --version)"
+            fi
+            
             # Проверяем наличие загруженного файла
             if [ ! -f "/tmp/portfolio-deploy.tar.gz" ]; then
               echo "❌ Deployment package not found in /tmp/"
@@ -232,19 +259,33 @@ jobs:
             echo "📋 Extracted files:"
             ls -la | head -10
             
-            # Проверяем наличие .env файла
+            # Создаем .env файл для продакшена
             if [ ! -f ".env" ]; then
               if [ -f "../.env" ]; then
+                echo "📋 Using existing .env file"
                 cp ../.env .
-                echo "✅ Copied existing .env file"
               elif [ -f "env.example" ]; then
-                echo "⚠️  Creating .env from example..."
-                cp env.example .env
-                echo "🔧 Please update .env file with production values"
+                echo "🔧 Creating production .env from template..."
+                
+                # Генерируем безопасные пароли и ключи
+                DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
+                NEXTAUTH_SECRET=$(openssl rand -base64 32)
+                ENCRYPTION_KEY=$(openssl rand -base64 24)
+                
+                # Создаем .env файл
+                sed -e "s/portfolio_password/$DB_PASSWORD/g" \
+                    -e "s/your-super-secret-jwt-secret-key-here/$NEXTAUTH_SECRET/g" \
+                    -e "s/your-32-character-encryption-key/$ENCRYPTION_KEY/g" \
+                    env.example > .env
+                
+                echo "✅ Production .env file created with secure passwords"
+                echo "🔧 Don't forget to configure SMTP settings for email functionality"
               else
                 echo "❌ No .env template found!"
                 exit 1
               fi
+            else
+              echo "✅ .env file already exists"
             fi
             
             # Проверяем наличие необходимых скриптов
@@ -261,15 +302,19 @@ jobs:
             if ! id "portfolio" &>/dev/null; then
               echo "👤 Creating portfolio user..."
               sudo useradd -m -s /bin/bash portfolio || true
-              sudo usermod -aG docker portfolio || true
             fi
             
-            chown -R portfolio:portfolio . 2>/dev/null || true
+            # Добавляем в группу docker (после установки Docker)
+            sudo usermod -aG docker portfolio || true
+            
+            # Устанавливаем права на директорию
+            sudo chown -R portfolio:portfolio . 2>/dev/null || true
             
             # Запускаем деплой через Docker
             echo "🐳 Starting Docker deployment..."
             if [ -f "./scripts/deploy.sh" ]; then
-              ./scripts/deploy.sh
+              # Запускаем от пользователя portfolio
+              sudo -u portfolio bash -c "cd $(pwd) && ./scripts/deploy.sh"
             else
               echo "❌ Deploy script not found!"
               exit 1
