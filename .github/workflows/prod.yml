@@ -1,58 +1,128 @@
-name: prod
+name: Deploy to Production VPS
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+env:
+  VPS_HOST: '79.174.78.124'
+  VPS_USER: 'root'
+  PROJECT_DIR: '/home/portfolio/current'
 
 jobs:
-  build:
+  deploy:
+    name: Deploy to nkolosov.com
     runs-on: ubuntu-latest
 
+    environment:
+      name: production
+      url: https://nkolosov.com
+
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.0
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            # Настройка окружения
-            export NVM_DIR=~/.nvm
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            export NODE_ENV=production
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-            # Переход в директорию проекта
-            cd /var/www/portfolio
+      - name: Add VPS to known hosts
+        run: |
+          ssh-keyscan -H ${{ env.VPS_HOST }} >> ~/.ssh/known_hosts
 
-            # Вывод информации для диагностики
-            echo "Current directory: $(pwd)"
-            echo "Node version: $(node -v)"
+      - name: Create deployment package
+        run: |
+          tar -czf portfolio-deploy.tar.gz \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.next' \
+            --exclude='logs' \
+            --exclude='*.log' \
+            --exclude='.env' \
+            .
 
-            # Обновление кода из репозитория
-            git pull origin main
+      - name: Upload deployment package
+        run: |
+          scp portfolio-deploy.tar.gz ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:/tmp/
 
-            # Установка зависимостей
-            pnpm install
-
-            # Сборка проекта
-            echo "Starting build process..."
-            pnpm run build
-
-            # Проверка успешности сборки
-            if [ ! -d ".next" ]; then
-              echo "Build failed, .next directory not found"
-              exit 1
+      - name: Deploy application
+        run: |
+          ssh ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
+            set -e
+            
+            echo "🚀 Starting deployment to nkolosov.com..."
+            
+            # Создаем директорию проекта если не существует
+            mkdir -p ${{ env.PROJECT_DIR }}
+            cd $(dirname ${{ env.PROJECT_DIR }})
+            
+            # Создаем бэкап текущей версии
+            if [ -d "current" ]; then
+              echo "📦 Creating backup..."
+              sudo ./current/scripts/backup.sh database || echo "Backup failed, continuing..."
+              mv current backup-$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
             fi
+            
+            # Распаковываем новую версию
+            echo "📂 Extracting new version..."
+            mkdir -p current
+            cd current
+            tar -xzf /tmp/portfolio-deploy.tar.gz
+            
+            # Проверяем наличие .env файла
+            if [ ! -f ".env" ]; then
+              if [ -f "../.env" ]; then
+                cp ../.env .
+                echo "✅ Copied existing .env file"
+              else
+                echo "⚠️  Creating .env from example..."
+                cp env.example .env
+                echo "🔧 Please update .env file with production values"
+              fi
+            fi
+            
+            # Устанавливаем права
+            chmod +x scripts/*.sh
+            chown -R portfolio:portfolio . 2>/dev/null || true
+            
+            # Запускаем деплой через Docker
+            echo "🐳 Starting Docker deployment..."
+            ./scripts/deploy.sh
+            
+            # Очистка
+            rm /tmp/portfolio-deploy.tar.gz
+            
+            echo "✅ Deployment completed successfully!"
+          EOF
 
-            echo "Contents of .next directory after build:"
-            ls -la .next
+      - name: Health check
+        run: |
+          echo "🔍 Performing health check..."
 
-            # Перезапуск приложения с помощью PM2
-            echo "Restarting application with PM2..."
-            pm2 delete portfolio || true
-            pm2 start "pnpm start" --name portfolio --cwd /var/www/portfolio
-            pm2 save
+          # Ждем запуска приложения
+          sleep 30
 
-            echo "Deployment completed successfully"
+          # Проверяем доступность
+          for i in {1..10}; do
+            if curl -f -s https://nkolosov.com/health > /dev/null; then
+              echo "✅ Application is healthy!"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/10 - waiting for application to start..."
+            sleep 30
+          done
+
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target**: https://nkolosov.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
