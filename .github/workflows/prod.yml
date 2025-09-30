@@ -25,9 +25,57 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup SSH key
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "🔐 Setting up SSH key..."
+
+          # Создаем директорию .ssh
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Проверяем наличие ключа в секретах
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "❌ SSH_PRIVATE_KEY secret is not set!"
+            exit 1
+          fi
+
+          # Записываем ключ в файл (пробуем оба способа)
+          if [[ "${{ secrets.SSH_PRIVATE_KEY }}" == *"BEGIN"* ]]; then
+            echo "📝 Using direct key format"
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          else
+            echo "📝 Trying base64 decode"
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/id_rsa
+          fi
+          chmod 600 ~/.ssh/id_rsa
+
+          # Проверяем формат ключа
+          if ! head -1 ~/.ssh/id_rsa | grep -q "BEGIN.*PRIVATE KEY"; then
+            echo "❌ Invalid SSH key format!"
+            echo "Key should start with -----BEGIN and contain PRIVATE KEY"
+            exit 1
+          fi
+
+          # Запускаем ssh-agent
+          eval $(ssh-agent -s)
+
+          # Экспортируем переменные для последующих шагов
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+
+          # Добавляем ключ с детальной диагностикой
+          echo "🔑 Adding SSH key to agent..."
+          if ssh-add ~/.ssh/id_rsa; then
+            echo "✅ SSH key added successfully"
+            ssh-add -l
+          else
+            echo "❌ Failed to add SSH key to agent"
+            echo "Key file size: $(wc -c < ~/.ssh/id_rsa) bytes"
+            echo "Key file head:"
+            head -3 ~/.ssh/id_rsa
+            echo "Key file tail:"
+            tail -3 ~/.ssh/id_rsa
+            exit 1
+          fi
 
       - name: Add VPS to known hosts
         run: |
