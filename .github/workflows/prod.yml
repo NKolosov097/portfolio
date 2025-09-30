@@ -203,25 +203,16 @@ jobs:
             if ! command -v docker >/dev/null 2>&1; then
               echo "🐳 Docker не найден, устанавливаем..."
               
-              # Создаем временный скрипт установки
-              cat > /tmp/install-docker.sh << 'DOCKER_SCRIPT'
-#!/bin/bash
-set -e
-echo "Установка Docker..."
-apt update
-apt install -y ca-certificates curl gnupg lsb-release
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt update
-apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-systemctl start docker
-systemctl enable docker
-echo "Docker установлен: $(docker --version)"
-DOCKER_SCRIPT
-              
-              chmod +x /tmp/install-docker.sh
-              sudo /tmp/install-docker.sh
-              rm /tmp/install-docker.sh
+              # Устанавливаем Docker напрямую
+              sudo apt update
+              sudo apt install -y ca-certificates curl gnupg lsb-release
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              sudo apt update
+              sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              echo "Docker установлен: $(docker --version)"
             else
               echo "✅ Docker уже установлен: $(docker --version)"
             fi
@@ -334,7 +325,7 @@ DOCKER_SCRIPT
           ssh -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'EOF'
             echo "📊 Checking Docker services status..."
             cd /home/portfolio/current
-            docker-compose ps || echo "Docker compose not running yet"
+            docker compose ps || echo "Docker compose not running yet"
             
             echo "🔍 Checking running containers..."
             docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
@@ -376,9 +367,9 @@ DOCKER_SCRIPT
                 docker ps -a
                 echo "=== Application logs ==="
                 cd /home/portfolio/current
-                docker-compose logs --tail=50 app || echo "No app logs available"
+                docker compose logs --tail=50 app || echo "No app logs available"
                 echo "=== Nginx logs ==="
-                docker-compose logs --tail=20 nginx || echo "No nginx logs available"
+                docker compose logs --tail=20 nginx || echo "No nginx logs available"
               DIAG_EOF
               
               exit 1
