@@ -125,10 +125,10 @@ build_application() {
     log "Building application..."
     
     # Pull latest base images
-    docker-compose -f "$DOCKER_COMPOSE_FILE" pull postgres redis nginx
+    docker compose -f "$DOCKER_COMPOSE_FILE" pull postgres redis nginx
     
     # Build application
-    docker-compose -f "$DOCKER_COMPOSE_FILE" build --no-cache app
+    docker compose -f "$DOCKER_COMPOSE_FILE" build --no-cache app
     
     log "Application build completed"
 }
@@ -138,10 +138,10 @@ run_migrations() {
     log "Running database migrations..."
     
     # Wait for database to be ready
-    docker-compose -f "$DOCKER_COMPOSE_FILE" exec -T postgres sh -c 'until pg_isready -U ${POSTGRES_USER:-portfolio_user}; do sleep 1; done'
+    docker compose -f "$DOCKER_COMPOSE_FILE" exec -T postgres sh -c 'until pg_isready -U ${POSTGRES_USER:-portfolio_user}; do sleep 1; done'
     
     # Run Prisma migrations
-    docker-compose -f "$DOCKER_COMPOSE_FILE" exec -T app pnpm prisma migrate deploy || {
+    docker compose -f "$DOCKER_COMPOSE_FILE" exec -T app pnpm prisma migrate deploy || {
         error "Database migrations failed"
     }
     
@@ -153,17 +153,17 @@ deploy_application() {
     log "Deploying application..."
     
     # Stop existing containers
-    docker-compose -f "$DOCKER_COMPOSE_FILE" down --remove-orphans
+    docker compose -f "$DOCKER_COMPOSE_FILE" down --remove-orphans
     
     # Start new containers
-    docker-compose -f "$DOCKER_COMPOSE_FILE" up -d
+    docker compose -f "$DOCKER_COMPOSE_FILE" up -d
     
     # Wait for services to be ready
     log "Waiting for services to start..."
     sleep 30
     
     # Check if services are running
-    if ! docker-compose -f "$DOCKER_COMPOSE_FILE" ps | grep -q "Up"; then
+    if ! docker compose -f "$DOCKER_COMPOSE_FILE" ps | grep -q "Up"; then
         error "Some services failed to start"
     fi
     
@@ -248,7 +248,7 @@ main() {
     
     # Show running containers
     info "Running containers:"
-    docker-compose -f "$DOCKER_COMPOSE_FILE" ps
+    docker compose -f "$DOCKER_COMPOSE_FILE" ps
 }
 
 # Handle script arguments
@@ -266,10 +266,10 @@ case "${1:-deploy}" in
         cleanup
         ;;
     "logs")
-        docker-compose -f "$DOCKER_COMPOSE_FILE" logs -f "${2:-app}"
+        docker compose -f "$DOCKER_COMPOSE_FILE" logs -f "${2:-app}"
         ;;
     "restart")
-        docker-compose -f "$DOCKER_COMPOSE_FILE" restart "${2:-app}"
+        docker compose -f "$DOCKER_COMPOSE_FILE" restart "${2:-app}"
         ;;
     *)
         echo "Usage: $0 {deploy|backup|health|cleanup|logs|restart}"
