@@ -1,3 +1,31 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('/public/assets/font/Inter/Inter-Variable.woff2') format('woff2-variations');
+  src: url('/public/assets/font/Inter/Inter-Variable.woff2') format('woff2') tech('variations');
+  font-weight: 100 900;
+  font-stretch: 75% 125%;
+  font-style: oblique 0deg 20deg;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/public/assets/font/Inter/Inter-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 75% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter-Italic';
+  src: url('/public/assets/font/Inter/Inter-Italic-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 75% 125%;
+  font-style: italic;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
   font-family: 'Inter', 'Inter Fallback';
