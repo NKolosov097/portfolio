@@ -104,7 +104,8 @@ RUN set -eux; \
             openssl \
             ca-certificates \
             dumb-init \
-            curl && break || \
+            curl \
+            postgresql-client && break || \
         (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
     done
 
@@ -125,6 +126,10 @@ COPY --from=builder /app/prisma ./prisma
 # Копирование сборки Next.js
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Копирование entrypoint скрипта
+COPY --chown=nextjs:nodejs docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
 # Установка только production зависимостей
 RUN pnpm install --frozen-lockfile --prod
@@ -153,5 +158,5 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Запуск приложения с dumb-init для корректной обработки сигналов
-ENTRYPOINT ["dumb-init", "--"]
+ENTRYPOINT ["dumb-init", "--", "/app/docker-entrypoint.sh"]
 CMD ["node", "server.js"]

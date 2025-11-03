@@ -41,6 +41,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # MailHog для отправки и получения email
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: portfolio_mailhog
+    restart: unless-stopped
+    ports:
+      - '${MAILHOG_SMTP_PORT:-1025}:1025'
+      - '${MAILHOG_HTTP_PORT:-8025}:8025'
+    networks:
+      - portfolio_network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8025']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   # Next.js Application
   app:
     build:
@@ -52,12 +68,27 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-portfolio_user}:${POSTGRES_PASSWORD:-portfolio_password}@postgres:5432/${POSTGRES_DB:-portfolio}
+      - POSTGRES_USER=${POSTGRES_USER:-portfolio_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-portfolio_password}
+      - POSTGRES_DB=${POSTGRES_DB:-portfolio}
+      - POSTGRES_HOST=postgres
       - REDIS_URL=redis://redis:6379
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-secret-key}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - SMTP_SERVER_HOST=${SMTP_SERVER_HOST}
+      - SMTP_SERVER_USERNAME=${SMTP_SERVER_USERNAME}
+      - SMTP_SERVER_PASSWORD=${SMTP_SERVER_PASSWORD}
+      - SITE_MAIL_RECIEVER=${SITE_MAIL_RECIEVER}
+      - NEXT_PUBLIC_LOCALHOST_API=${NEXT_PUBLIC_LOCALHOST_API}
     ports:
       - '${APP_PORT:-3000}:3000'
     volumes:
@@ -69,7 +100,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   # Nginx Reverse Proxy
   nginx:
