@@ -44,3 +44,7 @@ next-env.d.ts
 prisma/@
 prisma/migrations
 src/generated
+
+# pm2 logs
+logs/
+*.log

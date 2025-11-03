@@ -1,5 +1,6 @@
 /node_modules
 next.config.js
+ecosystem.config.js
 pnpm-lock.yaml
 .next
 .github/workflows/
