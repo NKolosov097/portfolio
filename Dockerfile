@@ -13,13 +13,27 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Установка системных зависимостей для Alpine
-RUN apk update --no-cache && \
-    apk add --no-cache \
-        libc6-compat \
-        openssl \
-        ca-certificates \
-        dumb-init
+# Установка системных зависимостей для Alpine с улучшенной надежностью
+RUN set -eux; \
+    # Обновляем индекс пакетов и добавляем альтернативные репозитории
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/main" > /etc/apk/repositories; \
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories; \
+    echo "http://alpine.mirror.wearetriple.com/v3.22/main" >> /etc/apk/repositories; \
+    echo "http://alpine.mirror.wearetriple.com/v3.22/community" >> /etc/apk/repositories; \
+    # Обновляем с таймаутом
+    timeout 300 apk update || (echo "Primary update failed, trying fallback..." && \
+    echo "http://mirror.yandex.ru/mirrors/alpine/v3.22/main" > /etc/apk/repositories && \
+    echo "http://mirror.yandex.ru/mirrors/alpine/v3.22/community" >> /etc/apk/repositories && \
+    timeout 300 apk update); \
+    # Устанавливаем пакеты с повторными попытками
+    for i in 1 2 3; do \
+        timeout 300 apk add --no-cache \
+            libc6-compat \
+            openssl \
+            ca-certificates \
+            dumb-init && break || \
+        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
+    done
 
 # Установка рабочей директории
 WORKDIR /app
@@ -38,12 +52,21 @@ FROM node:22-alpine AS builder
 # Установка pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Установка системных зависимостей
-RUN apk update --no-cache && \
-    apk add --no-cache \
-        libc6-compat \
-        openssl \
-        ca-certificates
+# Установка системных зависимостей с улучшенной надежностью
+RUN set -eux; \
+    # Используем те же репозитории что и в deps stage
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/main" > /etc/apk/repositories; \
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories; \
+    echo "http://alpine.mirror.wearetriple.com/v3.22/main" >> /etc/apk/repositories; \
+    echo "http://alpine.mirror.wearetriple.com/v3.22/community" >> /etc/apk/repositories; \
+    timeout 300 apk update || (echo "Primary update failed, trying fallback..." && \
+    echo "http://mirror.yandex.ru/mirrors/alpine/v3.22/main" > /etc/apk/repositories && \
+    echo "http://mirror.yandex.ru/mirrors/alpine/v3.22/community" >> /etc/apk/repositories && \
+    timeout 300 apk update); \
+    for i in 1 2 3; do \
+        timeout 300 apk add --no-cache libc6-compat openssl ca-certificates && break || \
+        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
+    done
 
 WORKDIR /app
 
@@ -63,16 +86,28 @@ RUN pnpm build
 # Stage 3: Runner - финальный образ для запуска
 FROM node:22-alpine AS runner
 
-# Установка pnpm и системных зависимостей
+# Установка pnpm и системных зависимостей с улучшенной надежностью
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN apk update --no-cache && \
-    apk add --no-cache \
-        libc6-compat \
-        openssl \
-        ca-certificates \
-        dumb-init \
-        curl \
-        postgresql-client
+RUN set -eux; \
+    # Настройка репозиториев для runner stage
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/main" > /etc/apk/repositories; \
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories; \
+    echo "http://alpine.mirror.wearetriple.com/v3.22/main" >> /etc/apk/repositories; \
+    echo "http://alpine.mirror.wearetriple.com/v3.22/community" >> /etc/apk/repositories; \
+    timeout 300 apk update || (echo "Primary update failed, trying fallback..." && \
+    echo "http://mirror.yandex.ru/mirrors/alpine/v3.22/main" > /etc/apk/repositories && \
+    echo "http://mirror.yandex.ru/mirrors/alpine/v3.22/community" >> /etc/apk/repositories && \
+    timeout 300 apk update); \
+    for i in 1 2 3; do \
+        timeout 300 apk add --no-cache \
+            libc6-compat \
+            openssl \
+            ca-certificates \
+            dumb-init \
+            curl \
+            postgresql-client && break || \
+        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
+    done
 
 WORKDIR /app
 
