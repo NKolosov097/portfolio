@@ -117,6 +117,7 @@ services:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
       - ./docker/ssl:/etc/nginx/ssl:ro
       - nginx_logs:/var/log/nginx
+      - ./ssl:/etc/nginx/ssl
     networks:
       - portfolio_network
     healthcheck:
