@@ -134,8 +134,11 @@ RUN chmod +x /app/docker-entrypoint.sh
 # Установка только production зависимостей
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
+# Установка Prisma CLI для генерации (совместимая версия)
+RUN pnpm add -D prisma@^6.9.0
+
 # Генерация Prisma Client в production
-RUN pnpm dlx prisma@^6.9.0 generate
+RUN pnpm prisma generate
 
 # Создание директорий и установка прав
 RUN mkdir -p /app/.next/cache /app/logs
