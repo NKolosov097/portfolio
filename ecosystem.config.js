@@ -8,7 +8,7 @@ module.exports = {
       exec_mode: 'cluster',
       
       // Директория запуска
-      cwd: '/var/www/projects/portfolio',
+      cwd: '/var/www/portfolio',
       
       // Переменные окружения
       env: {
