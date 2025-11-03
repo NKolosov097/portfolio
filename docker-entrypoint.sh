@@ -26,7 +26,7 @@ fi
 
 # Выполнение миграций Prisma
 echo "📦 Running Prisma migrations..."
-if pnpm prisma migrate deploy; then
+if pnpm dlx prisma@^6.9.0 migrate deploy; then
   echo "✅ Migrations completed successfully!"
 else
   echo "⚠️  Migration failed, but continuing..."
@@ -34,7 +34,7 @@ fi
 
 # Генерация Prisma Client (на случай если нужна)
 echo "🔧 Generating Prisma Client..."
-if pnpm prisma generate; then
+if pnpm dlx prisma@^6.9.0 generate; then
   echo "✅ Prisma Client generated successfully!"
 else
   echo "⚠️  Prisma generate failed, but continuing..."

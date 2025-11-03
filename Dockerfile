@@ -97,10 +97,10 @@ COPY --chown=nextjs:nodejs docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Установка только production зависимостей
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # Генерация Prisma Client в production
-RUN pnpm prisma generate
+RUN pnpm dlx prisma@^6.9.0 generate
 
 # Создание директорий и установка прав
 RUN mkdir -p /app/.next/cache /app/logs
