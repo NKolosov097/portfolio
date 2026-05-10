@@ -1,12 +1,27 @@
 import { PrismaClient } from '@/generated/prisma'
 import { withAccelerate } from '@prisma/extension-accelerate'
 
-const globalForPrisma = global as unknown as {
-  prisma: PrismaClient
+/** Creates a Prisma client. Applies the Accelerate extension only when DATABASE_URL uses the `prisma://` protocol. */
+const createPrismaClient = () => {
+  const base = new PrismaClient()
+
+  if (process.env.DATABASE_URL?.startsWith('prisma://')) {
+    return base.$extends(withAccelerate())
+  }
+
+  return base
 }
 
-const prisma = globalForPrisma.prisma || new PrismaClient().$extends(withAccelerate())
+/** Inferred union type covering both plain and Accelerate-extended clients. */
+type PrismaClientInstance = ReturnType<typeof createPrismaClient>
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+declare const globalThis: {
+  /** Cached Prisma client singleton for non-production environments. */
+  prismaGlobal: PrismaClientInstance
+} & typeof global
+
+const prisma: PrismaClientInstance = globalThis.prismaGlobal ?? createPrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
 
 export default prisma
