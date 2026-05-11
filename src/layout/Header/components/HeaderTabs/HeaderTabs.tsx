@@ -44,10 +44,6 @@ export const HeaderTabs = () => {
         id: ETabID.resume,
         title: t('headerTabs.resume'),
       },
-      {
-        id: ETabID.contact,
-        title: t('headerTabs.contact'),
-      },
     ],
     [t],
   )
