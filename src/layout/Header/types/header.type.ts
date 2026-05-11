@@ -1,8 +1,8 @@
-import { ETabID } from '@/constants/header.constants'
+import { ELanguage, ETabID } from '@/constants/header.constants'
 
 export interface ILanguageItem {
   title: string
-  value: string
+  value: ELanguage
 }
 
 export interface ISwitcherLanguageProps {
