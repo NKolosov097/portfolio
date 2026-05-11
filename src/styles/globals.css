@@ -1,5 +1,5 @@
 @font-face {
-  font-family: 'Inter';
+  font-family: Inter;
   src: url('/assets/font/Inter/Inter-Variable.woff2') format('woff2-variations');
   src: url('/assets/font/Inter/Inter-Variable.woff2') format('woff2') tech('variations');
   font-weight: 100 900;
@@ -9,7 +9,7 @@
 }
 
 @font-face {
-  font-family: 'Inter';
+  font-family: Inter;
   src: url('/assets/font/Inter/Inter-Variable.woff2') format('woff2');
   font-weight: 100 900;
   font-stretch: 75% 125%;
@@ -18,7 +18,7 @@
 }
 
 @font-face {
-  font-family: 'Inter-Italic';
+  font-family: Inter-Italic;
   src: url('/assets/font/Inter/Inter-Italic-Variable.woff2') format('woff2');
   font-weight: 100 900;
   font-stretch: 75% 125%;
@@ -28,7 +28,7 @@
 
 * {
   box-sizing: border-box;
-  font-family: 'Inter', 'Inter Fallback';
+  font-family: Inter, 'Inter Fallback';
   font-style: normal;
 }
 
@@ -37,29 +37,22 @@ body,
 #__next {
   --min-width: 320px;
   --max-width: 1440px;
-
   --mobile-width: 1024px;
   --header-height: 84px;
-
   --body-horizontal-gap: 20px;
   --body-padding: 20px;
-
   --root-bg-color: #121212;
-  --root-text-color: #ffffff;
-
+  --root-text-color: #fff;
   --aside-bg-color: #4d4d4d;
   --aside-width: 270px;
   --aside-max-height: 700px;
-
   --min-height-footer: 40px;
-
-  --g-card-background-color: rgba(32, 32, 32, 0.4);
-  --g-color-private-red-550-solid: #ff0000;
+  --g-card-background-color: rgb(32 32 32 / 40%);
+  --g-color-private-red-550-solid: #f00;
   --g-color-text-danger: var(--g-color-private-red-550-solid);
 
   min-width: var(--min-width);
   margin: 0 auto;
-
   background-color: var(--root-bg-color);
   color: var(--root-text-color);
 }
@@ -105,7 +98,6 @@ body,
 .g-text-input > .g-text-input__content,
 .g-text-area > .g-text-area__content {
   border-block-end: 1px solid var(--g-color-text-secondary);
-
   transition: border-color 0.25s ease-in-out;
 }
 
@@ -129,15 +121,12 @@ body,
 
 body:not(.error-body) {
   position: relative;
-
   max-width: var(--max-width);
-
   display: grid;
   grid-template:
     'main main'
     'footer footer' 1fr / 1fr;
   gap: 0;
-
   padding: var(--header-height) var(--body-padding) 0;
 }
 
@@ -146,9 +135,7 @@ body:not(.error-body) {
   display: flex;
   align-items: center;
   justify-content: center;
-
   max-width: var(--max-width);
-
   padding: var(--header-height) var(--body-padding) 0;
 }
 
@@ -172,7 +159,7 @@ body:not(.error-body) {
   text-align: center;
   font-size: 1.3rem;
   margin: 0;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgb(255 255 255 / 75%);
 }
 
 .error-body .error-body-btn {
@@ -189,10 +176,8 @@ body:not(.error-body) {
 
 .not-found-header {
   width: 100%;
-
   text-align: center;
   font-size: 1.8rem;
-
   margin: 0;
 }
 
@@ -213,7 +198,6 @@ aside {
   max-height: 700px;
   height: 100%;
   display: flex;
-
   border-radius: 20px;
 }
 
@@ -224,7 +208,6 @@ main {
   min-height: calc(100vh - var(--min-height-footer));
   height: max-content;
   grid-area: main;
-
   margin: 0 auto;
   background-color: var(--root-bg-color);
 }
@@ -238,24 +221,19 @@ main > header > .g-tabs {
 .section {
   display: flex;
   flex-direction: column;
-
   max-width: calc(
     var(--max-width) - var(--body-padding) - var(--body-padding) - var(--aside-width) -
       var(--body-horizontal-gap)
   );
-
   min-height: calc(var(--aside-max-height) - var(--header-height));
   margin-bottom: calc(100vh - var(--aside-max-height));
-
   text-align: start;
 }
 
 .section-header {
   margin: 1rem 0 0;
-
   font-size: 3rem;
   line-height: 3rem;
-
   color: var(--g-color-line-brand);
   text-align: start;
 }
@@ -263,10 +241,10 @@ main > header > .g-tabs {
 footer,
 .gn-footer {
   grid-area: footer;
-
   border-radius: 8px 8px 0 0;
 
-  --g-color-base-background: rgba(32, 32, 32, 0.4);
+  --g-color-base-background: rgb(32 32 32 / 40%);
+
   color: var(--g-color-private-white-950);
 }
 
@@ -333,10 +311,8 @@ footer,
   body,
   #__next {
     --header-height: 54px;
-
     --aside-width: 0;
     --aside-max-height: 100vh;
-
     --body-horizontal-gap: 0;
     --body-padding: 10px;
   }
@@ -348,7 +324,6 @@ footer,
 
   aside {
     position: static;
-
     padding: 0;
     z-index: 1;
   }

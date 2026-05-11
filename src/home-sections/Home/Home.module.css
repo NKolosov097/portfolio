@@ -2,21 +2,17 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-
   min-height: calc(var(--aside-max-height) - var(--header-height));
   margin-top: 25px;
   margin-bottom: calc(100vh - var(--aside-max-height));
-
   text-align: start;
 }
 
 .header,
 .profession {
   margin: 0;
-
   font-size: 6rem;
   line-height: 6rem;
-
   color: var(--g-color-line-brand);
   text-align: start;
 }

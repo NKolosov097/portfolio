@@ -1,11 +1,9 @@
 .section {
   display: flex;
   flex-direction: column;
-
   min-height: calc(var(--aside-max-height) - var(--header-height));
   margin-top: 25px;
   margin-bottom: calc(100vh - var(--aside-max-height));
-
   text-align: start;
 }
 
@@ -21,7 +19,6 @@
     'company profession'
     'message message' 1fr / 1fr 1fr;
   gap: 1rem;
-
   margin: 1rem 0;
 }
 
@@ -47,11 +44,12 @@
 
 .loaderContainer {
   position: absolute;
-  inset: 0px;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.07);
+  background-color: rgb(0 0 0 / 7%);
+
   /* background: radial-gradient(var(--root-bg-color), #9198e5); */
   border-radius: 0.5rem;
   pointer-events: all;

@@ -1,15 +1,19 @@
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@/generated/prisma'
 import { withAccelerate } from '@prisma/extension-accelerate'
 
-/** Creates a Prisma client. Applies the Accelerate extension only when DATABASE_URL uses the `prisma://` protocol. */
+/** Creates a Prisma client. Uses Accelerate when DATABASE_URL starts with `prisma://`, otherwise connects via the pg driver adapter. */
 const createPrismaClient = () => {
-  const base = new PrismaClient()
+  /** Database connection string resolved from the environment at client creation time. */
+  const url = process.env.DATABASE_URL ?? ''
 
-  if (process.env.DATABASE_URL?.startsWith('prisma://')) {
-    return base.$extends(withAccelerate())
+  if (url.startsWith('prisma://')) {
+    return new PrismaClient({ accelerateUrl: url }).$extends(withAccelerate())
   }
 
-  return base
+  /** pg driver adapter required by Prisma 7 for direct PostgreSQL connections. */
+  const adapter = new PrismaPg({ connectionString: url })
+  return new PrismaClient({ adapter })
 }
 
 /** Inferred union type covering both plain and Accelerate-extended clients. */

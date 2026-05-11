@@ -1,6 +1,7 @@
 .header {
   position: fixed;
   top: 0;
+
   /* 1px - border of aside */
   left: calc(var(--aside-width) + var(--body-padding) + 1px + 1px);
   right: 0;

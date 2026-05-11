@@ -4,13 +4,10 @@
   justify-content: space-between;
   flex-flow: row nowrap;
   gap: 10px;
-
   width: fit-content;
   padding: 10px 15px;
-
   border: 1px solid var(--g-color-private-white-950);
   border-radius: 20px;
-
   font-size: 1rem;
   line-height: 1rem;
   font-weight: 700;
