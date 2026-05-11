@@ -49,3 +49,6 @@ src/generated
 # pm2 logs
 logs/
 *.log
+
+# AI
+CLAUDE.md
