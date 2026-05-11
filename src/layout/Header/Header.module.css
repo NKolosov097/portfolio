@@ -18,6 +18,7 @@
 
 .tabs {
   width: fit-content;
+  margin-inline: auto;
   box-shadow: none;
 }
 
