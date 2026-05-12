@@ -1,30 +1,15 @@
-import { lazy, Suspense } from 'react'
+import Home from '@/home-sections/Home/Home'
+import Portfolio from '@/home-sections/Portfolio/Portfolio'
+import AboutMe from '@/home-sections/AboutMe/AboutMe'
+import Resume from '@/home-sections/Resume/Resume'
 
-import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
-
-const Home = lazy(() => import('@/home-sections/Home/Home'))
-const Portfolio = lazy(() => import('@/home-sections/Portfolio/Portfolio'))
-const AboutMe = lazy(() => import('@/home-sections/AboutMe/AboutMe'))
-const Resume = lazy(() => import('@/home-sections/Resume/Resume'))
-
-export default async function HomePage() {
+export default function HomePage() {
   return (
     <>
-      <Suspense fallback={<LoaderSection />}>
-        <Home />
-      </Suspense>
-
-      <Suspense fallback={<LoaderSection />}>
-        <Portfolio />
-      </Suspense>
-
-      <Suspense fallback={<LoaderSection />}>
-        <AboutMe />
-      </Suspense>
-
-      <Suspense fallback={<LoaderSection />}>
-        <Resume />
-      </Suspense>
+      <Home />
+      <Portfolio />
+      <AboutMe />
+      <Resume />
     </>
   )
 }

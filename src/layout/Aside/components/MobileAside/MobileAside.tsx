@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react'
 
 import styles from '@/layout/Aside/aside.module.css'
 
-import { Drawer, DrawerItem } from '@gravity-ui/navigation'
+import { Drawer } from '@gravity-ui/uikit'
 
 import { AsideContent } from '@/layout/Aside/components/AsideContent/AsideContent'
 
@@ -32,12 +32,10 @@ export const MobileAside = () => {
   }, [])
 
   return (
-    <Drawer onEscape={handleCloseDrawer} onVeilClick={handleCloseDrawer}>
-      <DrawerItem id="aside-card" visible={isOpenDrawer}>
-        <div className={styles.drawerItemContent}>
-          <AsideContent />
-        </div>
-      </DrawerItem>
+    <Drawer open={isOpenDrawer} onOpenChange={(isOpen) => !isOpen && handleCloseDrawer()}>
+      <div id="aside-card" className={styles.drawerItemContent}>
+        <AsideContent />
+      </div>
     </Drawer>
   )
 }
