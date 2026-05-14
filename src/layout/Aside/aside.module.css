@@ -113,6 +113,11 @@
   color: #000;
 }
 
+.drawer {
+  overflow: hidden !important;
+  width: 100%;
+}
+
 .drawerItemContent {
   position: sticky;
   top: 0;
@@ -122,9 +127,28 @@
   justify-content: space-between;
   max-height: var(--aside-max-height);
   height: 100vh;
-  margin: auto;
+  width: 100vw;
   padding: 10px;
   overflow-y: auto;
+}
+
+.closeIcon {
+  position: absolute !important ;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px !important;
+}
+
+.closeIcon > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeIcon svg {
+  width: 20px;
+  height: 20px;
 }
 
 @media screen and (width <= 1024px) {

@@ -67,7 +67,7 @@ export const favoriteTools: IFavoriteTool[] = [
   },
   {
     icon: <Image src="/assets/svg/tools/nextjs.svg" alt="NextJS" width={40} height={40} />,
-    title: 'NextJS (14/15)',
+    title: 'NextJS',
   },
   {
     icon: (

@@ -2,16 +2,15 @@
 
 import styles from '@/layout/Header/Header.module.css'
 
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 import { Button, Icon } from '@gravity-ui/uikit'
-// eslint-disable-next-line import/named
 import { Tabs, TabsItemProps as ITab } from '@gravity-ui/uikit/legacy'
 import { Person } from '@gravity-ui/icons'
 
-import { ETabID, paddingFromTopAfterScroll } from '@/constants/header.constants'
+import { ETabID, tabsCompactBreakpoint } from '@/constants/header.constants'
 import { getElementPosition, scrollTo } from '@/helpers/scrollTo'
 
 import { IPosition } from '@/layout/Header/types/header.type'
@@ -22,6 +21,14 @@ import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 export const HeaderTabs = () => {
   const { t } = useTranslation()
   const pathname = usePathname()
+  const [width, setWidth] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    const updateWidth = () => setWidth(window.innerWidth)
+    updateWidth()
+    window.addEventListener('resize', updateWidth)
+    return () => window.removeEventListener('resize', updateWidth)
+  }, [])
 
   const { currentTab, setCurrentTab, isClicked, setIsClicked } = useHeaderStore((state) => state)
   const { setIsOpenDrawer } = useAsideStore((state) => state)
@@ -51,7 +58,7 @@ export const HeaderTabs = () => {
   const handleSelectTab = useCallback((tabId: ETabID) => {
     setCurrentTab(tabId)
     setIsClicked(true)
-    scrollTo({ id: tabId, paddingFromTop: paddingFromTopAfterScroll })
+    scrollTo({ id: tabId })
   }, [])
 
   useEffect(() => {
@@ -82,11 +89,7 @@ export const HeaderTabs = () => {
         ?.filter((section) => {
           // 20px - padding from top of window
           // 84px - header's height
-          // paddingFromTopAfterScroll - header's padding from bottom, that we use to scroll after click
-          return (
-            section?.position - window?.scrollY <=
-            20 + 84 + paddingFromTopAfterScroll + paddingFromTop
-          )
+          return section?.position - window?.scrollY <= 20 + 84 + paddingFromTop
         })
         ?.at(-1)
 
@@ -115,7 +118,7 @@ export const HeaderTabs = () => {
 
       <Tabs
         items={tabs}
-        size="xl"
+        size={width !== undefined && width < tabsCompactBreakpoint ? 'm' : 'l'}
         activeTab={currentTab}
         onSelectTab={handleSelectTab}
         className={styles.tabs}

@@ -17,7 +17,7 @@ export const scrollTo = <T extends HTMLElement>({
   id,
   ref = null,
   duration = 750,
-  paddingFromTop = 0,
+  paddingFromTop = 10,
 }: IScrollToProps<T>) => {
   // the position of the scroll bar before the user clicks the button
   const initialPosition = window.scrollY

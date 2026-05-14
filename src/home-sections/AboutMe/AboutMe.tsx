@@ -5,7 +5,7 @@ import styles from './AboutMe.module.css'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button, Icon, Popup } from '@gravity-ui/uikit'
+import { ClipboardButton, Icon } from '@gravity-ui/uikit'
 import { Copy } from '@gravity-ui/icons'
 import { Tag } from '@/components/Tag/Tag'
 import { Advantage } from './components/Advantage/Advantage'
@@ -41,7 +41,6 @@ export const AboutMe = () => {
 
   const phoneRef = useRef<HTMLParagraphElement>(null)
   const emailRef = useRef<HTMLParagraphElement>(null)
-  const [copyTooltip, setCopyTooltip] = useState<ICopyTooltipText>(defaultCopyTooltip)
 
   const advantages: IAdvantage[] = useMemo(
     () => [
@@ -52,7 +51,7 @@ export const AboutMe = () => {
       },
       {
         id: 'yearsOfExperience',
-        title: '4+',
+        title: '5+',
         description: t('aboutMe.yearsOfExperience'),
       },
       {
@@ -63,64 +62,6 @@ export const AboutMe = () => {
     ],
     [t],
   )
-
-  const handleCopyPhoneBtn = useCallback(() => {
-    copyTextToClipboard(phone)
-      .then(() => {
-        setCopyTooltip((prev) => ({
-          ...prev,
-          phone: { isOpen: true, content: 'Phone was been copied successfully!' },
-        }))
-      })
-      .catch(() => {
-        setCopyTooltip((prev) => ({
-          ...prev,
-          phone: { isOpen: true, content: 'Error with copying phone...' },
-        }))
-      })
-  }, [])
-
-  const handleCopyEmailBtn = useCallback(() => {
-    copyTextToClipboard(email)
-      .then(() => {
-        setCopyTooltip((prev) => ({
-          ...prev,
-          email: { isOpen: true, content: 'Email was been copied successfully!' },
-        }))
-      })
-      .catch(() => {
-        setCopyTooltip((prev) => ({
-          ...prev,
-          email: {
-            isOpen: true,
-            content: 'Error with copying email...',
-          },
-        }))
-      })
-  }, [])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCopyTooltip((prev) => ({
-        ...prev,
-        phone: { ...prev.phone, isOpen: false },
-      }))
-    }, 2000)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [copyTooltip.phone.isOpen])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCopyTooltip((prev) => ({ ...prev, email: { ...prev.phone, isOpen: false } }))
-    }, 2000)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [copyTooltip.email.isOpen])
 
   return (
     <section id={ETabID.aboutMe} className={styles.section}>
@@ -136,8 +77,8 @@ export const AboutMe = () => {
 
       <div className={styles.contentContainer}>
         <div className={styles.content}>
-          <p className={styles.contentDescription}>asdasd</p>
-          <p className={styles.contentDescription}>asdasd</p>
+          {/* <p className={styles.contentDescription}>asdasd</p>
+          <p className={styles.contentDescription}>asdasd</p> */}
         </div>
 
         <ul className={styles.contentContactContainer}>
@@ -152,36 +93,18 @@ export const AboutMe = () => {
             <h3 className={styles.contentContactHeader}>{t('phone')}</h3>
             <p className={styles.contentContactDescription} ref={phoneRef}>
               {phone}
-              <Button onClick={handleCopyPhoneBtn} className={styles.copyBtn} size="s" view="flat">
-                <Icon width={20} height={20} data={Copy} />
-              </Button>
+              <ClipboardButton text={phone} className={styles.copyBtn} size="l" view="flat" />
             </p>
-
-            <Popup
-              anchorElement={phoneRef?.current}
-              open={copyTooltip.phone.isOpen}
-              placement="top"
-            >
-              {copyTooltip.phone.content}
-            </Popup>
           </li>
 
           <li>
             <h3 className={styles.contentContactHeader}>Email</h3>
             <p className={styles.contentContactDescription} ref={emailRef}>
               {email}
-              <Button onClick={handleCopyEmailBtn} className={styles.copyBtn} size="s" view="flat">
+              <ClipboardButton text={email} className={styles.copyBtn} size="s" view="flat">
                 <Icon width={20} height={20} data={Copy} />
-              </Button>
+              </ClipboardButton>
             </p>
-
-            <Popup
-              anchorElement={emailRef?.current}
-              open={copyTooltip.email.isOpen}
-              placement="top"
-            >
-              {copyTooltip.email.content}
-            </Popup>
           </li>
 
           <li>

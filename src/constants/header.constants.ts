@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { ILanguageItem } from '@/layout/Header/types/header.type'
 
-export const paddingFromTopAfterScroll = 85
+/** Viewport width threshold below which header tabs switch to compact size. */
+export const tabsCompactBreakpoint = 500
 
 export const enum ELanguage {
   en = 'en',

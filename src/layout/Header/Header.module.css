@@ -16,10 +16,13 @@
   z-index: 1;
 }
 
-.tabs {
+.header .tabs {
   width: fit-content;
   margin-inline: auto;
   box-shadow: none;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  overflow: auto;
 }
 
 .header .drawerBtn {

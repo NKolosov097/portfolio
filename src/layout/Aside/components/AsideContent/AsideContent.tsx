@@ -49,7 +49,7 @@ export const AsideContent = () => {
 
         <li className={styles.block}>
           <h2>{t('aside.fullYears')}: </h2>
-          <p>22 y.o.</p>
+          <p>23 y.o.</p>
         </li>
       </ul>
 
