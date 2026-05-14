@@ -127,7 +127,6 @@
   justify-content: space-between;
   max-height: var(--aside-max-height);
   height: 100vh;
-  width: 100vw;
   padding: 10px;
   overflow-y: auto;
 }

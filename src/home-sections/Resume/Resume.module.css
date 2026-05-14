@@ -3,7 +3,7 @@
   flex-direction: column;
   max-width: 100%;
   width: 100%;
-  min-height: calc(var(--aside-max-height) - var(--header-height));
+  min-height: var(--min-height-section);
   margin-top: 25px;
   margin-bottom: calc(100vh - var(--aside-max-height));
   text-align: start;

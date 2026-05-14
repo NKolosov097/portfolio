@@ -28,24 +28,24 @@
 
 * {
   box-sizing: border-box;
-  font-family: Inter, 'Inter Fallback';
+  font-family: Inter, 'serif';
   font-style: normal;
 }
 
 html,
-body,
-#__next {
+body {
   --min-width: 320px;
   --max-width: 1440px;
   --mobile-width: 1024px;
-  --header-height: 84px;
+  --header-height: 80px;
   --body-horizontal-gap: 20px;
   --body-padding: 20px;
   --root-bg-color: #121212;
   --root-text-color: #fff;
   --aside-bg-color: #4d4d4d;
   --aside-width: 270px;
-  --aside-max-height: 700px;
+  --aside-max-height: calc(100% - 2 * var(--body-padding));
+  --min-height-section: calc(100vh - var(--header-height) - 2 * var(--body-padding));
   --min-height-footer: 40px;
   --g-card-background-color: rgb(32 32 32 / 40%);
   --g-color-private-red-550-solid: #f00;
@@ -196,7 +196,7 @@ aside {
   left: var(--body-padding);
   transform: translateY(-50%);
   max-height: 700px;
-  height: 100%;
+  height: calc(100% - 2 * var(--body-padding));
   display: flex;
   border-radius: 20px;
 }
@@ -274,8 +274,7 @@ footer,
 
 @media screen and (width <= 1440px) {
   html,
-  body,
-  #__next {
+  body {
     --max-width: 100vw;
   }
 
@@ -308,9 +307,8 @@ footer,
 
 @media screen and (width <= 1024px) {
   html,
-  body,
-  #__next {
-    --header-height: 54px;
+  body {
+    --header-height: 60px;
     --aside-width: 0;
     --aside-max-height: 100vh;
     --body-horizontal-gap: 0;
