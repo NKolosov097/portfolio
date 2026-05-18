@@ -4,7 +4,7 @@
   justify-content: flex-end;
   min-height: var(--min-height-section);
   margin-top: 25px;
-  margin-bottom: calc(100vh - var(--aside-max-height));
+  margin-bottom: calc(2 * var(--body-padding));
   text-align: start;
 }
 
