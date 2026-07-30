@@ -274,4 +274,3 @@ All three checks — TypeScript, ESLint, and Prettier — must pass before work 
 ---
 
 <p align="center"><sub>Built by <a href="https://github.com/NKolosov097">@NKolosov097</a></sub></p>
-```
