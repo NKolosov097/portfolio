@@ -1,4 +1,4 @@
-# Portfolio — NKolosov097
+# Portfolio — [NKolosov097](https://nkolosov.com)
 
 A production-grade personal portfolio built as a single-page application on the **Next.js App Router** with **React 19** and **TypeScript** (strict). It ships a fully internationalised (English / Russian) UI, a database-backed contact form with transactional email, and an accessibility- and performance-conscious layout shell.
 
