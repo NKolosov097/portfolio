@@ -99,10 +99,28 @@ export const HeaderTabs = () => {
     }
     handleScroll()
 
-    window?.addEventListener('scroll', handleScroll)
+    // coalesce scroll events into one handler call per frame to avoid layout thrash
+    let rafId: number | null = null
+
+    const onScroll = () => {
+      if (rafId !== null) {
+        return
+      }
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null
+        handleScroll()
+      })
+    }
+
+    window?.addEventListener('scroll', onScroll, { passive: true })
 
     return () => {
-      window?.removeEventListener('scroll', handleScroll)
+      window?.removeEventListener('scroll', onScroll)
+
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId)
+      }
     }
   }, [isClicked])
 
