@@ -55,8 +55,6 @@ export const viewport: Viewport = {
   themeColor: '#121212',
   colorScheme: 'dark',
   initialScale: 1,
-  maximumScale: 1,
-  minimumScale: 1,
   viewportFit: 'auto',
 }
 
