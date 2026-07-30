@@ -11,7 +11,7 @@ import { Tag } from '@/components/Tag/Tag'
 import { Advantage } from './components/Advantage/Advantage'
 
 import { ETabID } from '@/constants/header.constants'
-import { phone, email } from '@/constants/constants'
+import { PHONE, EMAIL } from '@/constants/constants'
 import { IAdvantage } from '@/home-sections/AboutMe/types/aboutMe.type'
 import { copyTextToClipboard } from '@/helpers/clipboard'
 
@@ -92,16 +92,16 @@ export const AboutMe = () => {
           <li>
             <h3 className={styles.contentContactHeader}>{t('phone')}</h3>
             <p className={styles.contentContactDescription} ref={phoneRef}>
-              {phone}
-              <ClipboardButton text={phone} className={styles.copyBtn} size="l" view="flat" />
+              {PHONE}
+              <ClipboardButton text={PHONE} className={styles.copyBtn} size="l" view="flat" />
             </p>
           </li>
 
           <li>
             <h3 className={styles.contentContactHeader}>Email</h3>
             <p className={styles.contentContactDescription} ref={emailRef}>
-              {email}
-              <ClipboardButton text={email} className={styles.copyBtn} size="s" view="flat">
+              {EMAIL}
+              <ClipboardButton text={EMAIL} className={styles.copyBtn} size="s" view="flat">
                 <Icon width={20} height={20} data={Copy} />
               </ClipboardButton>
             </p>
