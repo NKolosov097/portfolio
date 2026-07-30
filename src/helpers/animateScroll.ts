@@ -1,7 +1,13 @@
+import { prefersReducedMotion } from './prefersReducedMotion'
+
 interface IAnimateScrollProps {
+  /** Absolute scroll position, in pixels, the page should end up at. */
   targetPosition: number
+  /** Scroll position, in pixels, at the moment the animation starts. */
   initialPosition: number
+  /** Total animation length in milliseconds. */
   duration: number
+  /** Extra offset, in pixels, kept above the target (e.g. for a sticky header). */
   paddingFromTop?: number
 }
 
@@ -18,6 +24,12 @@ export function animateScroll({
   duration,
   paddingFromTop = 0,
 }: IAnimateScrollProps) {
+  // respect the user's reduced-motion preference: jump instead of animating
+  if (prefersReducedMotion()) {
+    window.scrollTo(0, targetPosition - paddingFromTop)
+    return
+  }
+
   let start: number
   let position
   let animationFrame: number
