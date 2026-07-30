@@ -118,6 +118,10 @@
   width: 100%;
 }
 
+.drawerItem {
+  max-width: 100%;
+}
+
 .drawerItemContent {
   position: relative;
   display: flex;

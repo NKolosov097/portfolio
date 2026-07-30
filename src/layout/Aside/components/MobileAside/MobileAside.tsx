@@ -37,6 +37,7 @@ export const MobileAside = () => {
       open={isOpenDrawer}
       onOpenChange={(isOpen) => !isOpen && handleCloseDrawer()}
       className={styles.drawer}
+      contentClassName={styles.drawerItem}
     >
       <div id="aside-card" className={styles.drawerItemContent}>
         <Button
