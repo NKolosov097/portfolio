@@ -1,16 +1,18 @@
-.button:has(a) {
+.link {
   position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  opacity: 0;
-  z-index: 2;
-}
-
-.button:has(a:focus) {
-  opacity: 1;
-}
-
-.button a {
+  top: 0;
+  left: 0;
+  z-index: 3;
+  padding: 0.5rem 1rem;
   color: var(--g-color-line-brand);
+  background-color: var(--root-bg-color);
   font-size: 1rem;
+  border-radius: 0 0 8px;
+
+  /* moved off-screen until it receives keyboard focus */
+  transform: translateY(-150%);
+}
+
+.link:focus {
+  transform: translateY(0);
 }
