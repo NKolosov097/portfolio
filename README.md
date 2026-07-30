@@ -32,6 +32,7 @@ A production-grade personal portfolio built as a single-page application on the 
 - **Accessibility & performance built in.** Skip-to-navigation link, zoomable viewport, `prefers-reduced-motion` support, and a `requestAnimationFrame`-throttled scroll-spy.
 - **Consistent design language.** Themed entirely through **Gravity UI**, with the dark theme applied server-side to avoid a flash of unstyled content.
 - **Operational readiness.** A `/api/health` endpoint reports status, uptime, environment, and version for liveness/readiness probes.
+- **SEO out of the box.** Rich metadata (Open Graph, Twitter card, canonical + `hreflang` alternates), `Person` + `WebSite` JSON-LD structured data, a dynamically generated 1200×630 social banner (`next/og`), and generated `/robots.txt` and `/sitemap.xml` — all driven from a single `src/constants/seo.constants.ts` source of truth.
 
 ---
 
@@ -83,7 +84,7 @@ Key architectural decisions:
 
 ```
 src/
-├─ app/                 # App Router: layout, root page, /api/health, error & not-found
+├─ app/                 # App Router: layout, root page, /api/health, robots.ts, sitemap.ts, opengraph-image.tsx, error & not-found
 ├─ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Contact, LoaderSection)
 │  └─ <Section>/
 │     ├─ components/    #   section-local sub-components
@@ -256,6 +257,8 @@ Handled edge cases include non-`FormData` payloads, field-level validation error
 For **self-hosted** setups, `docker/` contains a hardened Docker `daemon.json` (log rotation, ulimits, BuildKit, registry mirror) and an `nginx/` reverse-proxy configuration.
 
 **Health check:** `GET /api/health` returns status, ISO timestamp, uptime, environment, and version; `HEAD /api/health` returns `200` with no body for lightweight probes.
+
+**SEO endpoints:** `GET /robots.txt` (`src/app/robots.ts`), `GET /sitemap.xml` (`src/app/sitemap.ts`), and the `GET /opengraph-image` social banner (`src/app/opengraph-image.tsx`, rendered with `next/og`) are all produced from `src/constants/seo.constants.ts`, which also feeds the metadata and JSON-LD in `src/app/layout.tsx`.
 
 ---
 

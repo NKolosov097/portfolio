@@ -17,27 +17,51 @@ import { Footer } from '@/layout/Footer/Footer'
 import { SkipToNavigationLink } from '@/components/SkipToNavigationLink/SkipToNavigationLink'
 import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
 
+import {
+  AUTHOR_NAME,
+  AUTHOR_TWITTER_HANDLE,
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+  STRUCTURED_DATA,
+} from '@/constants/seo.constants'
+
 const theme = 'dark'
 const rootClassName = getRootClassName({ theme })
 
 export const metadata: Metadata = {
-  title: 'Portfolio NKolosov097',
-  description: 'Portfolio about super developer @NKolosov097!',
-  metadataBase: new URL('https://nkolosov.com'),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
+  keywords: SITE_KEYWORDS,
+  authors: [{ name: AUTHOR_NAME, url: SITE_URL }],
+  creator: AUTHOR_NAME,
+  publisher: AUTHOR_NAME,
+  category: 'technology',
+  alternates: {
+    canonical: '/',
+    languages: {
+      'en-US': '/?lang=en',
+      'ru-RU': '/?lang=ru',
+    },
+  },
   openGraph: {
-    title: 'Portfolio NKolosov097',
-    description: 'Portfolio about super developer @NKolosov097!',
-    url: 'https://nkolosov.com',
-    siteName: 'NKolosov097 Portfolio',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 800,
-        height: 600,
-      },
-    ],
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     locale: 'en_US',
+    alternateLocale: 'ru_RU',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    creator: AUTHOR_TWITTER_HANDLE,
   },
   robots: {
     index: true,
@@ -62,6 +86,14 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={rootClassName} suppressHydrationWarning>
+        <script
+          id="structured-data"
+          type="application/ld+json"
+          // Static, fully-trusted data; `<` is escaped to keep the inline JSON HTML-safe.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, '\\u003c'),
+          }}
+        />
         <Suspense fallback={<LoaderSection />}>
           <Providers>
             <SkipToNavigationLink />
