@@ -24,7 +24,8 @@
     "specialization": "Specialization",
     "basedIn": "Based in",
     "basedInPlace": "Russia, Moscow",
-    "fullYears": "Years"
+    "fullYears": "Years",
+    "opensInNewTab": "opens in a new tab"
   },
 
   "headerTabs": {

@@ -118,17 +118,25 @@
   width: 100%;
 }
 
+.drawerItem {
+  max-width: 100%;
+}
+
 .drawerItemContent {
-  position: sticky;
-  top: 0;
+  position: relative;
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
   justify-content: space-between;
-  max-height: var(--aside-max-height);
+  gap: 20px;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
   padding: 10px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .closeIcon {

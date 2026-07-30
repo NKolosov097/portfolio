@@ -24,7 +24,8 @@
     "specialization": "Должность",
     "basedIn": "Живу в",
     "basedInPlace": "Россия, Москва",
-    "fullYears": "Полных лет"
+    "fullYears": "Полных лет",
+    "opensInNewTab": "открывается в новой вкладке"
   },
 
   "headerTabs": {

@@ -14,6 +14,7 @@ import { Header } from '@/layout/Header/Header'
 import { Main } from '@/layout/Main/Main'
 import { Footer } from '@/layout/Footer/Footer'
 
+import { SkipToNavigationLink } from '@/components/SkipToNavigationLink/SkipToNavigationLink'
 import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
 
 const theme = 'dark'
@@ -54,8 +55,6 @@ export const viewport: Viewport = {
   themeColor: '#121212',
   colorScheme: 'dark',
   initialScale: 1,
-  maximumScale: 1,
-  minimumScale: 1,
   viewportFit: 'auto',
 }
 
@@ -65,6 +64,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <body className={rootClassName} suppressHydrationWarning>
         <Suspense fallback={<LoaderSection />}>
           <Providers>
+            <SkipToNavigationLink />
             <Header />
             <Aside />
             <Main>{children}</Main>
