@@ -61,13 +61,26 @@ export const AsideContent = () => {
 
       <nav className={styles.nav}>
         <ul>
-          {asideSocialLinks.map(({ Icon, href, id }) => (
-            <li key={id}>
-              <a href={href} target="_blank">
-                {Icon}
-              </a>
-            </li>
-          ))}
+          {asideSocialLinks.map(({ Icon, href, id }) => {
+            const testId = `aside-social-${id
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/(^-|-$)/g, '')}`
+
+            return (
+              <li key={id}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${id} — ${t('aside.opensInNewTab')}`}
+                  data-testid={testId}
+                >
+                  {Icon}
+                </a>
+              </li>
+            )
+          })}
         </ul>
       </nav>
     </>
