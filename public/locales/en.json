@@ -37,7 +37,25 @@
   },
 
   "portfolio": {
-    "header": "Check out my featured projects"
+    "header": "Check out my featured projects",
+    "projects": {
+      "protein-web": {
+        "title": "Protein Web",
+        "description": "Interactive drug-discovery game: guide molecules into real cancer-target proteins with live 3D visualization and physics-based binding scoring."
+      },
+      "native-meet": {
+        "title": "Native Meet",
+        "description": "Cross-platform video-calling app built on React Native and LiveKit: real-time audio/video, camera and mic controls, fully typed."
+      },
+      "auth-service": {
+        "title": "Auth Service",
+        "description": "Production-grade authentication microservice in Go: rotating JWT refresh tokens, Google and Telegram OAuth, rate limiting, and hardened security."
+      },
+      "golang-todo-app": {
+        "title": "Golang Todo App",
+        "description": "REST API backend in Go with PostgreSQL and Docker Compose: a single `make start` spins up the database, applies migrations, and launches the service."
+      }
+    }
   },
 
   "aboutMe": {

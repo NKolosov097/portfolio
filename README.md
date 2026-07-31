@@ -41,7 +41,7 @@ A production-grade personal portfolio built as a single-page application on the 
 | Layer           | Technology                                                                                               |
 | --------------- | -------------------------------------------------------------------------------------------------------- |
 | Framework       | [Next.js 16](https://nextjs.org) (App Router) + [React 19](https://react.dev)                            |
-| Language        | [TypeScript 6](https://www.typescriptlang.org) (`strict`)                                                |
+| Language        | [TypeScript 5](https://www.typescriptlang.org) (`strict`)                                                |
 | UI library      | [Gravity UI](https://gravity-ui.com) (`uikit`, `components`, `navigation`)                               |
 | Forms           | [react-hook-form](https://react-hook-form.com) + [Zod](https://zod.dev) resolver                         |
 | State           | [Zustand](https://zustand.docs.pmnd.rs) (vanilla stores behind React context)                            |

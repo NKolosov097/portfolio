@@ -1,26 +1,15 @@
 import { defineConfig } from 'eslint/config'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
-import pluginImport from 'eslint-plugin-import'
-import js from '@eslint/js'
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
+import nextTypescript from 'eslint-config-next/typescript'
 import eslintPluginPrettier from 'eslint-plugin-prettier'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
-
 export default defineConfig([
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  ...nextCoreWebVitals,
+  ...nextTypescript,
   {
-    files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
+    files: ['**/*.{js,mjs,ts,jsx,tsx}'],
     plugins: {
       prettier: eslintPluginPrettier,
-      import: pluginImport,
-      js,
     },
     settings: {
       'import/resolver': {
@@ -34,18 +23,9 @@ export default defineConfig([
         },
       },
     },
-    extends: [],
     rules: {
       'no-var': 'error',
       'prefer-const': 'error',
-      'no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_', // разрешает переменные, начинающиеся с _
-          varsIgnorePattern: '^_', // разрешает неиспользуемые переменные с _
-          caughtErrorsIgnorePattern: '^_', // разрешает неиспользуемые catch-параметры с _,
-        },
-      ],
       'no-shadow': 'error',
       'no-redeclare': 'error',
       'no-dupe-args': 'error',
@@ -73,6 +53,28 @@ export default defineConfig([
       'import/namespace': 'error',
       'import/default': 'error',
       'import/export': 'error',
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
+    // I18nProvider intentionally sets language state inside a mount effect: the UI
+    // renders in English on the server and switches to the stored language only
+    // after hydration, so the setState-in-effect is a deliberate, hydration-safe exception.
+    files: ['src/providers/I18.provider.tsx'],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
   {

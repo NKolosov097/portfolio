@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react'
 
 import styles from '@/layout/Aside/aside.module.css'
 
-import { Button, ButtonIcon, Drawer } from '@gravity-ui/uikit'
+import { Button, Drawer } from '@gravity-ui/uikit'
 
 import { AsideContent } from '@/layout/Aside/components/AsideContent/AsideContent'
 
