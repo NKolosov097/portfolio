@@ -7,41 +7,47 @@ import { TableColumnConfig } from '@gravity-ui/uikit'
 import { IFavoriteTool } from '@/home-sections/Resume/types/resume.type'
 
 export const enum EEducationTableColumn {
-  // eslint-disable-next-line no-unused-vars
-  years = 'years',
-  // eslint-disable-next-line no-unused-vars
-  title = 'title',
-  // eslint-disable-next-line no-unused-vars
-  description = 'description',
+  YEARS = 'years',
+  TITLE = 'title',
+  DESCRIPTION = 'description',
 }
 
 export const educationColumns: TableColumnConfig<Record<string, string>>[] = [
   {
-    id: EEducationTableColumn.years,
+    id: EEducationTableColumn.YEARS,
     name: '',
     width: 130,
-    template: (item) => <span className={styles.yearsColumn}>{item.years}</span>,
+    template: (item) => (
+      <span className={styles.yearsColumn}>
+        {item[EEducationTableColumn.YEARS].split(' ').map((yearPart, index) => (
+          <span key={`${item.id}-year-${index}`} className={styles.yearsColumnPart}>
+            {yearPart}
+          </span>
+        ))}
+      </span>
+    ),
   },
   {
-    id: EEducationTableColumn.title,
+    id: EEducationTableColumn.TITLE,
     name: '',
     width: 230,
+    className: styles.educationTitleColumn,
     template: (item) => (
       <>
-        <h4 className={styles.educationTableHeader}>{item[EEducationTableColumn.title]}</h4>
+        <h4 className={styles.educationTableHeader}>{item[EEducationTableColumn.TITLE]}</h4>
         {item.subtitle && <p className={styles.educationTableSubtitle}>{item.subtitle}</p>}
       </>
     ),
   },
   {
-    id: EEducationTableColumn.description,
+    id: EEducationTableColumn.DESCRIPTION,
     name: '',
     width: 300,
     primary: true,
     template: (item) => (
       <>
         <p className={styles.educationTableDescription}>
-          {item[EEducationTableColumn.description]}
+          {item[EEducationTableColumn.DESCRIPTION]}
         </p>
 
         {item.subDescription && (

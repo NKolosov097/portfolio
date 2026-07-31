@@ -3,7 +3,7 @@
 import styles from './AboutMe.module.css'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { ClipboardButton, Icon } from '@gravity-ui/uikit'
 import { Copy } from '@gravity-ui/icons'
@@ -77,8 +77,18 @@ export const AboutMe = () => {
 
       <div className={styles.contentContainer}>
         <div className={styles.content}>
-          {/* <p className={styles.contentDescription}>asdasd</p>
-          <p className={styles.contentDescription}>asdasd</p> */}
+          <p className={styles.contentDescription}>
+            <Trans
+              i18nKey="aboutMe.descriptionFirst"
+              components={{ accent: <span className={styles.accent} /> }}
+            />
+          </p>
+          <p className={styles.contentDescription}>
+            <Trans
+              i18nKey="aboutMe.descriptionSecond"
+              components={{ accent: <span className={styles.accent} /> }}
+            />
+          </p>
         </div>
 
         <ul className={styles.contentContactContainer}>
@@ -90,20 +100,20 @@ export const AboutMe = () => {
           </li>
 
           <li>
-            <h3 className={styles.contentContactHeader}>{t('phone')}</h3>
-            <p className={styles.contentContactDescription} ref={phoneRef}>
-              {PHONE}
-              <ClipboardButton text={PHONE} className={styles.copyBtn} size="l" view="flat" />
-            </p>
-          </li>
-
-          <li>
             <h3 className={styles.contentContactHeader}>Email</h3>
             <p className={styles.contentContactDescription} ref={emailRef}>
               {EMAIL}
               <ClipboardButton text={EMAIL} className={styles.copyBtn} size="s" view="flat">
                 <Icon width={20} height={20} data={Copy} />
               </ClipboardButton>
+            </p>
+          </li>
+
+          <li>
+            <h3 className={styles.contentContactHeader}>{t('phone')}</h3>
+            <p className={styles.contentContactDescription} ref={phoneRef}>
+              {PHONE}
+              <ClipboardButton text={PHONE} className={styles.copyBtn} size="l" view="flat" />
             </p>
           </li>
 
