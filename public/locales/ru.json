@@ -71,6 +71,7 @@
 
   "resume": {
     "header": "Образование и опыт",
+    "description": "От диплома по Computer Science до продакшн-продуктов — создаю <accent>фулстек-приложения</accent> на <accent>React, Next.js и Node.js</accent>: от <accent>видеозвонков в реальном времени (WebRTC)</accent> до <accent>AI-агентов</accent>. Ниже — мои <accent>образование</accent>, <accent>опыт работы</accent> и <accent>инструменты</accent>, к которым я обращаюсь каждый день.",
     "educationHeader": "Мое образование",
     "workExperienceHeader": "Опыт работы",
     "favoriteToolsHeader": "Мои любимые инструменты"
@@ -91,6 +92,16 @@
     "YandexPracticum": "Yandex Практикум",
     "YandexPracticumSubtitle": "React Разработчик",
     "YandexPracticumDescription": "Погрузился в React, линтеры, WebPack, Ise, RTK, роутинг и безопасность,  анимации, Websocket, Deploy проектов"
+  },
+
+  "workExperience": {
+    "present": "сейчас",
+    "fullstackRole": "Фулстек-разработчик",
+    "frontendRole": "Фронтенд-разработчик",
+
+    "proofixDescription": "Разрабатываю видеоплатформу — аналог Google Meet. Профилированием поднял производительность в 1.4×, снизил ежемесячные расходы на серверы в 1.37× за счёт схемы «1 комната = 1 сервер», внедрил голосовых и текстовых AI-агентов и анализ мимики для найма. Настроил Unit- и E2E-тесты с покрытием 87%.",
+    "divergentDescription": "Сделал сервис онбординга сотрудников, переиспользуемый слой OAuth (Google, GitHub, VK) и бэкенд чат-бота на OpenAI. Построил графики аналитики на кэширующем RTK Query и общий UI Kit.",
+    "cdsDescription": "Разработал сервис создания опросов, чат поддержки и drag-and-drop конструктор документов и отчётов."
   },
 
   "contact": {

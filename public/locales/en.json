@@ -71,6 +71,7 @@
 
   "resume": {
     "header": "Education and practical experience",
+    "description": "From a Computer Science degree to production-grade products — I build <accent>full-stack applications</accent> with <accent>React, Next.js and Node.js</accent>, from <accent>real-time video (WebRTC)</accent> to <accent>AI agents</accent>. Below is a snapshot of my <accent>education</accent>, <accent>work experience</accent> and the <accent>tools</accent> I reach for every day.",
     "educationHeader": "My education",
     "workExperienceHeader": "Work experience",
     "favoriteToolsHeader": "My favorite tools"
@@ -91,6 +92,16 @@
     "YandexPracticum": "Yandex Practicum",
     "YandexPracticumSubtitle": "React Developer",
     "YandexPracticumDescription": "Immersed in React, Linters, WebPack, Ise, RTK, Routing and security, Animations, Websocket, Deploy projects"
+  },
+
+  "workExperience": {
+    "present": "present",
+    "fullstackRole": "Fullstack Developer",
+    "frontendRole": "Frontend Developer",
+
+    "proofixDescription": "Building a Google Meet–style video platform. Profiled and improved performance by 1.4×, cut monthly server costs 1.37× with a 1-room = 1-server design, and shipped voice and text AI agents plus facial-expression analysis for hiring. Set up Unit and E2E tests to 87% coverage.",
+    "divergentDescription": "Delivered an employee-onboarding service, a reusable OAuth layer (Google, GitHub, VK), and an OpenAI-powered chatbot backend. Built analytics charts on cached RTK Query and a shared UI Kit.",
+    "cdsDescription": "Developed a survey-building service, a support live-chat, and a drag-and-drop constructor for documents and reports."
   },
 
   "contact": {
