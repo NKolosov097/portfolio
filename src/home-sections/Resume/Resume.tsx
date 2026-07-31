@@ -2,7 +2,7 @@
 
 import styles from './Resume.module.css'
 
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { ETabID } from '@/constants/header.constants'
 import { Tag } from '@/components/Tag/Tag'
@@ -20,7 +20,12 @@ export const Resume = () => {
 
       <h2 className="section-header">{t('resume.header')}</h2>
 
-      <p className={styles.resumeDescription}>Description</p>
+      <p className={styles.resumeDescription}>
+        <Trans
+          i18nKey="resume.description"
+          components={{ accent: <span className={styles.accent} /> }}
+        />
+      </p>
 
       <Education />
       <WorkExperience />

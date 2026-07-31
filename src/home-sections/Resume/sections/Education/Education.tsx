@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Table } from '@gravity-ui/uikit'
 
-import { educationColumns, EEducationTableColumn } from '@/constants/resume.constants'
+import { resumeTableColumns, EResumeTableColumn } from '@/constants/resume.constants'
 
 export const Education = () => {
   const { t } = useTranslation()
@@ -16,26 +16,26 @@ export const Education = () => {
     () => [
       {
         id: 'University MAI"',
-        [EEducationTableColumn.YEARS]: '2020 - 2024',
-        [EEducationTableColumn.TITLE]: t('educationTable.MAI'),
+        [EResumeTableColumn.YEARS]: '2020 - 2024',
+        [EResumeTableColumn.TITLE]: t('educationTable.MAI'),
         subtitle: t('educationTable.MAISubtitle'),
-        [EEducationTableColumn.DESCRIPTION]: t('educationTable.MAIDescription'),
+        [EResumeTableColumn.DESCRIPTION]: t('educationTable.MAIDescription'),
         subDescription: t('educationTable.MAISubDescription'),
       },
       {
         id: 'Hexlet',
-        [EEducationTableColumn.YEARS]: '2021 - 2022',
-        [EEducationTableColumn.TITLE]: t('educationTable.Hexlet'),
+        [EResumeTableColumn.YEARS]: '2021 - 2022',
+        [EResumeTableColumn.TITLE]: t('educationTable.Hexlet'),
         subtitle: t('educationTable.HexletSubtitle'),
-        [EEducationTableColumn.DESCRIPTION]: t('educationTable.HexletDescription'),
+        [EResumeTableColumn.DESCRIPTION]: t('educationTable.HexletDescription'),
         subDescription: '',
       },
       {
         id: 'Yandex Practicum',
-        [EEducationTableColumn.YEARS]: '2023',
-        [EEducationTableColumn.TITLE]: t('educationTable.YandexPracticum'),
+        [EResumeTableColumn.YEARS]: '2023',
+        [EResumeTableColumn.TITLE]: t('educationTable.YandexPracticum'),
         subtitle: t('educationTable.YandexPracticumSubtitle'),
-        [EEducationTableColumn.DESCRIPTION]: t('educationTable.YandexPracticumDescription'),
+        [EResumeTableColumn.DESCRIPTION]: t('educationTable.YandexPracticumDescription'),
         subDescription: '',
       },
     ],
@@ -47,7 +47,7 @@ export const Education = () => {
       <h3 className={styles.subSectionHeader}>{t('resume.educationHeader')}</h3>
 
       <Table
-        columns={educationColumns}
+        columns={resumeTableColumns}
         data={educationData}
         className={styles.educationTable}
         verticalAlign="top"

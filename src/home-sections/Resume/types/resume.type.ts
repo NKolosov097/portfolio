@@ -4,3 +4,20 @@ export interface IFavoriteTool {
   icon: JSX.Element
   title: string
 }
+
+export interface IWorkExperience {
+  /** Stable identifier used as the React key and QA anchor. */
+  id: string
+  /** Year the role started, shown on the timeline rail. */
+  startYear: string
+  /** Year the role ended; omitted while the role is ongoing (renders a localized "present"). */
+  endYear?: string
+  /** Company name — a proper noun kept identical across locales. */
+  company: string
+  /** i18n key resolving to the localized job title. */
+  roleKey: string
+  /** i18n key resolving to the localized summary of responsibilities and impact. */
+  descriptionKey: string
+  /** Technologies used in the role, rendered as chips (language-independent). */
+  stack: string[]
+}
