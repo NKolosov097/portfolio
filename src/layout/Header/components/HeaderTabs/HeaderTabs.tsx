@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 import { Button, Icon } from '@gravity-ui/uikit'
-import { Tabs, TabsItemProps as ITab } from '@gravity-ui/uikit/legacy'
+import { Tabs, type TabsItemProps as ITab } from '@gravity-ui/uikit/legacy'
 import { Person } from '@gravity-ui/icons'
 
 import { ETabID, tabsCompactBreakpoint } from '@/constants/header.constants'

@@ -2,7 +2,7 @@
 
 import styles from './AboutMe.module.css'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { ClipboardButton, Icon } from '@gravity-ui/uikit'
@@ -13,28 +13,6 @@ import { Advantage } from './components/Advantage/Advantage'
 import { ETabID } from '@/constants/header.constants'
 import { PHONE, EMAIL } from '@/constants/constants'
 import { IAdvantage } from '@/home-sections/AboutMe/types/aboutMe.type'
-import { copyTextToClipboard } from '@/helpers/clipboard'
-
-interface ICopyTooltipText {
-  phone: {
-    isOpen: boolean
-    content: string
-  }
-  email: {
-    isOpen: boolean
-    content: string
-  }
-}
-const defaultCopyTooltip: ICopyTooltipText = {
-  phone: {
-    isOpen: false,
-    content: '',
-  },
-  email: {
-    isOpen: false,
-    content: '',
-  },
-}
 
 export const AboutMe = () => {
   const { t } = useTranslation()

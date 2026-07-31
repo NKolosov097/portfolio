@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, PropsWithChildren, useContext, useRef } from 'react'
+import { createContext, PropsWithChildren, useContext, useState } from 'react'
 import { useStore } from 'zustand'
 
 import { createHeaderStore, initHeaderStore, THeaderStore } from '@/stores/header'
@@ -10,15 +10,9 @@ export type HeaderStoreApi = ReturnType<typeof createHeaderStore>
 export const HeaderStoreContext = createContext<HeaderStoreApi | null>(null)
 
 export const HeaderStoreProvider = ({ children }: PropsWithChildren) => {
-  const headerRef = useRef<HeaderStoreApi | null>(null)
+  const [headerStore] = useState(() => createHeaderStore(initHeaderStore()))
 
-  if (!headerRef.current) {
-    headerRef.current = createHeaderStore(initHeaderStore())
-  }
-
-  return (
-    <HeaderStoreContext.Provider value={headerRef.current}>{children}</HeaderStoreContext.Provider>
-  )
+  return <HeaderStoreContext.Provider value={headerStore}>{children}</HeaderStoreContext.Provider>
 }
 
 export const useHeaderStore = <T,>(selector: (_store: THeaderStore) => T): T => {

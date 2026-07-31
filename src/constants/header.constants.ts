@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { ILanguageItem } from '@/layout/Header/types/header.type'
 
 /** Viewport width threshold below which header tabs switch to compact size. */
