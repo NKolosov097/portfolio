@@ -37,7 +37,25 @@
   },
 
   "portfolio": {
-    "header": "Можете ознакомиться с моими проектами"
+    "header": "Можете ознакомиться с моими проектами",
+    "projects": {
+      "protein-web": {
+        "title": "Protein Web",
+        "description": "Интерактивная игра про drug discovery: направляйте молекулы в реальные белки-мишени рака с живой 3D-визуализацией и физической оценкой связывания."
+      },
+      "native-meet": {
+        "title": "Native Meet",
+        "description": "Кроссплатформенное приложение видеозвонков на React Native и LiveKit: real-time аудио/видео, управление камерой и микрофоном, полная типизация."
+      },
+      "auth-service": {
+        "title": "Auth Service",
+        "description": "Продакшн-микросервис аутентификации на Go: ротация refresh-токенов JWT, OAuth через Google и Telegram, rate-limiting и усиленная безопасность."
+      },
+      "golang-todo-app": {
+        "title": "Golang Todo App",
+        "description": "REST API-бэкенд на Go с PostgreSQL и Docker Compose: одна команда `make start` поднимает базу, применяет миграции и запускает сервис."
+      }
+    }
   },
 
   "aboutMe": {
