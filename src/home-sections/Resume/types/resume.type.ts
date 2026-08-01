@@ -1,7 +1,11 @@
 import { JSX } from 'react'
 
 export interface IFavoriteTool {
+  /** Stable slug used as the React key and QA anchor (`data-key`). */
+  id: string
+  /** Rendered logo of the tool, sized consistently across the grid. */
   icon: JSX.Element
+  /** Human-readable tool name shown beneath the logo. */
   title: string
 }
 

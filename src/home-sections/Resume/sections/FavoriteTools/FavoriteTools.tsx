@@ -4,6 +4,8 @@ import styles from '@/home-sections/Resume/Resume.module.css'
 
 import { useTranslation } from 'react-i18next'
 
+import { FavoriteTool } from '@/home-sections/Resume/sections/FavoriteTools/components/FavoriteTool/FavoriteTool'
+
 import { favoriteTools } from '@/constants/resume.constants'
 
 export const FavoriteTools = () => {
@@ -14,12 +16,8 @@ export const FavoriteTools = () => {
       <h3 className={styles.subSectionHeader}>{t('resume.favoriteToolsHeader')}</h3>
 
       <ul className={styles.favoriteToolsList}>
-        {favoriteTools.map(({ icon, title }) => (
-          <li key={title} className={styles.favoriteToolItem}>
-            {icon}
-
-            <h4 className={styles.favoriteToolTitle}>{title}</h4>
-          </li>
+        {favoriteTools.map(({ id, icon, title }) => (
+          <FavoriteTool key={id} id={id} icon={icon} title={title} />
         ))}
       </ul>
     </section>
