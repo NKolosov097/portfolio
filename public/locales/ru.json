@@ -33,6 +33,7 @@
     "portfolio": "Портфолио",
     "aboutMe": "Обо мне",
     "resume": "Резюме",
+    "writing": "Публикации",
     "contact": "Контакты"
   },
 
@@ -56,6 +57,10 @@
         "description": "REST API-бэкенд на Go с PostgreSQL и Docker Compose: одна команда `make start` поднимает базу, применяет миграции и запускает сервис."
       }
     }
+  },
+
+  "writing": {
+    "header": "Статьи, заметки и доклады"
   },
 
   "aboutMe": {

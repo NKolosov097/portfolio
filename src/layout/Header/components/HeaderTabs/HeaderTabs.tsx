@@ -11,6 +11,7 @@ import { Tabs, type TabsItemProps as ITab } from '@gravity-ui/uikit/legacy'
 import { Person } from '@gravity-ui/icons'
 
 import { ETabID, tabsCompactBreakpoint } from '@/constants/header.constants'
+import { writingArticles } from '@/constants/writing.constants'
 import { getElementPosition, scrollTo } from '@/helpers/scrollTo'
 
 import { IPosition } from '@/layout/Header/types/header.type'
@@ -51,6 +52,15 @@ export const HeaderTabs = () => {
         id: ETabID.resume,
         title: t('headerTabs.resume'),
       },
+      // Surfaced only once the Writing section has publications (see writing.constants.ts).
+      ...(writingArticles.length > 0
+        ? [
+            {
+              id: ETabID.writing,
+              title: t('headerTabs.writing'),
+            },
+          ]
+        : []),
     ],
     [t],
   )

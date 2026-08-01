@@ -26,7 +26,7 @@ A production-grade personal portfolio built as a single-page application on the 
 
 ## Highlights
 
-- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home`, `Portfolio`, `About Me` (with the embedded contact form), and `Resume` — behind a persistent layout shell rendered inside a `<Suspense>` boundary.
+- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home`, `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) — behind a persistent layout shell rendered inside a `<Suspense>` boundary.
 - **First-class i18n.** All user-facing copy is translated (`en` / `ru`), resolved from a `lang` query string then a cookie, and served from `public/locales`.
 - **Type-safe, server-first data flow.** Contact submissions run through a `'use server'` action with **Zod** validation, persist to **PostgreSQL** via **Prisma 7**, and trigger a transactional email via **Nodemailer**.
 - **Accessibility & performance built in.** Skip-to-navigation link, zoomable viewport, `prefers-reduced-motion` support, and a `requestAnimationFrame`-throttled scroll-spy.
@@ -66,7 +66,7 @@ RootLayout (layout.tsx)
       ├─ Header            ← navigation tabs + language switch
       ├─ Aside             ← mobile drawer
       ├─ Main
-      │  └─ HomePage       ← Home · Portfolio · AboutMe (+ Contact) · Resume
+      │  └─ HomePage       ← Home · Portfolio · AboutMe · Resume · Writing
       ├─ Footer
       └─ ToastContainer
 ```
@@ -85,7 +85,7 @@ Key architectural decisions:
 ```
 src/
 ├─ app/                 # App Router: layout, root page, /api/health, robots.ts, sitemap.ts, opengraph-image.tsx, error & not-found
-├─ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Contact, LoaderSection)
+├─ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Writing, Contact, LoaderSection)
 │  └─ <Section>/
 │     ├─ components/    #   section-local sub-components
 │     ├─ actions/       #   'use server' server actions

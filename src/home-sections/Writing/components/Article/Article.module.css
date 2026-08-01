@@ -1,0 +1,60 @@
+.container {
+  width: calc(50% - 0.5rem);
+}
+
+@media screen and (width <= 900px) {
+  .container {
+    width: 100%;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  background: #111;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 1rem;
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    border-color 0.25s ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: rgb(255 255 255 / 40%);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px -24px rgb(0 0 0 / 80%);
+  outline: none;
+}
+
+.source {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-color-line-brand);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.description {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover,
+  .card:focus-visible {
+    transform: none;
+  }
+}

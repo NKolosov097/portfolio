@@ -13,6 +13,7 @@ export const enum ETabID {
   portfolio = 'portfolio',
   aboutMe = 'aboutMe',
   resume = 'resume',
+  writing = 'writing',
   contact = 'contact',
 }
 

@@ -33,6 +33,7 @@
     "portfolio": "Portfolio",
     "aboutMe": "About me",
     "resume": "Resume",
+    "writing": "Writing",
     "contact": "Contact"
   },
 
@@ -56,6 +57,10 @@
         "description": "REST API backend in Go with PostgreSQL and Docker Compose: a single `make start` spins up the database, applies migrations, and launches the service."
       }
     }
+  },
+
+  "writing": {
+    "header": "Articles, notes and talks"
   },
 
   "aboutMe": {
