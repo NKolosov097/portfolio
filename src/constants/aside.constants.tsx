@@ -14,7 +14,7 @@ export const asideSocialLinks: IAsideSocialLink[] = [
   },
   {
     id: 'Twitter | X',
-    Icon: <Image width={26} height={26} src="/assets/img/aside/twitter.webp" alt="Twitter | X" />,
+    Icon: <Image width={26} height={26} src="/assets/svg/social-links/x.svg" alt="Twitter | X" />,
     href: 'https://x.com/NKolosov097',
   },
   {

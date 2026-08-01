@@ -43,7 +43,6 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: flex-start;
   max-height: 250px;
   flex: 1;
