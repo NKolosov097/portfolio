@@ -165,6 +165,10 @@ export const favoriteTools: IFavoriteTool[] = [
     title: 'Cypress',
   },
   {
+    icon: <Image src="/assets/svg/tools/playwright.svg" alt="Playwright" width={40} height={40} />,
+    title: 'Playwright',
+  },
+  {
     icon: <Image src="/assets/svg/tools/nestjs.svg" alt="NestJS" width={40} height={40} />,
     title: 'NestJS',
   },
