@@ -21,6 +21,23 @@
   margin: 1rem 0 0;
 }
 
+.lastName {
+  white-space: nowrap;
+}
+
+.lastGlyph {
+  position: relative;
+}
+
+.sparkle {
+  position: absolute;
+  top: 0.45em;
+  right: 0;
+  display: inline-flex;
+  pointer-events: none;
+  transform: translate(45%, -55%);
+}
+
 @media screen and (width <= 1440px) {
   .header,
   .profession {

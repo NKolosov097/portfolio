@@ -41,7 +41,7 @@
   transform: scale(0.96) rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
 
   /* Shadow shrinks with the receding card and drifts under the cursor. */
-  box-shadow: var(--shadow-x) var(--shadow-y) 1.25rem rgb(255 255 255 / 22%);
+  box-shadow: var(--shadow-x) var(--shadow-y) 2rem rgb(255 255 255 / 22%);
   outline: none;
 }
 
@@ -101,6 +101,6 @@
   .card:hover,
   .card:focus-visible {
     transform: none;
-    box-shadow: 0 0 2rem rgb(255 255 255 / 25%);
+    box-shadow: 0 0 3rem rgb(255 255 255 / 25%);
   }
 }
