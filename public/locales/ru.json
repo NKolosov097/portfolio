@@ -66,9 +66,10 @@
   "aboutMe": {
     "header": "Решение сложных задач в удобном приложении",
 
-    "advantageDeploy": "коммитов в продакшн",
-    "yearsOfExperience": "лет опыта",
-    "projects": "проектов",
+    "advantagePerformance": "прирост производительности через профилирование",
+    "advantageTestCoverage": "покрытие Unit- и E2E-тестами",
+    "advantageServerCosts": "экономия на серверах в месяц",
+    "advantageAccessibility": "доступность WCAG 2.1 AA, за которой я слежу",
 
     "descriptionFirst": "Веб-разработчик с опытом <accent>5+ лет</accent> в <accent>высоконагруженных приложениях</accent> и <accent>распределённых системах</accent>.",
     "descriptionSecond": "Берусь за сложные продукты: <accent>профилирование производительности</accent>, <accent>архитектура</accent> и <accent>unit- и E2E-тесты</accent> — с вниманием к <accent>деталям</accent> и <accent>доступности (a11y)</accent>."

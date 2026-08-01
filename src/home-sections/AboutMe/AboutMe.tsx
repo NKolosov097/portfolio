@@ -23,19 +23,24 @@ export const AboutMe = () => {
   const advantages: IAdvantage[] = useMemo(
     () => [
       {
-        id: 'deploys',
-        title: '999+',
-        description: t('aboutMe.advantageDeploy'),
+        id: 'performance',
+        title: '×1.4',
+        description: t('aboutMe.advantagePerformance'),
       },
       {
-        id: 'yearsOfExperience',
-        title: '5+',
-        description: t('aboutMe.yearsOfExperience'),
+        id: 'test-coverage',
+        title: '87%',
+        description: t('aboutMe.advantageTestCoverage'),
       },
       {
-        id: 'projects',
-        title: '20+',
-        description: t('aboutMe.projects'),
+        id: 'server-costs',
+        title: '×1.37',
+        description: t('aboutMe.advantageServerCosts'),
+      },
+      {
+        id: 'accessibility',
+        title: 'AA',
+        description: t('aboutMe.advantageAccessibility'),
       },
     ],
     [t],
@@ -47,11 +52,13 @@ export const AboutMe = () => {
 
       <h2 className="section-header">{t('aboutMe.header')}</h2>
 
-      <ul className={styles.advantagesList}>
-        {advantages.map((advantage) => (
-          <Advantage key={advantage.id} {...advantage} />
-        ))}
-      </ul>
+      <div className={styles.advantagesContainer}>
+        <ul className={styles.advantagesList}>
+          {advantages.map((advantage) => (
+            <Advantage key={advantage.id} {...advantage} />
+          ))}
+        </ul>
+      </div>
 
       <div className={styles.contentContainer}>
         <div className={styles.content}>

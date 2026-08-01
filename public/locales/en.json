@@ -66,9 +66,10 @@
   "aboutMe": {
     "header": "Solving complex tasks in a user-friendly application",
 
-    "advantageDeploy": "commits to production",
-    "yearsOfExperience": "years of experience",
-    "projects": "projects",
+    "advantagePerformance": "app performance gain via profiling",
+    "advantageTestCoverage": "Unit + E2E test coverage",
+    "advantageServerCosts": "lower monthly server costs",
+    "advantageAccessibility": "WCAG 2.1 AA accessibility I build and test to",
 
     "descriptionFirst": "Web developer with <accent>5+ years</accent> of experience in <accent>high-load applications</accent> and <accent>distributed systems</accent>.",
     "descriptionSecond": "I take on complex products: <accent>performance profiling</accent>, <accent>architecture</accent>, and <accent>unit and E2E tests</accent> — with attention to <accent>detail</accent> and <accent>accessibility (a11y)</accent>."

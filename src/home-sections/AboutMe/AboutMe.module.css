@@ -7,24 +7,41 @@
   text-align: start;
 }
 
-.advantagesList {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.5rem;
+.advantagesContainer {
+  container-type: inline-size;
+  width: 100%;
   margin: 2rem 0 0;
+}
+
+.advantagesList {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem);
+  justify-content: center;
+  gap: 1.25rem;
   padding: 0;
+  margin: 0;
   list-style: none;
+}
+
+@container (min-width: 26rem) {
+  .advantagesList {
+    grid-template-columns: repeat(2, minmax(0, 18rem));
+  }
+}
+
+/* Enough width for the full row of four. */
+@container (min-width: 54rem) {
+  .advantagesList {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .advantage {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  width: calc(33% - 1.5rem);
-  min-width: 300px;
   border-radius: 20px;
-  padding: 1.75rem 1.5rem;
+  padding: 1.5rem 1.25rem;
   background: var(--g-card-background-color);
   transition:
     transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
