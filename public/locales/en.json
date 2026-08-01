@@ -74,7 +74,8 @@
     "description": "From a Computer Science degree to production-grade products — I build <accent>full-stack applications</accent> with <accent>React, Next.js and Node.js</accent>, from <accent>real-time video (WebRTC)</accent> to <accent>AI agents</accent>. Below is a snapshot of my <accent>education</accent>, <accent>work experience</accent> and the <accent>tools</accent> I reach for every day.",
     "educationHeader": "My education",
     "workExperienceHeader": "Work experience",
-    "favoriteToolsHeader": "My favorite tools"
+    "favoriteToolsHeader": "My favorite tools",
+    "downloadCv": "Download CV (PDF)"
   },
 
   "educationTable": {

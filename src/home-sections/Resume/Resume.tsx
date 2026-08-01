@@ -10,13 +10,18 @@ import { Tag } from '@/components/Tag/Tag'
 import { Education } from './sections/Education/Education'
 import { WorkExperience } from './sections/WorkExperience/WorkExperience'
 import { FavoriteTools } from './sections/FavoriteTools/FavoriteTools'
+import { DownloadCv } from './components/DownloadCv/DownloadCv'
 
 export const Resume = () => {
   const { t } = useTranslation()
 
   return (
     <section id={ETabID.resume} className={styles.section}>
-      <Tag title={t('headerTabs.resume')} />
+      <div className={styles.headerRow}>
+        <Tag title={t('headerTabs.resume')} />
+        <span className={styles.headerConnector} aria-hidden="true" />
+        <DownloadCv />
+      </div>
 
       <h2 className="section-header">{t('resume.header')}</h2>
 

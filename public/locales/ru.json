@@ -74,7 +74,8 @@
     "description": "От диплома по Computer Science до продакшн-продуктов — создаю <accent>фулстек-приложения</accent> на <accent>React, Next.js и Node.js</accent>: от <accent>видеозвонков в реальном времени (WebRTC)</accent> до <accent>AI-агентов</accent>. Ниже — мои <accent>образование</accent>, <accent>опыт работы</accent> и <accent>инструменты</accent>, к которым я обращаюсь каждый день.",
     "educationHeader": "Мое образование",
     "workExperienceHeader": "Опыт работы",
-    "favoriteToolsHeader": "Мои любимые инструменты"
+    "favoriteToolsHeader": "Мои любимые инструменты",
+    "downloadCv": "Скачать резюме (PDF)"
   },
 
   "educationTable": {

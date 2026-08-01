@@ -9,12 +9,39 @@
   text-align: start;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.headerConnector {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--g-color-line-brand);
+  box-shadow: 0 0 0 3px var(--g-color-base-background);
+}
+
 .resumeDescription {
   max-width: 65ch;
   padding: 0;
   margin: 2rem 0 0;
   font-size: 1.1rem;
   line-height: 1.6;
+}
+
+@media screen and (width <= 768px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .headerConnector {
+    display: none;
+  }
 }
 
 .accent {
