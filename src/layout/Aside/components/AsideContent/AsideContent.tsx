@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import styles from '@/layout/Aside/aside.module.css'
 
-import { Ghost } from '@gravity-ui/icons'
+import { AnimatedGhost } from '@/layout/Aside/components/AnimatedGhost/AnimatedGhost'
 
 import { asideSocialLinks } from '@/constants/aside.constants'
 import { BIRTH_DATE } from '@/constants/constants'
@@ -20,7 +20,7 @@ export const AsideContent = () => {
     <>
       <div>
         <div className={styles.titleWrapper}>
-          <Ghost width={50} height={50} />
+          <AnimatedGhost width={50} height={50} />
 
           <h1 className={styles.fullname}>
             <span>{t('firstName')}</span>
