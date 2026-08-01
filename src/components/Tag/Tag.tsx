@@ -11,8 +11,12 @@ interface ITagProps {
 export const Tag = ({ title, icon }: ITagProps) => {
   return (
     <div className={styles.container}>
-      {icon ? icon : <Star width={20} height={20} />}
-      {title}
+      <span className={styles.label}>
+        {icon ? icon : <Star width={20} height={20} />}
+        {title}
+      </span>
+
+      <span className={styles.accent} aria-hidden="true" />
     </div>
   )
 }
