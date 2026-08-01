@@ -11,13 +11,13 @@ import { Tag } from '@/components/Tag/Tag'
 import { Advantage } from './components/Advantage/Advantage'
 
 import { ETabID } from '@/constants/header.constants'
-import { PHONE, EMAIL } from '@/constants/constants'
+import { EMAIL } from '@/constants/constants'
 import { IAdvantage } from '@/home-sections/AboutMe/types/aboutMe.type'
 
 export const AboutMe = () => {
   const { t } = useTranslation()
 
-  const phoneRef = useRef<HTMLParagraphElement>(null)
+  // const phoneRef = useRef<HTMLParagraphElement>(null)
   const emailRef = useRef<HTMLParagraphElement>(null)
 
   const advantages: IAdvantage[] = useMemo(
@@ -87,13 +87,13 @@ export const AboutMe = () => {
             </p>
           </li>
 
-          <li>
+          {/* <li>
             <h3 className={styles.contentContactHeader}>{t('phone')}</h3>
             <p className={styles.contentContactDescription} ref={phoneRef}>
               {PHONE}
               <ClipboardButton text={PHONE} className={styles.copyBtn} size="l" view="flat" />
             </p>
-          </li>
+          </li> */}
 
           <li>
             <h3 className={styles.contentContactHeader}>{t('location')}</h3>
