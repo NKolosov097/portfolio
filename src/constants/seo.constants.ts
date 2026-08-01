@@ -1,4 +1,4 @@
-import { BIRTH_DATE, EMAIL, PHONE } from '@/constants/constants'
+import { AUTHOR_GITHUB_URL, BIRTH_DATE, EMAIL, PHONE } from '@/constants/constants'
 import { asideSocialLinks } from '@/constants/aside.constants'
 
 /** Canonical production origin of the portfolio, shared by metadata, sitemap, robots and JSON-LD. */
@@ -21,9 +21,6 @@ export const AUTHOR_JOB_TITLE = 'Fullstack Developer'
 
 /** Twitter/X handle of the owner, used as the Twitter card author. */
 export const AUTHOR_TWITTER_HANDLE = '@NKolosov097'
-
-/** Absolute URL of the owner's public GitHub profile (also linked from the README). */
-export const AUTHOR_GITHUB_URL = 'https://github.com/NKolosov097'
 
 /** Absolute URL of the owner's avatar photo, used as the structured-data `Person.image`. */
 export const AUTHOR_IMAGE_URL = `${SITE_URL}/assets/img/avatar/avatar.webp`
@@ -53,11 +50,13 @@ export const SITE_KEYWORDS = [
   ...AUTHOR_SKILLS,
 ]
 
-/** Absolute URLs of the owner's public social profiles, used as structured-data `sameAs`. */
-export const AUTHOR_SAME_AS = [
-  ...asideSocialLinks.map((socialLink) => socialLink.href),
-  AUTHOR_GITHUB_URL,
-]
+/**
+ * Absolute URLs of the owner's public social profiles, used as structured-data `sameAs`.
+ * Deduplicated because {@link AUTHOR_GITHUB_URL} is also present among the aside links.
+ */
+export const AUTHOR_SAME_AS = Array.from(
+  new Set([...asideSocialLinks.map((socialLink) => socialLink.href), AUTHOR_GITHUB_URL]),
+)
 
 /** Birth date of the owner in ISO `YYYY-MM-DD` form, derived from {@link BIRTH_DATE} in local time. */
 export const AUTHOR_BIRTH_DATE_ISO = [

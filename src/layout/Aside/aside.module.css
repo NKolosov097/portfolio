@@ -8,6 +8,7 @@
 .container {
   color: #fff;
   flex: 1;
+  width: var(--aside-width);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -209,6 +210,7 @@
   justify-content: center;
   text-decoration: none;
   border-radius: 50%;
+  color: #1b1f24;
 }
 
 .nav > ul > li > a:focus-visible {
@@ -216,12 +218,20 @@
   outline-offset: 3px;
 }
 
-.nav > ul > li img {
+.nav > ul > li img,
+.nav > ul > li svg {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.nav > ul > li svg {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 .nav > ul > li:hover img,
-.nav > ul > li:focus-within img {
+.nav > ul > li:focus-within img,
+.nav > ul > li:hover svg,
+.nav > ul > li:focus-within svg {
   transform: scale(1.14);
 }
 
