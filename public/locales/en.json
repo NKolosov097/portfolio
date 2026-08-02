@@ -103,12 +103,29 @@
 
   "workExperience": {
     "present": "present",
-    "fullstackRole": "Fullstack Developer",
+    "seniorFullstackRole": "Senior Fullstack Engineer",
+    "seniorFrontendRole": "Senior Frontend Engineer",
     "frontendRole": "Frontend Developer",
 
-    "proofixDescription": "Building a Google Meet–style video platform. Profiled and improved performance by 1.4×, cut monthly server costs 1.37× with a 1-room = 1-server design, and shipped voice and text AI agents plus facial-expression analysis for hiring. Set up Unit and E2E tests to 87% coverage.",
-    "divergentDescription": "Delivered an employee-onboarding service, a reusable OAuth layer (Google, GitHub, VK), and an OpenAI-powered chatbot backend. Built analytics charts on cached RTK Query and a shared UI Kit.",
-    "cdsDescription": "Developed a survey-building service, a support live-chat, and a drag-and-drop constructor for documents and reports."
+    "proofixBullet1": "Real-time video conferencing platform, owned end-to-end from FE↔BE contract to production observability.",
+    "proofixBullet2": "Cut monthly server costs 27% with a 1 room = 1 server architecture that eliminated idle resource allocation.",
+    "proofixBullet3": "Improved React rendering 1.4× by profiling the component tree and removing unnecessary re-renders.",
+    "proofixBullet4": "Raised test coverage from 0 to 87% with Playwright and React Testing Library on an untested codebase.",
+    "proofixBullet5": "Shipped AI interview agents (voice + text) and a facial-expression-analysis agent end-to-end, plus Document Picture-in-Picture.",
+    "proofixBullet6": "Architected real-time features on WebSocket, WebRTC and LiveKit, with observability via ElasticSearch and DataDog.",
+
+    "everypixelBullet1": "AI-native creative platform for video and image generation, leading the frontend architecture end-to-end.",
+    "everypixelBullet2": "Aggregated 10+ third-party AI models (Kling, Runway, Veo) into a single editing workflow with real-time progress.",
+    "everypixelBullet3": "Owned the FE↔BE contract — REST schemas and WebSocket protocols — removing ad-hoc endpoints.",
+    "everypixelBullet4": "Built a virtualized media library with @tanstack/react-virtual for thousands of assets without layout thrashing.",
+    "everypixelBullet5": "Delivered race-condition-free uploads with react-dropzone and async-mutex and an accessible (WAI-ARIA) design system on Radix UI.",
+    "everypixelBullet6": "Integrated Sentry across the React Router 7 app and enforced consistency via an ESLint / Prettier / Stylelint / Husky pipeline.",
+
+    "divergentBullet1": "Product engineering and outsourcing, delivering 3 internal products from zero to production for hundreds of users.",
+    "divergentBullet2": "Replaced a manual report-creation process with a drag-and-drop document/report constructor built on React DnD.",
+    "divergentBullet3": "Reduced support response times with a real-time chat featuring presence indicators and message history.",
+    "divergentBullet4": "Eliminated runtime validation bugs by enforcing React Hook Form + Zod schemas across all forms.",
+    "divergentBullet5": "Standardized development environments with Docker, removing works-on-my-machine issues across the team."
   },
 
   "contact": {

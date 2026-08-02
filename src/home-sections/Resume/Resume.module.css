@@ -172,12 +172,34 @@
   color: var(--g-color-text-secondary);
 }
 
-.timelineDescription {
+.timelineBullets {
   max-width: 60ch;
   padding: 0;
-  margin: 0.5rem 0 0;
+  margin: 0.6rem 0 0;
+  list-style: none;
+}
+
+.timelineBulletItem {
+  position: relative;
+  padding-left: 1.15rem;
   font-size: 1rem;
   line-height: 1.55;
+}
+
+.timelineBulletItem + .timelineBulletItem {
+  margin-top: 0.4rem;
+}
+
+/* Brand-tinted marker aligned to the first line of each bullet */
+.timelineBulletItem::before {
+  content: '';
+  position: absolute;
+  top: 0.65em;
+  left: 0.1rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--g-color-line-brand);
 }
 
 .timelineStack {

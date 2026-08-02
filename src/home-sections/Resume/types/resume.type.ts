@@ -20,8 +20,8 @@ export interface IWorkExperience {
   company: string
   /** i18n key resolving to the localized job title. */
   roleKey: string
-  /** i18n key resolving to the localized summary of responsibilities and impact. */
-  descriptionKey: string
+  /** Ordered i18n keys, each resolving to one localized bullet of responsibilities and impact. */
+  descriptionKeys: string[]
   /** Technologies used in the role, rendered as chips (language-independent). */
   stack: string[]
 }

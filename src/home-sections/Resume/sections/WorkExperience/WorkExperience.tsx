@@ -15,7 +15,7 @@ export const WorkExperience = () => {
 
       <ol className={styles.timeline}>
         {workExperience.map(
-          ({ id, startYear, endYear, company, roleKey, descriptionKey, stack }) => (
+          ({ id, startYear, endYear, company, roleKey, descriptionKeys, stack }) => (
             <li key={id} className={styles.timelineItem} data-key={`work-experience-${id}`}>
               <span className={styles.timelinePeriod}>
                 <span className={styles.timelineYear}>{startYear}</span>
@@ -30,7 +30,15 @@ export const WorkExperience = () => {
                   <span className={styles.timelineRole}> · {t(roleKey)}</span>
                 </h4>
 
-                <p className={styles.timelineDescription}>{t(descriptionKey)}</p>
+                {descriptionKeys.length > 0 && (
+                  <ul className={styles.timelineBullets}>
+                    {descriptionKeys.map((bulletKey) => (
+                      <li key={bulletKey} className={styles.timelineBulletItem}>
+                        {t(bulletKey)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
                 {stack.length > 0 && (
                   <ul className={styles.timelineStack}>
