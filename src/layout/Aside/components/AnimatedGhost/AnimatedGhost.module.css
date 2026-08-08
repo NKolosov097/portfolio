@@ -1,3 +1,21 @@
+/* Lets the sway and breathe transforms spill past the 16x16 viewBox without clipping. */
+.ghost {
+  overflow: visible;
+  animation: ghost-bob 3.2s ease-in-out infinite;
+}
+
+.sway {
+  transform-box: fill-box;
+  transform-origin: 50% 18%;
+  animation: ghost-sway 5.1s ease-in-out infinite;
+}
+
+.breathe {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ghost-breathe 3.2s ease-in-out infinite;
+}
+
 .eyeLook {
   animation: look-around 5s ease-in-out infinite;
 }
@@ -6,6 +24,43 @@
   transform-box: fill-box;
   transform-origin: center;
   animation: blink 5s ease-in-out infinite;
+}
+
+@keyframes ghost-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes ghost-sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-3.5deg);
+  }
+
+  75% {
+    transform: rotate(3.5deg);
+  }
+}
+
+@keyframes ghost-breathe {
+  0%,
+  100% {
+    transform: scale(1.03, 0.97);
+  }
+
+  50% {
+    transform: scale(0.98, 1.02);
+  }
 }
 
 /* Glance left, hold, glance right, hold, then re-center. */
@@ -54,6 +109,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ghost,
+  .sway,
+  .breathe,
   .eyeLook,
   .eyeBlink {
     animation: none;
