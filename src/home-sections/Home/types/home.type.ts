@@ -199,3 +199,59 @@ export interface ISpriteSurface {
 
 /** Allocates a square raster surface of `size` device pixels, or returns `null` when 2D is unavailable. */
 export type TSpriteSurfaceFactory = (size: number) => ISpriteSurface | null
+
+export type TSparkleWorkerInbound =
+  | {
+      /** Hands the transferred surface over and starts the controller. */
+      type: 'init'
+      /** Canvas detached from the host element via `transferControlToOffscreen`. */
+      canvas: OffscreenCanvas
+      /** Field width in CSS pixels at hand-off time. */
+      width: number
+      /** Field height in CSS pixels at hand-off time. */
+      height: number
+      /** Physical device pixel ratio, before any tier cap. */
+      devicePixelRatio: number
+      /** Tier seeded on the main thread, where the device signals live. */
+      tier: ESparkleTier
+      /** Resolved brand colour, since the worker cannot read computed styles. */
+      color: string
+    }
+  | {
+      /** Reports a new field size after a resize. */
+      type: 'viewport'
+      /** Field width in CSS pixels. */
+      width: number
+      /** Field height in CSS pixels. */
+      height: number
+      /** Physical device pixel ratio, before any tier cap. */
+      devicePixelRatio: number
+    }
+  | {
+      /** Forwards the pointer, coalesced to at most one message per frame. */
+      type: 'pointer'
+      /** Latest position in CSS pixels relative to the field, or `null` once it leaves. */
+      position: IPointerPosition | null
+    }
+  | {
+      /** Starts or stops the loop as visibility and intersection change. */
+      type: 'run'
+      /** Whether the field should currently be animating. */
+      isRunning: boolean
+    }
+  | {
+      /** Releases every resource before the host drops the worker. */
+      type: 'destroy'
+    }
+
+export type TSparkleWorkerOutbound =
+  | {
+      /** Signals that the worker booted, so the host may safely transfer the canvas. */
+      type: 'ready'
+    }
+  | {
+      /** Reports the tier the governor settled on, so the host can mirror it in the DOM. */
+      type: 'tier'
+      /** Tier now in force. */
+      tier: ESparkleTier
+    }
