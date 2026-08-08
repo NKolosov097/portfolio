@@ -7,7 +7,7 @@ import { Tag } from '@/components/Tag/Tag'
 import { Project } from './components/Project/Project'
 
 import { ETabID } from '@/constants/header.constants'
-import { projects } from '@/constants/portfolio.constants'
+import { PROJECTS } from '@/constants/portfolio.constants'
 
 export const Portfolio = () => {
   const { t } = useTranslation()
@@ -19,7 +19,7 @@ export const Portfolio = () => {
       <h2 className="section-header">{t('portfolio.header')}</h2>
 
       <ul className={styles.projectsList}>
-        {projects.map((project) => (
+        {PROJECTS.map((project) => (
           <Project key={project.id} {...project} />
         ))}
       </ul>

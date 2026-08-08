@@ -43,13 +43,13 @@ export const AsideContent = () => {
       <ul className={styles.list}>
         <li className={styles.block}>
           <h2>{t('aside.specialization')}: </h2>
-          <p>Fullstack Developer</p>
+          <p>Software Engineer</p>
         </li>
 
-        <li className={styles.block}>
+        {/* <li className={styles.block}>
           <h2>{t('aside.basedIn')}: </h2>
           <p>{t('aside.basedInPlace')}</p>
-        </li>
+        </li> */}
 
         {age !== null && (
           <li className={styles.block}>

@@ -103,8 +103,8 @@
 
   "workExperience": {
     "present": "сейчас",
-    "seniorFullstackRole": "Старший фулстек-инженер",
-    "seniorFrontendRole": "Старший фронтенд-инженер",
+    "seniorSoftwareEngineerRole": "Старший software инженер",
+    "middleFrontendRole": "фронтенд-инженер",
     "frontendRole": "Фронтенд-разработчик",
 
     "proofixBullet1": "Платформа видеоконференций в реальном времени, которую веду от контракта FE↔BE до наблюдаемости в продакшене.",

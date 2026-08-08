@@ -103,8 +103,8 @@
 
   "workExperience": {
     "present": "present",
-    "seniorFullstackRole": "Senior Fullstack Engineer",
-    "seniorFrontendRole": "Senior Frontend Engineer",
+    "seniorSoftwareEngineerRole": "Senior Software Engineer",
+    "middleFrontendRole": "Frontend Engineer",
     "frontendRole": "Frontend Developer",
 
     "proofixBullet1": "Real-time video conferencing platform, owned end-to-end from FE↔BE contract to production observability.",

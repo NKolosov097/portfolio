@@ -102,10 +102,10 @@ export const AboutMe = () => {
             </p>
           </li> */}
 
-          <li>
+          {/* <li>
             <h3 className={styles.contentContactHeader}>{t('location')}</h3>
             <p className={styles.contentContactDescription}>{t('aside.basedInPlace')}</p>
-          </li>
+          </li> */}
         </ul>
       </div>
     </section>

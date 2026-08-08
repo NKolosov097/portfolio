@@ -6,7 +6,7 @@ const initialUserData: Prisma.UserCreateInput[] = [
   {
     name: 'Nikita',
     company: 'Google',
-    profession: 'Fullstack Developer',
+    profession: 'Software Engineer',
     email: 'NKolosov097@gmail.com',
     messages: {
       create: [

@@ -35,7 +35,7 @@ export const Home = () => {
         </span>
       </h2>
 
-      <h3 className={styles.profession}>Fullstack Developer</h3>
+      <h3 className={styles.profession}>Software Engineer</h3>
     </section>
   )
 }

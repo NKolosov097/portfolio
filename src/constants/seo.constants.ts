@@ -17,7 +17,7 @@ export const SITE_DESCRIPTION = 'Portfolio about super developer @NKolosov097!'
 export const AUTHOR_NAME = 'Nikita Kolosov'
 
 /** Primary job title of the portfolio owner. */
-export const AUTHOR_JOB_TITLE = 'Fullstack Developer'
+export const AUTHOR_JOB_TITLE = 'Software Engineer'
 
 /** Twitter/X handle of the owner, used as the Twitter card author. */
 export const AUTHOR_TWITTER_HANDLE = '@NKolosov097'

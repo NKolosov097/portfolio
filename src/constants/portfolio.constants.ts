@@ -1,18 +1,6 @@
 import { IProject } from '@/home-sections/Portfolio/types/portfolio.type'
 
-export const projects: IProject[] = [
-  {
-    id: 'protein-web',
-    img: 'https://opengraph.githubassets.com/1/NKolosov097/protein-web',
-    href: 'https://NKolosov097.github.io/protein-web/',
-    descriptionKey: 'portfolio.projects.protein-web.description',
-    tags: [
-      { id: 'protein-web-javascript', title: 'JavaScript' },
-      { id: 'protein-web-python', title: 'Python' },
-      { id: 'protein-web-fastapi', title: 'FastAPI' },
-      { id: 'protein-web-3dmol', title: '3Dmol.js' },
-    ],
-  },
+export const PROJECTS: IProject[] = [
   {
     id: 'native-meet',
     img: 'https://opengraph.githubassets.com/1/NKolosov097/native-meet',
@@ -23,6 +11,18 @@ export const projects: IProject[] = [
       { id: 'native-meet-expo', title: 'Expo' },
       { id: 'native-meet-typescript', title: 'TypeScript' },
       { id: 'native-meet-livekit', title: 'LiveKit' },
+    ],
+  },
+  {
+    id: 'protein-web',
+    img: 'https://opengraph.githubassets.com/1/NKolosov097/protein-web',
+    href: 'https://NKolosov097.github.io/protein-web/',
+    descriptionKey: 'portfolio.projects.protein-web.description',
+    tags: [
+      { id: 'protein-web-javascript', title: 'JavaScript' },
+      { id: 'protein-web-python', title: 'Python' },
+      { id: 'protein-web-fastapi', title: 'FastAPI' },
+      { id: 'protein-web-3dmol', title: '3Dmol.js' },
     ],
   },
   {

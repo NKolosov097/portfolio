@@ -11,7 +11,7 @@ export const workExperience: IWorkExperience[] = [
     id: 'proofix',
     startYear: '2024',
     company: 'Proofix',
-    roleKey: 'workExperience.seniorFullstackRole',
+    roleKey: 'workExperience.seniorSoftwareEngineerRole',
     descriptionKeys: [
       'workExperience.proofixBullet1',
       'workExperience.proofixBullet2',
@@ -39,7 +39,7 @@ export const workExperience: IWorkExperience[] = [
     startYear: '2022',
     endYear: '2024',
     company: 'Everypixel Workroom',
-    roleKey: 'workExperience.seniorFrontendRole',
+    roleKey: 'workExperience.middleFrontendRole',
     descriptionKeys: [
       'workExperience.everypixelBullet1',
       'workExperience.everypixelBullet2',

@@ -99,5 +99,3 @@ export const Project = ({ id, img, href, descriptionKey, tags }: IProject) => {
     </li>
   )
 }
-
-export default Project
