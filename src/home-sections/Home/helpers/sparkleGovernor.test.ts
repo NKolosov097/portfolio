@@ -207,4 +207,24 @@ describe('recordSparkleFrame', () => {
 
     expect(state.frameDurations.length).toBeLessThanOrEqual(SPARKLE_GOVERNOR_THRESHOLDS.windowSize)
   })
+
+  it('starts a fresh window after every evaluation, not only after a tier change', () => {
+    const state = createSparkleGovernorState(ESparkleTier.medium)
+
+    expect(feedWindow(state, 5)).toBeNull()
+    expect(state.tier).toBe(ESparkleTier.medium)
+    expect(state.frameDurations).toHaveLength(0)
+  })
+
+  it('refuses to judge a new regime on leftovers from the previous window', () => {
+    const state = createSparkleGovernorState(ESparkleTier.medium)
+
+    feedWindow(state, 5)
+
+    for (let frame = 0; frame < 10; frame += 1) {
+      expect(recordSparkleFrame(state, 30, SPARKLE_GOVERNOR_THRESHOLDS)).toBeNull()
+    }
+
+    expect(state.tier).toBe(ESparkleTier.medium)
+  })
 })
