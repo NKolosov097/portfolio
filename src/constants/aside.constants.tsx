@@ -3,6 +3,9 @@ import Image from 'next/image'
 
 import { AUTHOR_GITHUB_URL, AUTHOR_LINKEDIN_URL } from '@/constants/constants'
 
+/** Whether the owner currently accepts offers; drives the availability badge in the sidebar. */
+export const IS_OPEN_TO_WORK = true
+
 export const asideSocialLinks: IAsideSocialLink[] = [
   {
     id: 'LinkedIn',

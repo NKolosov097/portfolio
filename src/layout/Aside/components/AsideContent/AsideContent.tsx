@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import styles from '@/layout/Aside/aside.module.css'
 
 import { AnimatedGhost } from '@/layout/Aside/components/AnimatedGhost/AnimatedGhost'
+import { AsideAvailability } from '@/layout/Aside/components/AsideAvailability/AsideAvailability'
 
 import { asideSocialLinks } from '@/constants/aside.constants'
 import { BIRTH_DATE } from '@/constants/constants'
@@ -58,6 +59,8 @@ export const AsideContent = () => {
           </li>
         )}
       </ul>
+
+      <AsideAvailability />
 
       <nav className={styles.nav}>
         <ul>
