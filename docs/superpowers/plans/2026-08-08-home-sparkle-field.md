@@ -2279,7 +2279,7 @@ Create `src/home-sections/Home/helpers/sparkleEngine.test.ts`:
 import { describe, expect, it, vi } from 'vitest'
 
 import { SPARKLE_FIELD_CONFIG, SPARKLE_GOVERNOR_THRESHOLDS } from '@/constants/home.constants'
-import { createSparkleEngine } from '@/home-sections/Home/helpers/sparkleEngine'
+import { createSparkleEngine, ISparkleEngine } from '@/home-sections/Home/helpers/sparkleEngine'
 import { createSparkleParticles } from '@/home-sections/Home/helpers/sparkleField'
 import { createSparkleGovernorState } from '@/home-sections/Home/helpers/sparkleGovernor'
 import {
@@ -2482,6 +2482,41 @@ describe('createSparkleEngine', () => {
     expect(painter.clearCount).toBeGreaterThan(0)
   })
 
+  it('does not stack a second loop when its tier-change handler restarts it mid-frame', () => {
+    const scheduler = createManualScheduler()
+    const painter = createCountingContext()
+
+    let engine: ISparkleEngine<string> | null = null
+
+    const created = createSparkleEngine<string>({
+      context: painter.context,
+      atlas: createTestAtlas(),
+      particles: createSparkleParticles(600, 400, 4, SPARKLE_FIELD_CONFIG),
+      view: { width: 600, height: 400, devicePixelRatio: 1 },
+      config: SPARKLE_FIELD_CONFIG,
+      governor: createSparkleGovernorState(ESparkleTier.high),
+      thresholds: SPARKLE_GOVERNOR_THRESHOLDS,
+      requestFrame: scheduler.requestFrame,
+      cancelFrame: scheduler.cancelFrame,
+      onTierChange: () => {
+        engine?.stop()
+        engine?.start()
+      },
+    })
+
+    engine = created
+    created.start()
+
+    let timestamp = 0
+
+    for (let frame = 0; frame <= SPARKLE_GOVERNOR_THRESHOLDS.windowSize + 1; frame += 1) {
+      scheduler.step(timestamp)
+      timestamp += 30
+    }
+
+    expect(scheduler.pendingCount).toBe(1)
+  })
+
   it('lets go of the pointer when it is cleared', () => {
     const { scheduler, engine } = createEngineHarness()
 
@@ -2573,6 +2608,12 @@ export interface ISparkleEngine<TImage = CanvasImageSource> {
  * Owns the frame loop: advance, paint, and grade. Everything it needs is
  * injected, so the same engine runs on the main thread and inside the worker,
  * and can be stepped by hand under test.
+ *
+ * The tail of each frame reschedules only when the handle is still the one that
+ * frame began with. `onTierChange` runs synchronously inside the callback and
+ * may stop or restart the loop from there; a nullness check could not tell
+ * "nothing changed" from "the handler already re-armed us", and would leave a
+ * second, orphaned frame chain running forever alongside the first.
  */
 export const createSparkleEngine = <TImage = CanvasImageSource>(
   options: ISparkleEngineOptions<TImage>,
@@ -2598,6 +2639,12 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
   }
 
   const onFrame = (timestamp: number): void => {
+    const handleAtEntry = frameHandle
+
+    if (handleAtEntry === null) {
+      return
+    }
+
     const rawDelta = lastTimestamp === null ? 0 : timestamp - lastTimestamp
 
     lastTimestamp = timestamp
@@ -2626,7 +2673,7 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
       }
     }
 
-    if (frameHandle !== null) {
+    if (frameHandle === handleAtEntry) {
       frameHandle = options.requestFrame(onFrame)
     }
   }
@@ -2666,7 +2713,7 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleEngine.test.ts`
-Expected: PASS — 11 tests.
+Expected: PASS — 12 tests.
 
 - [ ] **Step 5: Validate and commit**
 
