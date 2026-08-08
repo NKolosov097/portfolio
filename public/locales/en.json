@@ -92,12 +92,12 @@
 
     "MAI": "University MAI",
     "MAISubtitle": "System analysis",
-    "MAIDescription": "I studied programming in C, C++, Python, JS; databases; information security; artificial intelligence; higher mathematics.",
-    "MAISubDescription": "I analyzed big data using regression, classification, and clustering.",
+    "MAIDescription": "Academic foundation under the applied work: programming in C, C++, Python and JS, databases, information security, artificial intelligence and higher mathematics.",
+    "MAISubDescription": "Built models on real datasets: regression, classification and clustering.",
 
     "Hexlet": "Hexlet",
     "HexletSubtitle": "JavaScript Developer",
-    "HexletDescription": "Studied layout, testing, data abstraction, protocols, OOP, asynchronous programming, TypeScript",
+    "HexletDescription": "Built the JavaScript engineering foundation: OOP and abstraction through data, asynchronous programming, network protocols, TypeScript. Wrote tests and semantic markup, submitting every task through code review.",
 
     "YandexPracticum": "Yandex Practicum",
     "YandexPracticumSubtitle": "Frontend Developer",
