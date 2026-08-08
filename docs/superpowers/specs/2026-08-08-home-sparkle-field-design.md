@@ -221,7 +221,16 @@ a missing signal is simply skipped rather than treated as a low value.
 | `low`    | 60            | 1           | no   | rAF          |
 | `static` | 60            | 1           | no   | single frame |
 
-Rules over a rolling 60-frame window:
+Windows are **non-overlapping**, not rolling. A decision consumes a full window
+of samples and starts the next one empty, whatever the outcome — including "no
+change needed". This matters twice over: a superseded regime's samples can never
+contaminate the next decision (a sliding window lets a handful of fresh frames
+flip a p90 that is still dominated by stale ones, which at the lowest animated
+tier could trip the irreversible drop to `static` off frames that were actually
+healthy), and the percentile sort then runs once per window rather than once per
+frame, keeping it out of the very budget it measures.
+
+Rules over each 60-frame window:
 
 - p90 frame time worse than **20 ms** → drop one tier.
 - p90 frame time better than **11 ms**, sustained for 240 frames → raise one
@@ -234,7 +243,9 @@ Rules over a rolling 60-frame window:
 
 `sparkleGovernor.ts` is pure: it consumes a sequence of frame durations and its
 own state, and returns the next state plus a tier decision. No DOM, no timers.
-This makes the most safety-critical logic in the feature fully unit-testable.
+This makes the most safety-critical logic in the feature fully unit-testable —
+including the window-reset property, which is asserted directly rather than
+inferred from a tier sequence.
 
 ## 11. Lifecycle and pausing
 

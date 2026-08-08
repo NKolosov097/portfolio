@@ -1428,6 +1428,26 @@ describe('recordSparkleFrame', () => {
 
     expect(state.frameDurations.length).toBeLessThanOrEqual(SPARKLE_GOVERNOR_THRESHOLDS.windowSize)
   })
+
+  it('starts a fresh window after every evaluation, not only after a tier change', () => {
+    const state = createSparkleGovernorState(ESparkleTier.medium)
+
+    expect(feedWindow(state, 5)).toBeNull()
+    expect(state.tier).toBe(ESparkleTier.medium)
+    expect(state.frameDurations).toHaveLength(0)
+  })
+
+  it('refuses to judge a new regime on leftovers from the previous window', () => {
+    const state = createSparkleGovernorState(ESparkleTier.medium)
+
+    feedWindow(state, 5)
+
+    for (let frame = 0; frame < 10; frame += 1) {
+      expect(recordSparkleFrame(state, 30, SPARKLE_GOVERNOR_THRESHOLDS)).toBeNull()
+    }
+
+    expect(state.tier).toBe(ESparkleTier.medium)
+  })
 })
 ```
 
@@ -1475,10 +1495,9 @@ const readPercentile = (values: number[], ratio: number): number => {
   return sorted[index]
 }
 
-/** Commits a tier change and restarts sampling, so the new tier is graded on its own frames. */
+/** Commits a tier change and restarts the settling counter, so a new tier must prove itself before it can climb. */
 const applyTier = (state: ISparkleGovernorState, tier: ESparkleTier): ESparkleTier => {
   state.tier = tier
-  state.frameDurations.length = 0
   state.framesSinceChange = 0
 
   return tier
@@ -1522,8 +1541,14 @@ export const createSparkleGovernorState = (tier: ESparkleTier): ISparkleGovernor
 
 /**
  * Grades one frame and returns a new tier on the frame a change is warranted.
- * Sorting only happens once a window is full — roughly once per second — so the
- * cost never lands inside the per-frame budget it is protecting.
+ *
+ * Windows are non-overlapping: a decision consumes a full window and leaves the
+ * next one empty, whatever the outcome. A sliding window would let a handful of
+ * fresh frames flip a percentile still dominated by a superseded regime's
+ * samples — at the lowest animated tier that could trip the irreversible drop to
+ * the still frame off frames that were actually healthy. Emptying the window
+ * also keeps the sort to once per window instead of once per frame, so the
+ * measurement stays out of the budget it is measuring.
  */
 export const recordSparkleFrame = (
   state: ISparkleGovernorState,
@@ -1541,15 +1566,13 @@ export const recordSparkleFrame = (
   state.frameDurations.push(durationMs)
   state.framesSinceChange += 1
 
-  if (state.frameDurations.length > thresholds.windowSize) {
-    state.frameDurations.shift()
-  }
-
   if (state.frameDurations.length < thresholds.windowSize) {
     return null
   }
 
   const worstTypicalFrame = readPercentile(state.frameDurations, 0.9)
+
+  state.frameDurations.length = 0
 
   if (state.tier === ESparkleTier.low && worstTypicalFrame > thresholds.criticalFrameMs) {
     return applyTier(state, ESparkleTier.static)
@@ -1582,7 +1605,7 @@ export const recordSparkleFrame = (
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleGovernor.test.ts`
-Expected: PASS — 19 tests.
+Expected: PASS — 21 tests.
 
 - [ ] **Step 5: Validate and commit**
 
