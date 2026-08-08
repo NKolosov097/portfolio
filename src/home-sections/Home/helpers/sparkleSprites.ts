@@ -57,12 +57,8 @@ export const resolveRotationIndex = (rotation: number, steps: number): number =>
 }
 
 /**
- * Rasterises the glyph once per size bucket and rotation step. Baking the glow
- * here is what allows the frame loop to avoid `shadowBlur` entirely, which is
- * the single most expensive thing a 2D context can be asked to do per frame.
- *
- * Returns `null` when no raster surface is obtainable, so callers can skip the
- * field rather than render an empty canvas.
+ * Rasterises the glyph once per size bucket and rotation step, baking the glow so the frame loop
+ * never pays for `shadowBlur`. Returns `null` when no raster surface is obtainable.
  */
 export const buildSparkleAtlas = (
   createSurface: TSpriteSurfaceFactory,

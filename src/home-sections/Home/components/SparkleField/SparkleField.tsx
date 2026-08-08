@@ -17,6 +17,8 @@ import {
 } from '@/home-sections/Home/helpers/sparkleTransport'
 import {
   ESparkleTier,
+  ESparkleWorkerInboundType,
+  ESparkleWorkerOutboundType,
   IPointerPosition,
   ISparkleRasterContext,
   ISpriteSurface,
@@ -33,10 +35,8 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 const COARSE_POINTER_QUERY = '(pointer: coarse)'
 
 /**
- * How long the worker may take to announce itself before the field gives up on
- * it. A worker that fails while loading its own module graph rejects inside its
- * scope rather than raising an `error` event on the host, so silence — not just
- * a reported failure — has to be what triggers the main-thread fallback.
+ * How long the worker may take to announce itself. A worker that fails while loading its own module
+ * graph rejects inside its scope instead of raising `error`, so silence has to trigger the fallback.
  */
 const WORKER_HANDSHAKE_TIMEOUT_MS = 1500
 
@@ -47,11 +47,7 @@ const readDeviceMemory = (): number | undefined => {
   return typeof candidate === 'number' ? candidate : undefined
 }
 
-/**
- * Constructs the field worker, or returns `null` where the environment refuses
- * to spawn one at all — a blocked constructor is answered by falling through to
- * the main-thread path in the same pass, before the canvas has been touched.
- */
+/** Constructs the field worker, or returns `null` so the same pass falls through to the main thread. */
 const createSparkleWorker = (): Worker | null => {
   try {
     return new Worker(new URL('../../workers/sparkleField.worker.ts', import.meta.url))
@@ -101,9 +97,8 @@ interface IObserveSparkleFieldOptions {
 }
 
 /**
- * Wires the DOM observers and listeners that both transports need, so the only
- * thing a transport supplies is what to do with the resulting viewport, run and
- * pointer updates. Returns the teardown for everything it attached.
+ * Wires the DOM observers both transports need, leaving each transport to supply only what it does
+ * with the resulting updates. Returns the teardown for everything it attached.
  */
 const observeSparkleField = (options: IObserveSparkleFieldOptions): (() => void) => {
   const { field, sink } = options
@@ -278,7 +273,7 @@ export const SparkleField = () => {
 
       const flushPointer = () => {
         pointerFrame = null
-        postToWorker({ type: 'pointer', position: latestPointer })
+        postToWorker({ type: ESparkleWorkerInboundType.pointer, position: latestPointer })
       }
 
       const onWorkerMessage = (event: MessageEvent) => {
@@ -286,7 +281,7 @@ export const SparkleField = () => {
           return
         }
 
-        if (event.data.type === 'ready' && !isTransferred) {
+        if (event.data.type === ESparkleWorkerOutboundType.ready && !isTransferred) {
           isTransferred = true
           clearHandshakeTimer()
 
@@ -295,7 +290,7 @@ export const SparkleField = () => {
 
           worker.postMessage(
             {
-              type: 'init',
+              type: ESparkleWorkerInboundType.init,
               canvas: offscreen,
               width: rect.width,
               height: rect.height,
@@ -306,7 +301,7 @@ export const SparkleField = () => {
             [offscreen],
           )
 
-          postToWorker({ type: 'run', isRunning: isRunRequested })
+          postToWorker({ type: ESparkleWorkerInboundType.run, isRunning: isRunRequested })
           setIsReady(true)
         }
       }
@@ -346,13 +341,18 @@ export const SparkleField = () => {
             return
           }
 
-          postToWorker({ type: 'viewport', width, height, devicePixelRatio })
+          postToWorker({
+            type: ESparkleWorkerInboundType.viewport,
+            width,
+            height,
+            devicePixelRatio,
+          })
         },
         setRunning: (isFieldRunning) => {
           isRunRequested = isFieldRunning
 
           if (isTransferred) {
-            postToWorker({ type: 'run', isRunning: isFieldRunning })
+            postToWorker({ type: ESparkleWorkerInboundType.run, isRunning: isFieldRunning })
           }
 
           return isFieldRunning
@@ -378,7 +378,7 @@ export const SparkleField = () => {
 
           worker.removeEventListener('message', onWorkerMessage)
           worker.removeEventListener('error', onWorkerError)
-          postToWorker({ type: 'destroy' })
+          postToWorker({ type: ESparkleWorkerInboundType.destroy })
           worker.terminate()
         },
       }

@@ -17,10 +17,7 @@ const randomBetween = (random: () => number, min: number, max: number): number =
 /** Confines a value to 0–1 so alphas and ramps cannot overshoot. */
 const clampUnit = (value: number): number => Math.min(Math.max(value, 0), 1)
 
-/**
- * Wraps a coordinate around the field with a margin, so a glyph leaves one edge
- * and re-enters the opposite one without ever popping in mid-view.
- */
+/** Wraps a coordinate with a margin, so a glyph re-enters the opposite edge instead of popping in mid-view. */
 const wrapCoordinate = (value: number, limit: number, margin: number): number => {
   const span = limit + margin * 2
 
@@ -31,10 +28,7 @@ const wrapCoordinate = (value: number, limit: number, margin: number): number =>
   return ((((value + margin) % span) + span) % span) - margin
 }
 
-/**
- * Derives how many particles a field of this size deserves, honouring both the
- * floor that keeps narrow viewports populated and the active tier's ceiling.
- */
+/** Derives the particle count for a field of this size, between the viewport floor and the tier ceiling. */
 export const resolveSparkleParticleCount = (
   width: number,
   height: number,
@@ -96,9 +90,8 @@ export const createSparkleParticles = (
 }
 
 /**
- * Reshapes an existing field for a new viewport: positions are rescaled so the
- * composition survives a resize, and only the surplus or shortfall is trimmed
- * or generated.
+ * Reshapes an existing field for a new viewport: positions are rescaled so the composition survives
+ * a resize, and only the surplus or shortfall is trimmed or generated.
  */
 export const refitSparkleParticles = (
   particles: ISparkleParticle[],
@@ -164,9 +157,8 @@ export const createSparkleInfluence = (): ISparkleInfluence => ({
 })
 
 /**
- * Eases the pointer toward its latest raw position and ramps its intensity, so
- * both arrival and departure are gradual rather than snapping. A first sighting
- * jumps straight to the target to avoid a sweep in from the field's origin.
+ * Eases the pointer toward its latest position and ramps its intensity, so arrival and departure are
+ * gradual. A first sighting jumps to the target, to avoid a sweep in from the field's origin.
  */
 export const advanceSparklePointer = (
   pointer: ISparklePointer,
@@ -188,10 +180,7 @@ export const advanceSparklePointer = (
   pointer.intensity += ((target ? 1 : 0) - pointer.intensity) * factor
 }
 
-/**
- * Measures how strongly the pointer pulls on one particle and which way it is
- * pushed, writing into a reused record so the hot loop stays allocation-free.
- */
+/** Measures the pointer's pull on one particle into a reused record, so the hot loop stays allocation-free. */
 export const readSparkleInfluence = (
   particle: ISparkleParticle,
   pointer: ISparklePointer,

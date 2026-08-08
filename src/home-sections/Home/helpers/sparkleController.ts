@@ -60,10 +60,8 @@ export interface ISparkleController {
 }
 
 /**
- * Owns everything around the frame loop that both transports need: viewport
- * changes, atlas rebuilds, particle refits, and the reaction to a tier decision.
- * The main thread and the worker instantiate this identically; only how they
- * receive their inputs differs.
+ * Owns everything around the frame loop: viewport changes, atlas rebuilds, particle refits and the
+ * reaction to a tier decision. Both transports instantiate it identically.
  */
 export const createSparkleController = <TImage = CanvasImageSource>(
   options: ISparkleControllerOptions<TImage>,

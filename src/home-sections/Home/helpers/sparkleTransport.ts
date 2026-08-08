@@ -1,4 +1,8 @@
-import { ESparkleTier, TSparkleWorkerOutbound } from '@/home-sections/Home/types/home.type'
+import {
+  ESparkleTier,
+  ESparkleWorkerOutboundType,
+  TSparkleWorkerOutbound,
+} from '@/home-sections/Home/types/home.type'
 
 /** Every tier the worker is allowed to report back, used to validate untrusted messages. */
 const KNOWN_TIERS: string[] = [
@@ -17,17 +21,13 @@ export interface ISparkleWorkerCapabilities {
   isReducedMotion: boolean
 }
 
-/**
- * Decides whether the worker transport is worth attempting. It is a pure
- * enhancement: a `false` here simply leaves the main-thread path in charge.
- */
+/** Decides whether the worker transport is worth attempting; `false` simply leaves the main thread in charge. */
 export const canUseSparkleWorker = (capabilities: ISparkleWorkerCapabilities): boolean =>
   capabilities.hasWorker && capabilities.hasOffscreenCanvas && !capabilities.isReducedMotion
 
 /**
- * Narrows a message that arrived over `postMessage`. Worker payloads cross a
- * structured-clone boundary and are untyped on arrival, so they are validated
- * rather than trusted.
+ * Narrows a message that arrived over `postMessage`; a structured-clone payload
+ * is untyped on arrival, so it is validated rather than trusted.
  */
 export const isSparkleWorkerMessage = (value: unknown): value is TSparkleWorkerOutbound => {
   if (typeof value !== 'object' || value === null) {
@@ -36,11 +36,11 @@ export const isSparkleWorkerMessage = (value: unknown): value is TSparkleWorkerO
 
   const type = Reflect.get(value, 'type')
 
-  if (type === 'ready') {
+  if (type === ESparkleWorkerOutboundType.ready) {
     return true
   }
 
-  if (type !== 'tier') {
+  if (type !== ESparkleWorkerOutboundType.tier) {
     return false
   }
 

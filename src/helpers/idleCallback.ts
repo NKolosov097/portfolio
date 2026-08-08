@@ -24,10 +24,8 @@ const readCancelIdleCallback = (): typeof cancelIdleCallback | null => {
 }
 
 /**
- * Defers work until the browser is idle, falling back to a short timer in
- * engines that never shipped `requestIdleCallback`. Returns a handle whose
- * meaning depends on which path was taken, so it must only be passed to
- * `cancelIdle`.
+ * Defers work until the browser is idle, falling back to a short timer where `requestIdleCallback`
+ * never shipped. The returned handle depends on the path taken, so only `cancelIdle` may read it.
  */
 export const requestIdle = (callback: () => void): number => {
   const native = readRequestIdleCallback()

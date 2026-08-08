@@ -17,12 +17,8 @@ import {
 const clampUnit = (value: number): number => Math.min(Math.max(value, 0), 1)
 
 /**
- * Paints one frame of the field.
- *
- * Generic over the frame image type so the whole draw path can be exercised with
- * test doubles; in the browser `TImage` resolves to `CanvasImageSource`. The
- * `influence` record is supplied by the caller and reused for every particle, so
- * a frame allocates nothing.
+ * Paints one frame, generic over the image type so the draw path can be exercised with test doubles.
+ * The caller's `influence` record is reused for every particle, so a frame allocates nothing.
  */
 export const renderSparkleField = <TImage>(
   context: ISparkleDrawContext<TImage>,

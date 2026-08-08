@@ -4,23 +4,22 @@ import {
 } from '@/home-sections/Home/helpers/sparkleController'
 import { buildSparkleAtlas } from '@/home-sections/Home/helpers/sparkleSprites'
 import {
+  ESparkleWorkerInboundType,
+  ESparkleWorkerOutboundType,
   ISparkleRasterContext,
   ISpriteSurface,
   TSparkleWorkerInbound,
 } from '@/home-sections/Home/types/home.type'
 
 /**
- * Gap between frames the worker drives itself at, matching a 60 Hz display.
- * A dedicated worker has no `requestAnimationFrame` — it is a `Window` method —
- * so the loop is timer-driven, which the engine supports because it takes its
- * scheduler by injection and grades the wall-clock delta it actually observes.
+ * Gap between self-driven frames, matching a 60 Hz display. A dedicated worker has no
+ * `requestAnimationFrame` — it is a `Window` method — so the loop is timer-driven instead.
  */
 const WORKER_FRAME_INTERVAL_MS = 16
 
 /**
- * Schedules the next worker frame, stamping it with the same clock the main
- * thread would. The timers are reached through `self` so they resolve to the
- * numeric-handle DOM signatures rather than Node's `Timeout` object.
+ * Schedules the next worker frame on the same clock the main thread would use. Timers go through
+ * `self` so they resolve to the DOM's numeric handles rather than Node's `Timeout` object.
  */
 const requestWorkerFrame = (callback: (timestamp: number) => void): number =>
   self.setTimeout(() => callback(performance.now()), WORKER_FRAME_INTERVAL_MS)
@@ -43,7 +42,9 @@ let controller: ISparkleController | null = null
 let surface: OffscreenCanvas | null = null
 
 /** Adopts the transferred surface and stands the shared controller up around it. */
-const onInit = (message: Extract<TSparkleWorkerInbound, { type: 'init' }>): void => {
+const onInit = (
+  message: Extract<TSparkleWorkerInbound, { type: ESparkleWorkerInboundType.init }>,
+): void => {
   surface = message.canvas
 
   const context = surface.getContext('2d', { alpha: true, desynchronized: true })
@@ -69,7 +70,7 @@ const onInit = (message: Extract<TSparkleWorkerInbound, { type: 'init' }>): void
     requestFrame: requestWorkerFrame,
     cancelFrame: cancelWorkerFrame,
     initialTier: message.tier,
-    onTierChange: (tier) => postMessage({ type: 'tier', tier }),
+    onTierChange: (tier) => postMessage({ type: ESparkleWorkerOutboundType.tier, tier }),
   })
 
   controller.setViewport(message.width, message.height, message.devicePixelRatio)
@@ -79,19 +80,19 @@ addEventListener('message', (event: MessageEvent<TSparkleWorkerInbound>) => {
   const message = event.data
 
   switch (message.type) {
-    case 'init':
+    case ESparkleWorkerInboundType.init:
       onInit(message)
 
       return
-    case 'viewport':
+    case ESparkleWorkerInboundType.viewport:
       controller?.setViewport(message.width, message.height, message.devicePixelRatio)
 
       return
-    case 'pointer':
+    case ESparkleWorkerInboundType.pointer:
       controller?.setPointerTarget(message.position)
 
       return
-    case 'run':
+    case ESparkleWorkerInboundType.run:
       if (message.isRunning) {
         controller?.start()
       } else {
@@ -99,11 +100,11 @@ addEventListener('message', (event: MessageEvent<TSparkleWorkerInbound>) => {
       }
 
       return
-    case 'destroy':
+    case ESparkleWorkerInboundType.destroy:
       controller?.destroy()
       controller = null
       surface = null
   }
 })
 
-postMessage({ type: 'ready' })
+postMessage({ type: ESparkleWorkerOutboundType.ready })

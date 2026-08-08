@@ -200,10 +200,23 @@ export interface ISpriteSurface {
 /** Allocates a square raster surface of `size` device pixels, or returns `null` when 2D is unavailable. */
 export type TSpriteSurfaceFactory = (size: number) => ISpriteSurface | null
 
+export const enum ESparkleWorkerInboundType {
+  init = 'init',
+  viewport = 'viewport',
+  pointer = 'pointer',
+  run = 'run',
+  destroy = 'destroy',
+}
+
+export const enum ESparkleWorkerOutboundType {
+  ready = 'ready',
+  tier = 'tier',
+}
+
 export type TSparkleWorkerInbound =
   | {
       /** Hands the transferred surface over and starts the controller. */
-      type: 'init'
+      type: ESparkleWorkerInboundType.init
       /** Canvas detached from the host element via `transferControlToOffscreen`. */
       canvas: OffscreenCanvas
       /** Field width in CSS pixels at hand-off time. */
@@ -219,7 +232,7 @@ export type TSparkleWorkerInbound =
     }
   | {
       /** Reports a new field size after a resize. */
-      type: 'viewport'
+      type: ESparkleWorkerInboundType.viewport
       /** Field width in CSS pixels. */
       width: number
       /** Field height in CSS pixels. */
@@ -229,29 +242,29 @@ export type TSparkleWorkerInbound =
     }
   | {
       /** Forwards the pointer, coalesced to at most one message per frame. */
-      type: 'pointer'
+      type: ESparkleWorkerInboundType.pointer
       /** Latest position in CSS pixels relative to the field, or `null` once it leaves. */
       position: IPointerPosition | null
     }
   | {
       /** Starts or stops the loop as visibility and intersection change. */
-      type: 'run'
+      type: ESparkleWorkerInboundType.run
       /** Whether the field should currently be animating. */
       isRunning: boolean
     }
   | {
       /** Releases every resource before the host drops the worker. */
-      type: 'destroy'
+      type: ESparkleWorkerInboundType.destroy
     }
 
 export type TSparkleWorkerOutbound =
   | {
       /** Signals that the worker booted, so the host may safely transfer the canvas. */
-      type: 'ready'
+      type: ESparkleWorkerOutboundType.ready
     }
   | {
       /** Reports the tier the governor settled on, so the host can mirror it in the DOM. */
-      type: 'tier'
+      type: ESparkleWorkerOutboundType.tier
       /** Tier now in force. */
       tier: ESparkleTier
     }

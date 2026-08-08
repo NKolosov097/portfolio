@@ -41,10 +41,8 @@ const applyTier = (state: ISparkleGovernorState, tier: ESparkleTier): ESparkleTi
 }
 
 /**
- * Picks the tier the field starts on from what the device is willing to reveal.
- * Seeding is deliberately conservative, since the governor grants at most one
- * upgrade but will step down as often as needed. A withheld signal is skipped
- * rather than read as a low value.
+ * Picks the starting tier from whatever the device reveals; a withheld signal is skipped rather than
+ * read as a low value. Seeding stays conservative because only one upgrade is ever granted.
  */
 export const resolveInitialSparkleTier = (signals: ISparkleDeviceSignals): ESparkleTier => {
   const { hardwareConcurrency, deviceMemory, devicePixelRatio, isCoarsePointer } = signals
@@ -77,15 +75,8 @@ export const createSparkleGovernorState = (tier: ESparkleTier): ISparkleGovernor
 })
 
 /**
- * Grades one frame and returns a new tier on the frame a change is warranted.
- *
- * Windows are non-overlapping: a decision consumes a full window and leaves the
- * next one empty, whatever the outcome. A sliding window would let a handful of
- * fresh frames flip a percentile still dominated by a superseded regime's
- * samples — at the lowest animated tier that could trip the irreversible drop to
- * the still frame off frames that were actually healthy. Emptying the window
- * also keeps the sort to once per window instead of once per frame, so the
- * measurement stays out of the budget it is measuring.
+ * Grades one frame and returns a new tier on the frame a change is warranted. Windows are
+ * non-overlapping, so no decision is ever taken on samples from a superseded regime.
  */
 export const recordSparkleFrame = (
   state: ISparkleGovernorState,
