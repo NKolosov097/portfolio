@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import styles from '@/layout/Aside/aside.module.css'
 
@@ -12,6 +13,8 @@ import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 import { CircleXmark } from '@gravity-ui/icons'
 
 export const MobileAside = () => {
+  const { t } = useTranslation()
+
   const { isOpenDrawer, setIsOpenDrawer } = useAsideStore((state) => state)
 
   const handleCloseDrawer = useCallback(() => {
@@ -39,12 +42,13 @@ export const MobileAside = () => {
       className={styles.drawer}
       contentClassName={styles.drawerItem}
     >
-      <div id="aside-card" className={styles.drawerItemContent}>
+      <div id="aside-card" data-testid="aside-drawer" className={styles.drawerItemContent}>
         <Button
+          data-testid="aside-close-profile"
           view="flat"
           pin="circle-circle"
           size="m"
-          aria-label="Close drawer"
+          aria-label={t('aside.closeProfile')}
           className={styles.closeIcon}
           onClick={handleCloseDrawer}
         >

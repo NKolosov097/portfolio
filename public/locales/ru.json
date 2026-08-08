@@ -25,7 +25,9 @@
     "basedIn": "Живу в",
     "basedInPlace": "Россия, Москва",
     "fullYears": "Полных лет",
-    "opensInNewTab": "открывается в новой вкладке"
+    "opensInNewTab": "открывается в новой вкладке",
+    "openProfile": "Открыть профиль",
+    "closeProfile": "Закрыть профиль"
   },
 
   "headerTabs": {

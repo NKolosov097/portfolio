@@ -52,3 +52,12 @@ logs/
 
 # AI
 CLAUDE.md
+
+# brainstorming visual companion
+.superpowers/
+
+# tests
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

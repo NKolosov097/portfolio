@@ -140,7 +140,14 @@ export const HeaderTabs = () => {
 
   return pathname === '/' ? (
     <>
-      <Button className={styles.drawerBtn} size="l" view="outlined" onClick={handleOpenDrawer}>
+      <Button
+        data-testid="header-open-profile"
+        className={styles.drawerBtn}
+        size="l"
+        view="outlined"
+        aria-label={t('aside.openProfile')}
+        onClick={handleOpenDrawer}
+      >
         <Icon width={30} height={30} data={Person} />
       </Button>
 

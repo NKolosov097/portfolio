@@ -15,6 +15,7 @@ A production-grade personal portfolio built as a single-page application on the 
 - [Getting started](#getting-started)
 - [Environment variables](#environment-variables)
 - [Available scripts](#available-scripts)
+- [Testing](#testing)
 - [Database](#database)
 - [Internationalisation](#internationalisation)
 - [State management](#state-management)
@@ -49,7 +50,8 @@ A production-grade personal portfolio built as a single-page application on the 
 | Database / ORM  | [PostgreSQL](https://www.postgresql.org) + [Prisma 7](https://www.prisma.io) (`pg` adapter / Accelerate) |
 | Email           | [Nodemailer](https://nodemailer.com) (Gmail SMTP)                                                        |
 | Notifications   | [react-toastify](https://fkhadra.github.io/react-toastify/)                                              |
-| Tooling         | ESLint 9, Prettier 3, Stylelint 17, Cypress 15                                                           |
+| Tooling         | ESLint 9, Prettier 3, Stylelint 17                                                                       |
+| Testing         | Vitest 4 (unit), Playwright 1.62 (E2E)                                                                   |
 | Package manager | [pnpm](https://pnpm.io) · Node.js 24                                                                     |
 
 ---
@@ -76,7 +78,7 @@ Key architectural decisions:
 - **Section ownership.** Each section under `src/home-sections/<Section>/` owns its own types, sub-components, schemas, and server actions — no cross-section coupling.
 - **Server-side theming.** The Gravity UI dark theme is resolved with `getRootClassName` in the root layout, so the correct theme class is present on first paint (no client flash).
 - **Server-only boundaries.** Database and mail singletons live in `src/lib/` and are guarded with `import 'server-only'`; server actions are marked `'use server'`.
-- **Path aliases.** `@/*` → `src/*` and `@public/*` → `public/*` (configured in `tsconfig.json` and the ESLint resolver).
+- **Path aliases.** `@/*` → `src/*`, `@public/*` → `public/*`, and `@tests/*` → `tests/*` (configured in `tsconfig.json`, the ESLint resolver, and `vitest.config.mts`).
 
 ---
 
@@ -106,7 +108,13 @@ src/
 prisma/                 # schema.prisma, migrations, seed.ts, init.sql
 public/locales/         # Translation catalogues: en.json, ru.json
 docker/                 # Hardened daemon.json + nginx config for self-hosted setups
+e2e/                    # Playwright specs, shared locators and the server lifecycle hooks
+tests/fixtures/         # Shared test fixtures derived from app constants and locales
 ```
+
+Unit tests live next to the code they cover as `*.test.ts`; Playwright owns `e2e/**` so the
+two runners never pick up each other's files. A test that needs a DOM is named `*.dom.test.ts`
+and is routed to the jsdom environment by `vitest.config.mts`.
 
 ---
 
@@ -171,6 +179,9 @@ Copy `.env.example` to `.env.local` and provide:
 | `pnpm lint`               | ESLint + Stylelint + Prettier + `next lint`.                   |
 | `pnpm format`             | Auto-fix formatting with Prettier.                             |
 | `pnpm lint:styles`        | Stylelint CSS with auto-fix.                                   |
+| `pnpm test`               | Run the Vitest unit suite once.                                |
+| `pnpm test:watch`         | Run Vitest in watch mode.                                      |
+| `pnpm test:e2e`           | Production build, then the Playwright E2E suite.               |
 | `pnpm prisma generate`    | Regenerate the Prisma client into `src/generated/prisma`.      |
 | `pnpm prisma migrate dev` | Apply migrations locally.                                      |
 | `pnpm prisma db seed`     | Seed the database via `prisma/seed.ts`.                        |
@@ -180,6 +191,73 @@ Before considering any change complete, the validation gate must pass:
 ```bash
 pnpm check-types && pnpm lint
 ```
+
+---
+
+## Testing
+
+Two runners with deliberately disjoint scopes:
+
+| Runner          | Config                 | Covers                                                                  |
+| --------------- | ---------------------- | ----------------------------------------------------------------------- |
+| Vitest 4        | `vitest.config.mts`    | `src/**/*.test.ts` — pure logic, schemas, server actions, locale parity |
+| Playwright 1.62 | `playwright.config.ts` | `e2e/**/*.spec.ts` — the rendered page, six desktop and mobile projects |
+
+What is covered today:
+
+- **`getAge`** — birthday boundaries, 29 February in a non-leap year, future and invalid dates.
+- **`getStoredLanguage` / `storeLanguage`** — cookie precedence over `navigator.language`, locale
+  normalisation, percent-encoded values, fallback to English. Named `language.dom.test.ts`, which
+  routes it to the jsdom environment.
+- **Contact Zod schema** — trimming before length checks, localised messages, multi-field errors.
+- **`sendMessage` server action** — persistence, mail dispatch, validation failures echoing the
+  submitted fields, database failure, and the deliberate choice to still report success when only
+  the mail step fails. Prisma and the mailer are mocked, so no database or SMTP is needed.
+- **Locale catalogues** — `en.json` / `ru.json` key parity in both directions, no blank or
+  non-string leaves.
+- **E2E smoke** (`e2e/smoke.spec.ts`) — every section anchor the header navigates to exists, the
+  aside renders, the page loads without uncaught errors, and clicking a tab scrolls to its section.
+- **Aside ghost** (`e2e/aside-ghost.spec.ts`) — all five animation layers run, the silhouette
+  actually moves between frames, and every animation stops under `prefers-reduced-motion: reduce`.
+- **Profile drawer** (`e2e/mobile-drawer.spec.ts`) — below the breakpoint the sidebar is hidden
+  and its content is reachable only through the drawer, which opens and closes on demand. The
+  spec skips itself on viewports that render the sidebar.
+
+Tests reuse the app's own sources of truth rather than restating them: section anchors come from
+`ETabID`, tab labels and contact error messages from `public/locales/en.json`, and profile links
+from `src/constants/constants.ts`. The server-action test mocks `server-only`, which throws when
+imported outside a React Server Component. Browsers are not installed by `pnpm install` — run
+`npx playwright install chromium firefox webkit` once.
+
+`pnpm test:e2e` needs no separately running app: the script produces a production build, and
+`e2e/global-setup.ts` starts `next start` while `e2e/global-teardown.ts` stops it again. Running
+against a **production build rather than `next dev` is deliberate** — under parallel load the dev
+server compiles chunks on demand, which re-suspends the page mid-interaction: the content is
+swapped for the loader, the document collapses and the scroll position resets. That produced
+failures which reproduced only in parallel and never serially.
+
+Playwright's own `webServer` is deliberately not used. It cannot stop `next start` on Windows:
+that process re-spawns itself, so the pid Playwright tracks is gone by teardown and the surviving
+server keeps the run hanging after the last test. The teardown therefore terminates whatever holds
+the port rather than a pid tree. Because the suite owns the server, `global-setup` refuses to run
+when port 3000 is already busy instead of silently testing someone else's build.
+
+The Vitest reporter is set to `verbose`, so a run names every individual assertion instead of
+only the files — the suite doubles as a readable description of the guaranteed behaviour.
+
+Every spec runs across six projects: Chromium, Firefox and WebKit on desktop, plus Pixel 7,
+iPhone 15 and a narrow-viewport Firefox. Two caveats worth knowing:
+
+- Playwright's **WebKit is not Safari** — it omits Apple's proprietary layer, and real Safari can
+  only be driven on macOS. Treat it as an engine-level check, not a Safari guarantee.
+- Gecko has **no true mobile emulation**: it applies viewport and DPR but ignores `isMobile`,
+  leaving `navigator.maxTouchPoints` at 0. `mobile-firefox` is therefore a narrow-viewport layout
+  check, not a touch-behaviour one.
+
+Mobile is a genuinely different layout, not just a narrower one: below the breakpoint the sidebar
+is hidden and its content moves into a drawer. Specs call `revealAside()` from `e2e/helpers/`,
+which detects the layout from the DOM and returns the container that actually holds the content,
+so the breakpoint value is never restated in tests.
 
 ---
 

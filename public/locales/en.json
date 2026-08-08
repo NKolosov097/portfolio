@@ -25,7 +25,9 @@
     "basedIn": "Based in",
     "basedInPlace": "Russia, Moscow",
     "fullYears": "Years",
-    "opensInNewTab": "opens in a new tab"
+    "opensInNewTab": "opens in a new tab",
+    "openProfile": "Open profile",
+    "closeProfile": "Close profile"
   },
 
   "headerTabs": {
