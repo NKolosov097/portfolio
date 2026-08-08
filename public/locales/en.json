@@ -100,8 +100,8 @@
     "HexletDescription": "Studied layout, testing, data abstraction, protocols, OOP, asynchronous programming, TypeScript",
 
     "YandexPracticum": "Yandex Practicum",
-    "YandexPracticumSubtitle": "React Developer",
-    "YandexPracticumDescription": "Immersed in React, Linters, WebPack, Ise, RTK, Routing and security, Animations, Websocket, Deploy projects"
+    "YandexPracticumSubtitle": "Frontend Developer",
+    "YandexPracticumDescription": "Covered the full frontend cycle: built several SPAs on React, Redux Toolkit and client-side routing — from markup and animations to secure auth, WebSocket and deployment. Configured Webpack builds and linters; every project passed mentor code review."
   },
 
   "workExperience": {

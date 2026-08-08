@@ -100,8 +100,8 @@
     "HexletDescription": "Изучал верстку, тестирование, абстракцию с помощью данных, протоколы, ООП, асинхронное программирование, TypeScript",
 
     "YandexPracticum": "Yandex Практикум",
-    "YandexPracticumSubtitle": "React Разработчик",
-    "YandexPracticumDescription": "Погрузился в React, линтеры, WebPack, Ise, RTK, роутинг и безопасность,  анимации, Websocket, Deploy проектов"
+    "YandexPracticumSubtitle": "Фронтенд Разработчик",
+    "YandexPracticumDescription": "Прошёл полный цикл фронтенд-разработки: собрал несколько SPA на React, Redux Toolkit и клиентском роутинге — от вёрстки и анимаций до защищённой авторизации, WebSocket и деплоя. Настраивал сборку на Webpack и линтеры; каждый проект проходил код-ревью наставника."
   },
 
   "workExperience": {

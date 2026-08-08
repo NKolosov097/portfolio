@@ -15,12 +15,12 @@ export const Education = () => {
   const educationData: Record<string, string>[] = useMemo(
     () => [
       {
-        id: 'University MAI"',
-        [EResumeTableColumn.YEARS]: '2020 - 2024',
-        [EResumeTableColumn.TITLE]: t('educationTable.MAI'),
-        subtitle: t('educationTable.MAISubtitle'),
-        [EResumeTableColumn.DESCRIPTION]: t('educationTable.MAIDescription'),
-        subDescription: t('educationTable.MAISubDescription'),
+        id: 'Yandex Practicum',
+        [EResumeTableColumn.YEARS]: '2023',
+        [EResumeTableColumn.TITLE]: t('educationTable.YandexPracticum'),
+        subtitle: t('educationTable.YandexPracticumSubtitle'),
+        [EResumeTableColumn.DESCRIPTION]: t('educationTable.YandexPracticumDescription'),
+        subDescription: '',
       },
       {
         id: 'Hexlet',
@@ -30,13 +30,14 @@ export const Education = () => {
         [EResumeTableColumn.DESCRIPTION]: t('educationTable.HexletDescription'),
         subDescription: '',
       },
+
       {
-        id: 'Yandex Practicum',
-        [EResumeTableColumn.YEARS]: '2023',
-        [EResumeTableColumn.TITLE]: t('educationTable.YandexPracticum'),
-        subtitle: t('educationTable.YandexPracticumSubtitle'),
-        [EResumeTableColumn.DESCRIPTION]: t('educationTable.YandexPracticumDescription'),
-        subDescription: '',
+        id: 'University MAI"',
+        [EResumeTableColumn.YEARS]: '2020 - 2024',
+        [EResumeTableColumn.TITLE]: t('educationTable.MAI'),
+        subtitle: t('educationTable.MAISubtitle'),
+        [EResumeTableColumn.DESCRIPTION]: t('educationTable.MAIDescription'),
+        subDescription: t('educationTable.MAISubDescription'),
       },
     ],
     [t],
