@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { SPARKLE_FIELD_CONFIG, SPARKLE_GOVERNOR_THRESHOLDS } from '@/constants/home.constants'
-import { createSparkleEngine } from '@/home-sections/Home/helpers/sparkleEngine'
+import { createSparkleEngine, ISparkleEngine } from '@/home-sections/Home/helpers/sparkleEngine'
 import { createSparkleParticles } from '@/home-sections/Home/helpers/sparkleField'
 import { createSparkleGovernorState } from '@/home-sections/Home/helpers/sparkleGovernor'
 import {
@@ -202,6 +202,41 @@ describe('createSparkleEngine', () => {
 
     expect(painter.drawCount).toBe(0)
     expect(painter.clearCount).toBeGreaterThan(0)
+  })
+
+  it('does not stack a second loop when its tier-change handler restarts it mid-frame', () => {
+    const scheduler = createManualScheduler()
+    const painter = createCountingContext()
+
+    let engine: ISparkleEngine<string> | null = null
+
+    const created = createSparkleEngine<string>({
+      context: painter.context,
+      atlas: createTestAtlas(),
+      particles: createSparkleParticles(600, 400, 4, SPARKLE_FIELD_CONFIG),
+      view: { width: 600, height: 400, devicePixelRatio: 1 },
+      config: SPARKLE_FIELD_CONFIG,
+      governor: createSparkleGovernorState(ESparkleTier.high),
+      thresholds: SPARKLE_GOVERNOR_THRESHOLDS,
+      requestFrame: scheduler.requestFrame,
+      cancelFrame: scheduler.cancelFrame,
+      onTierChange: () => {
+        engine?.stop()
+        engine?.start()
+      },
+    })
+
+    engine = created
+    created.start()
+
+    let timestamp = 0
+
+    for (let frame = 0; frame <= SPARKLE_GOVERNOR_THRESHOLDS.windowSize + 1; frame += 1) {
+      scheduler.step(timestamp)
+      timestamp += 30
+    }
+
+    expect(scheduler.pendingCount).toBe(1)
   })
 
   it('lets go of the pointer when it is cleared', () => {

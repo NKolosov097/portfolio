@@ -61,6 +61,12 @@ export interface ISparkleEngine<TImage = CanvasImageSource> {
  * Owns the frame loop: advance, paint, and grade. Everything it needs is
  * injected, so the same engine runs on the main thread and inside the worker,
  * and can be stepped by hand under test.
+ *
+ * The tail of each frame reschedules only when the handle is still the one that
+ * frame began with. `onTierChange` runs synchronously inside the callback and
+ * may stop or restart the loop from there; a nullness check could not tell
+ * "nothing changed" from "the handler already re-armed us", and would leave a
+ * second, orphaned frame chain running forever alongside the first.
  */
 export const createSparkleEngine = <TImage = CanvasImageSource>(
   options: ISparkleEngineOptions<TImage>,
@@ -86,6 +92,12 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
   }
 
   const onFrame = (timestamp: number): void => {
+    const handleAtEntry = frameHandle
+
+    if (handleAtEntry === null) {
+      return
+    }
+
     const rawDelta = lastTimestamp === null ? 0 : timestamp - lastTimestamp
 
     lastTimestamp = timestamp
@@ -114,7 +126,7 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
       }
     }
 
-    if (frameHandle !== null) {
+    if (frameHandle === handleAtEntry) {
       frameHandle = options.requestFrame(onFrame)
     }
   }
