@@ -27,7 +27,7 @@ A production-grade personal portfolio built as a single-page application on the 
 
 ## Highlights
 
-- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home`, `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) — behind a persistent layout shell rendered inside a `<Suspense>` boundary.
+- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) — behind a persistent layout shell rendered inside a `<Suspense>` boundary.
 - **First-class i18n.** All user-facing copy is translated (`en` / `ru`), resolved from a `lang` query string then a cookie, and served from `public/locales`.
 - **Type-safe, server-first data flow.** Contact submissions run through a `'use server'` action with **Zod** validation, persist to **PostgreSQL** via **Prisma 7**, and trigger a transactional email via **Nodemailer**.
 - **Accessibility & performance built in.** Skip-to-navigation link, zoomable viewport, `prefers-reduced-motion` support, and a `requestAnimationFrame`-throttled scroll-spy.
@@ -92,6 +92,7 @@ src/
 │     ├─ components/    #   section-local sub-components
 │     ├─ actions/       #   'use server' server actions
 │     ├─ schemas/       #   Zod schemas
+│     ├─ helpers/       #   section-local pure helpers
 │     └─ types/         #   section-local types
 ├─ layout/              # Persistent shell: Header, Aside (drawer), Main, Footer
 ├─ components/          # Shared UI atoms (Tag, SkipToNavigationLink)

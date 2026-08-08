@@ -1,0 +1,31 @@
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 800ms ease-out;
+  pointer-events: none;
+}
+
+.field[data-ready='true'] {
+  opacity: 1;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--g-color-line-brand);
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 100%) 0%,
+    rgb(0 0 0 / 100%) 55%,
+    rgb(0 0 0 / 0%) 88%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field {
+    transition: none;
+  }
+}
