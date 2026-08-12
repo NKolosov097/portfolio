@@ -12,10 +12,7 @@ test.describe('aside ghost', () => {
 
     await revealAside(page)
 
-    await expect(page.getByTestId('aside-surface')).toHaveCSS(
-      'background-color',
-      SOFT_CHARCOAL,
-    )
+    await expect(page.getByTestId('aside-surface')).toHaveCSS('background-color', SOFT_CHARCOAL)
   })
 
   test('uses the soft charcoal surface in the mobile drawer', async ({ page }) => {
@@ -42,7 +39,9 @@ test.describe('aside ghost', () => {
         trigger.evaluate((node) =>
           node
             .getAnimations({ subtree: true })
-            .some(({ animationName }) => animationName.includes('ghost-tickle-body')),
+            .some((animation) =>
+              (animation as CSSAnimation).animationName.includes('ghost-tickle-body'),
+            ),
         ),
       )
       .toBe(true)
@@ -63,7 +62,9 @@ test.describe('aside ghost', () => {
     const elapsedBeforeRestart = await trigger.evaluate((node) => {
       const animation = node
         .getAnimations({ subtree: true })
-        .find(({ animationName }) => animationName.includes('ghost-tickle-body'))
+        .find((candidate) =>
+          (candidate as CSSAnimation).animationName.includes('ghost-tickle-body'),
+        )
 
       return Number(animation?.currentTime ?? 0)
     })
@@ -75,7 +76,9 @@ test.describe('aside ghost', () => {
         trigger.evaluate((node) => {
           const animation = node
             .getAnimations({ subtree: true })
-            .find(({ animationName }) => animationName.includes('ghost-tickle-body'))
+            .find((candidate) =>
+              (candidate as CSSAnimation).animationName.includes('ghost-tickle-body'),
+            )
 
           return Number(animation?.currentTime ?? Number.POSITIVE_INFINITY)
         }),
@@ -94,7 +97,9 @@ test.describe('aside ghost', () => {
     await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 2_000 })
 
     const animationNames = await ghost.evaluate((node) =>
-      node.getAnimations({ subtree: true }).map(({ animationName }) => animationName),
+      node
+        .getAnimations({ subtree: true })
+        .map((animation) => (animation as CSSAnimation).animationName),
     )
 
     expect(animationNames.some((name) => name.includes('ghost-bob'))).toBe(true)
@@ -110,7 +115,9 @@ test.describe('aside ghost', () => {
     await trigger.click()
 
     const animationNames = await trigger.evaluate((node) =>
-      node.getAnimations({ subtree: true }).map(({ animationName }) => animationName),
+      node
+        .getAnimations({ subtree: true })
+        .map((animation) => (animation as CSSAnimation).animationName),
     )
 
     expect(animationNames.some((name) => name.includes('ghost-tickle-body'))).toBe(false)

@@ -31,12 +31,14 @@
 ### Task 1: Soft charcoal aside surfaces
 
 **Files:**
+
 - Modify: `src/styles/globals.css`
 - Modify: `src/layout/Aside/Aside.tsx`
 - Modify: `src/layout/Aside/aside.module.css`
 - Test: `e2e/aside-ghost.spec.ts`
 
 **Interfaces:**
+
 - Consumes: existing `data-testid="aside-sidebar"`, `data-testid="aside-drawer"`, and CSS token conventions.
 - Produces: `--aside-bg-color: #252525`, consumed by both aside surface rules.
 
@@ -52,10 +54,7 @@ test('uses the soft charcoal surface on desktop', async ({ page }) => {
 
   await revealAside(page)
 
-  await expect(page.getByTestId('aside-surface')).toHaveCSS(
-    'background-color',
-    SOFT_CHARCOAL,
-  )
+  await expect(page.getByTestId('aside-surface')).toHaveCSS('background-color', SOFT_CHARCOAL)
 })
 
 test('uses the soft charcoal surface in the mobile drawer', async ({ page }) => {
@@ -129,11 +128,13 @@ git commit -m "style: soften aside panel background"
 ### Task 2: Accessible restartable tickle interaction
 
 **Files:**
+
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.tsx`
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.module.css`
 - Test: `e2e/aside-ghost.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `AnimatedGhost({ width?: number, height?: number })`, existing idle SVG groups, and native button keyboard behavior.
 - Produces: `data-testid="aside-ghost-trigger"`, `data-tickling="true|false"`, and restartable `.tickleBody` / `.eyeGiggle` animation classes.
 
@@ -155,9 +156,9 @@ test('starts the tickle reaction by pointer and keyboard', async ({ page }) => {
   await expect
     .poll(() =>
       trigger.evaluate((node) =>
-        node.getAnimations({ subtree: true }).some(({ animationName }) =>
-          animationName.includes('ghost-tickle-body'),
-        ),
+        node
+          .getAnimations({ subtree: true })
+          .some(({ animationName }) => animationName.includes('ghost-tickle-body')),
       ),
     )
     .toBe(true)
@@ -291,19 +292,45 @@ In `AnimatedGhost.module.css`, add:
 }
 
 @keyframes ghost-tickle-body {
-  0%, 100% { transform: scale(1); }
-  16% { transform: scaleX(0.94) scaleY(1.015); }
-  31% { transform: scaleX(1.01) scaleY(0.995); }
-  45% { transform: scaleX(0.965) scaleY(1.01); }
-  60% { transform: scaleX(1.006) scaleY(0.998); }
-  74% { transform: scaleX(0.985) scaleY(1.004); }
-  88% { transform: scaleX(1.003) scaleY(0.999); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  16% {
+    transform: scaleX(0.94) scaleY(1.015);
+  }
+  31% {
+    transform: scaleX(1.01) scaleY(0.995);
+  }
+  45% {
+    transform: scaleX(0.965) scaleY(1.01);
+  }
+  60% {
+    transform: scaleX(1.006) scaleY(0.998);
+  }
+  74% {
+    transform: scaleX(0.985) scaleY(1.004);
+  }
+  88% {
+    transform: scaleX(1.003) scaleY(0.999);
+  }
 }
 
 @keyframes ghost-giggle-eyes {
-  0%, 100% { transform: scaleY(1); }
-  15%, 43%, 69% { transform: scaleY(0.22); }
-  28%, 56%, 82% { transform: scaleY(1); }
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  15%,
+  43%,
+  69% {
+    transform: scaleY(0.22);
+  }
+  28%,
+  56%,
+  82% {
+    transform: scaleY(1);
+  }
 }
 ```
 
@@ -327,11 +354,13 @@ git commit -m "feat: add ghost tickle interaction"
 ### Task 3: Settling completion and reduced-motion behavior
 
 **Files:**
+
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.tsx`
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.module.css`
 - Test: `e2e/aside-ghost.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `data-tickling`, `.tickleBody`, `.eyeGiggle`, and existing idle animation layers from Task 2.
 - Produces: completion cleanup after 1.5 seconds and eye-only reduced-motion feedback.
 
@@ -428,8 +457,13 @@ At the end of `AnimatedGhost.module.css`, make the existing reduced-motion block
 }
 
 @keyframes ghost-reduced-giggle {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(0.25); }
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.25);
+  }
 }
 ```
 
@@ -465,9 +499,11 @@ git commit -m "test: cover ghost settling and reduced motion"
 ### Task 4: Full project verification
 
 **Files:**
+
 - Verify only; no planned production changes.
 
 **Interfaces:**
+
 - Consumes: the complete aside surface and ghost interaction implementation.
 - Produces: fresh evidence that formatting, types, lint, unit tests, build, and relevant browser behavior remain valid.
 
