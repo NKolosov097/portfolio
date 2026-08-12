@@ -68,11 +68,7 @@ export const startGhostTickle = (
   if (prefersReducedMotion) {
     const eyeAnimation = nameAnimation(
       elements.eyes.animate(
-        [
-          { transform: 'scaleY(1)' },
-          { transform: 'scaleY(0.25)' },
-          { transform: 'scaleY(1)' },
-        ],
+        [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0.25)' }, { transform: 'scaleY(1)' }],
         { duration: 180, easing: 'ease-out', fill: 'none' },
       ),
       'ghost-reduced-giggle',

@@ -31,10 +31,12 @@
 ### Task 1: Stable tickle animation controller
 
 **Files:**
+
 - Create: `src/layout/Aside/components/AnimatedGhost/ghostTickle.ts`
 - Create: `src/layout/Aside/components/AnimatedGhost/ghostTickle.dom.test.ts`
 
 **Interfaces:**
+
 - Consumes: stable `SVGGElement` references for body, eyes, and crease groups; `prefersReducedMotion: boolean`; `onFinish: () => void`.
 - Produces: `startGhostTickle(elements, options): GhostTickleRun` where `GhostTickleRun` exposes `cancel(): void` and `body: Animation | null`.
 
@@ -184,11 +186,13 @@ git commit -m "feat: add stable ghost tickle controller"
 ### Task 2: Stable SVG nodes and visible crease artwork
 
 **Files:**
+
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.tsx`
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.module.css`
 - Modify: `e2e/aside-ghost.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `startGhostTickle` and `IGhostTickleRun` from Task 1.
 - Produces: stable `data-testid="aside-ghost-body"`, `aside-ghost-left-creases`, and `aside-ghost-right-creases` SVG groups.
 
@@ -300,9 +304,11 @@ git commit -m "fix: settle ghost tickle without idle reset"
 ### Task 3: Full verification and authorship audit
 
 **Files:**
+
 - Verify only.
 
 **Interfaces:**
+
 - Consumes: completed stable animation implementation.
 - Produces: fresh verification evidence and an authorship report before integration.
 

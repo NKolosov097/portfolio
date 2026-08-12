@@ -6,7 +6,12 @@ const createAnimatedGroup = () => {
   const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
   const cancel = vi.fn()
   const animation = { cancel, id: '', onfinish: null } as unknown as Animation
-  const animate = vi.fn(() => animation)
+  const animate = vi.fn<
+    (
+      keyframes: Keyframe[] | PropertyIndexedKeyframes | null,
+      options?: number | KeyframeAnimationOptions,
+    ) => Animation
+  >(() => animation)
   group.animate = animate
 
   return { group, animation, animate, cancel }

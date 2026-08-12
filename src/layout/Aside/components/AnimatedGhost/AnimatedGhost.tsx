@@ -97,11 +97,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
             </g>
           </g>
 
-          <g
-            ref={leftCreasesRef}
-            className={styles.creases}
-            data-testid="aside-ghost-left-creases"
-          >
+          <g ref={leftCreasesRef} className={styles.creases} data-testid="aside-ghost-left-creases">
             <path d="M3.6 5.2 Q4.35 5.55 3.75 6.1" />
             <path d="M3.15 7.1 Q4.05 7.5 3.3 8.05" />
             <path d="M3.45 9 Q4.25 9.35 3.65 9.95" />
