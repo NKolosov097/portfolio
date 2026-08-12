@@ -83,6 +83,41 @@ test.describe('aside ghost', () => {
       .toBeLessThan(elapsedBeforeRestart)
   })
 
+  test('settles back into the idle animation after tickling', async ({ page }) => {
+    await page.goto('/')
+
+    const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
+    const ghost = trigger.getByTestId('aside-ghost')
+
+    await trigger.click()
+    await expect(trigger).toHaveAttribute('data-tickling', 'true')
+    await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 2_000 })
+
+    const animationNames = await ghost.evaluate((node) =>
+      node.getAnimations({ subtree: true }).map(({ animationName }) => animationName),
+    )
+
+    expect(animationNames.some((name) => name.includes('ghost-bob'))).toBe(true)
+    expect(animationNames.some((name) => name.includes('ghost-tickle-body'))).toBe(false)
+  })
+
+  test('uses only brief eye feedback for reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+
+    const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
+
+    await trigger.click()
+
+    const animationNames = await trigger.evaluate((node) =>
+      node.getAnimations({ subtree: true }).map(({ animationName }) => animationName),
+    )
+
+    expect(animationNames.some((name) => name.includes('ghost-tickle-body'))).toBe(false)
+    expect(animationNames.some((name) => name.includes('ghost-reduced-giggle'))).toBe(true)
+    await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 500 })
+  })
+
   test('runs every layer of its animation', async ({ page }) => {
     await page.goto('/')
 

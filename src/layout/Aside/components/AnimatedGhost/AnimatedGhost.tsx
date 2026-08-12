@@ -1,6 +1,6 @@
 import styles from './AnimatedGhost.module.css'
 
-import { useCallback, useState } from 'react'
+import { type AnimationEvent, useCallback, useState } from 'react'
 
 interface IAnimatedGhostProps {
   /** Rendered width of the ghost in pixels; mirrors the Gravity icon sizing API. */
@@ -16,8 +16,16 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     setTickleRun((currentRun) => (currentRun ?? 0) + 1)
   }, [])
 
-  const handleTickleEnd = useCallback(() => {
-    setTickleRun(null)
+  const handleTickleBodyEnd = useCallback((event: AnimationEvent<SVGGElement>) => {
+    if (event.currentTarget === event.target) {
+      setTickleRun(null)
+    }
+  }, [])
+
+  const handleEyeGiggleEnd = useCallback(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setTickleRun(null)
+    }
   }, [])
 
   return (
@@ -42,7 +50,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
         <g
           key={tickleRun ?? 'idle'}
           className={tickleRun !== null ? styles.tickleBody : undefined}
-          onAnimationEnd={handleTickleEnd}
+          onAnimationEnd={handleTickleBodyEnd}
         >
           <g className={styles.sway}>
             <g className={styles.breathe}>
@@ -56,6 +64,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
               <g className={styles.eyeLook}>
                 <g
                   className={`${styles.eyeBlink} ${tickleRun !== null ? styles.eyeGiggle : ''}`}
+                  onAnimationEnd={handleEyeGiggleEnd}
                 >
                   <circle cx="7" cy="7" r="0.7" fill="currentColor" />
                   <circle cx="11" cy="7" r="0.7" fill="currentColor" />

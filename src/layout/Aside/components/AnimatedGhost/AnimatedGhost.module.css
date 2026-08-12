@@ -191,4 +191,23 @@
   .eyeBlink {
     animation: none;
   }
+
+  .tickleBody {
+    animation: none;
+  }
+
+  .eyeGiggle {
+    animation: ghost-reduced-giggle 180ms ease-out both;
+  }
+}
+
+@keyframes ghost-reduced-giggle {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(0.25);
+  }
 }
