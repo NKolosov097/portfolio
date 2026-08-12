@@ -39,9 +39,7 @@ test.describe('aside ghost', () => {
         trigger.evaluate((node) =>
           node
             .getAnimations({ subtree: true })
-            .some((animation) =>
-              (animation as CSSAnimation).animationName.includes('ghost-tickle-body'),
-            ),
+            .some((animation) => animation.id === 'ghost-tickle-body'),
         ),
       )
       .toBe(true)
@@ -62,9 +60,7 @@ test.describe('aside ghost', () => {
     const elapsedBeforeRestart = await trigger.evaluate((node) => {
       const animation = node
         .getAnimations({ subtree: true })
-        .find((candidate) =>
-          (candidate as CSSAnimation).animationName.includes('ghost-tickle-body'),
-        )
+        .find((candidate) => candidate.id === 'ghost-tickle-body')
 
       return Number(animation?.currentTime ?? 0)
     })
@@ -76,9 +72,7 @@ test.describe('aside ghost', () => {
         trigger.evaluate((node) => {
           const animation = node
             .getAnimations({ subtree: true })
-            .find((candidate) =>
-              (candidate as CSSAnimation).animationName.includes('ghost-tickle-body'),
-            )
+            .find((candidate) => candidate.id === 'ghost-tickle-body')
 
           return Number(animation?.currentTime ?? Number.POSITIVE_INFINITY)
         }),
@@ -86,24 +80,28 @@ test.describe('aside ghost', () => {
       .toBeLessThan(elapsedBeforeRestart)
   })
 
-  test('settles back into the idle animation after tickling', async ({ page }) => {
+  test('folds inward and settles without remounting the idle layers', async ({ page }) => {
     await page.goto('/')
 
     const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
-    const ghost = trigger.getByTestId('aside-ghost')
+    const body = trigger.getByTestId('aside-ghost-body')
+    const sway = trigger.locator('[data-idle-layer="sway"]')
+    const leftCreases = trigger.getByTestId('aside-ghost-left-creases')
 
+    await sway.evaluate((node) => node.setAttribute('data-continuity-probe', 'preserved'))
     await trigger.click()
-    await expect(trigger).toHaveAttribute('data-tickling', 'true')
-    await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 2_000 })
 
-    const animationNames = await ghost.evaluate((node) =>
-      node
-        .getAnimations({ subtree: true })
-        .map((animation) => (animation as CSSAnimation).animationName),
-    )
+    await expect
+      .poll(() => body.evaluate((node) => getComputedStyle(node).transform))
+      .not.toBe('none')
+    await expect
+      .poll(() => leftCreases.evaluate((node) => Number(getComputedStyle(node).opacity)))
+      .toBeGreaterThan(0.5)
 
-    expect(animationNames.some((name) => name.includes('ghost-bob'))).toBe(true)
-    expect(animationNames.some((name) => name.includes('ghost-tickle-body'))).toBe(false)
+    await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 2_300 })
+    await expect(sway).toHaveAttribute('data-continuity-probe', 'preserved')
+    await expect(body).toHaveCSS('transform', 'none')
+    await expect(leftCreases).toHaveCSS('opacity', '0')
   })
 
   test('uses only brief eye feedback for reduced motion', async ({ page }) => {
@@ -114,14 +112,12 @@ test.describe('aside ghost', () => {
 
     await trigger.click()
 
-    const animationNames = await trigger.evaluate((node) =>
-      node
-        .getAnimations({ subtree: true })
-        .map((animation) => (animation as CSSAnimation).animationName),
+    const animationIds = await trigger.evaluate((node) =>
+      node.getAnimations({ subtree: true }).map(({ id }) => id),
     )
 
-    expect(animationNames.some((name) => name.includes('ghost-tickle-body'))).toBe(false)
-    expect(animationNames.some((name) => name.includes('ghost-reduced-giggle'))).toBe(true)
+    expect(animationIds).not.toContain('ghost-tickle-body')
+    expect(animationIds).toContain('ghost-reduced-giggle')
     await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 500 })
   })
 

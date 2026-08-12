@@ -1,6 +1,11 @@
 import styles from './AnimatedGhost.module.css'
 
-import { type AnimationEvent, useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import {
+  type IGhostTickleRun,
+  startGhostTickle,
+} from '@/layout/Aside/components/AnimatedGhost/ghostTickle'
 
 interface IAnimatedGhostProps {
   /** Rendered width of the ghost in pixels; mirrors the Gravity icon sizing API. */
@@ -10,23 +15,49 @@ interface IAnimatedGhostProps {
 }
 
 export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) => {
-  const [tickleRun, setTickleRun] = useState<number | null>(null)
+  const [isTickling, setIsTickling] = useState(false)
+  const bodyRef = useRef<SVGGElement>(null)
+  const eyesRef = useRef<SVGGElement>(null)
+  const leftCreasesRef = useRef<SVGGElement>(null)
+  const rightCreasesRef = useRef<SVGGElement>(null)
+  const activeRunRef = useRef<IGhostTickleRun | null>(null)
+  const runIdRef = useRef(0)
 
   const handleTickle = useCallback(() => {
-    setTickleRun((currentRun) => (currentRun ?? 0) + 1)
+    const body = bodyRef.current
+    const eyes = eyesRef.current
+    const leftCreases = leftCreasesRef.current
+    const rightCreases = rightCreasesRef.current
+
+    if (!body || !eyes || !leftCreases || !rightCreases) {
+      return
+    }
+
+    activeRunRef.current?.cancel()
+    const runId = ++runIdRef.current
+
+    setIsTickling(true)
+    activeRunRef.current = startGhostTickle(
+      { body, eyes, leftCreases, rightCreases },
+      {
+        prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        onFinish: () => {
+          if (runIdRef.current === runId) {
+            activeRunRef.current = null
+            setIsTickling(false)
+          }
+        },
+      },
+    )
   }, [])
 
-  const handleTickleBodyEnd = useCallback((event: AnimationEvent<SVGGElement>) => {
-    if (event.currentTarget === event.target) {
-      setTickleRun(null)
-    }
-  }, [])
-
-  const handleEyeGiggleEnd = useCallback(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setTickleRun(null)
-    }
-  }, [])
+  useEffect(
+    () => () => {
+      runIdRef.current += 1
+      activeRunRef.current?.cancel()
+    },
+    [],
+  )
 
   return (
     <button
@@ -34,7 +65,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
       className={styles.trigger}
       aria-label="Пощекотать привидение"
       data-testid="aside-ghost-trigger"
-      data-tickling={tickleRun !== null}
+      data-tickling={isTickling}
       onClick={handleTickle}
     >
       <svg
@@ -47,12 +78,8 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
         data-testid="aside-ghost"
         className={styles.ghost}
       >
-        <g
-          key={tickleRun ?? 'idle'}
-          className={tickleRun !== null ? styles.tickleBody : undefined}
-          onAnimationEnd={handleTickleBodyEnd}
-        >
-          <g className={styles.sway}>
+        <g ref={bodyRef} data-testid="aside-ghost-body">
+          <g className={styles.sway} data-idle-layer="sway">
             <g className={styles.breathe}>
               <path
                 fill="currentColor"
@@ -62,15 +89,31 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
               />
 
               <g className={styles.eyeLook}>
-                <g
-                  className={`${styles.eyeBlink} ${tickleRun !== null ? styles.eyeGiggle : ''}`}
-                  onAnimationEnd={handleEyeGiggleEnd}
-                >
+                <g ref={eyesRef} className={styles.eyeBlink}>
                   <circle cx="7" cy="7" r="0.7" fill="currentColor" />
                   <circle cx="11" cy="7" r="0.7" fill="currentColor" />
                 </g>
               </g>
             </g>
+          </g>
+
+          <g
+            ref={leftCreasesRef}
+            className={styles.creases}
+            data-testid="aside-ghost-left-creases"
+          >
+            <path d="M3.6 5.2 Q4.35 5.55 3.75 6.1" />
+            <path d="M3.15 7.1 Q4.05 7.5 3.3 8.05" />
+            <path d="M3.45 9 Q4.25 9.35 3.65 9.95" />
+          </g>
+          <g
+            ref={rightCreasesRef}
+            className={styles.creases}
+            data-testid="aside-ghost-right-creases"
+          >
+            <path d="M12.4 5.2 Q11.65 5.55 12.25 6.1" />
+            <path d="M12.85 7.1 Q11.95 7.5 12.7 8.05" />
+            <path d="M12.55 9 Q11.75 9.35 12.35 9.95" />
           </g>
         </g>
       </svg>

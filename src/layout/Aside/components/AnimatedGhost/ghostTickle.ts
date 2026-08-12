@@ -48,11 +48,11 @@ const EYE_KEYFRAMES: Keyframe[] = [
 const createCreaseKeyframes = (direction: -1 | 1): Keyframe[] => [
   { offset: 0, opacity: 0, transform: 'translateX(0) scaleX(1)' },
   { offset: 0.16, opacity: 0.9, transform: `translateX(${direction * 0.45}px) scaleX(1)` },
-  { offset: 0.3, opacity: 0.2, transform: 'translateX(0) scaleX(0.8)' },
+  { offset: 0.3, opacity: 0.65, transform: 'translateX(0) scaleX(0.8)' },
   { offset: 0.45, opacity: 0.68, transform: `translateX(${direction * 0.28}px) scaleX(0.92)` },
-  { offset: 0.58, opacity: 0.14, transform: 'translateX(0) scaleX(0.68)' },
+  { offset: 0.58, opacity: 0.38, transform: 'translateX(0) scaleX(0.68)' },
   { offset: 0.72, opacity: 0.42, transform: `translateX(${direction * 0.14}px) scaleX(0.76)` },
-  { offset: 0.84, opacity: 0.08, transform: 'translateX(0) scaleX(0.45)' },
+  { offset: 0.84, opacity: 0.18, transform: 'translateX(0) scaleX(0.45)' },
   { offset: 1, opacity: 0, transform: 'translateX(0) scaleX(0.2)' },
 ]
 

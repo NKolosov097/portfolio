@@ -41,64 +41,16 @@
   animation: blink 5s ease-in-out infinite;
 }
 
-.tickleBody {
+.creases {
+  opacity: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.42;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
   transform-box: fill-box;
   transform-origin: center;
-  animation: ghost-tickle-body 1.5s cubic-bezier(0.22, 0.75, 0.28, 1) both;
-}
-
-.eyeGiggle {
-  animation: ghost-giggle-eyes 1.5s ease-out both;
-}
-
-@keyframes ghost-tickle-body {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  16% {
-    transform: scaleX(0.94) scaleY(1.015);
-  }
-
-  31% {
-    transform: scaleX(1.01) scaleY(0.995);
-  }
-
-  45% {
-    transform: scaleX(0.965) scaleY(1.01);
-  }
-
-  60% {
-    transform: scaleX(1.006) scaleY(0.998);
-  }
-
-  74% {
-    transform: scaleX(0.985) scaleY(1.004);
-  }
-
-  88% {
-    transform: scaleX(1.003) scaleY(0.999);
-  }
-}
-
-@keyframes ghost-giggle-eyes {
-  0%,
-  100% {
-    transform: scaleY(1);
-  }
-
-  15%,
-  43%,
-  69% {
-    transform: scaleY(0.22);
-  }
-
-  28%,
-  56%,
-  82% {
-    transform: scaleY(1);
-  }
 }
 
 @keyframes ghost-bob {
@@ -192,22 +144,4 @@
     animation: none;
   }
 
-  .tickleBody {
-    animation: none;
-  }
-
-  .eyeGiggle {
-    animation: ghost-reduced-giggle 180ms ease-out both;
-  }
-}
-
-@keyframes ghost-reduced-giggle {
-  0%,
-  100% {
-    transform: scaleY(1);
-  }
-
-  50% {
-    transform: scaleY(0.25);
-  }
 }
