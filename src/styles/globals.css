@@ -69,7 +69,7 @@ body {
 }
 
 .g-dropdown-menu__popup-content .g-menu {
-  background-color: var(--g-color-base-background);
+  background-color: var(--aside-bg-color);
 }
 
 .g-dropdown-menu__popup-content .g-menu .g-menu__item_selected {
