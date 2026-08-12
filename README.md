@@ -21,6 +21,7 @@ A production-grade personal portfolio built as a single-page application on the 
 - [State management](#state-management)
 - [Contact form flow](#contact-form-flow)
 - [Deployment](#deployment)
+- [AI-assisted development](#ai-assisted-development)
 - [Code quality & conventions](#code-quality--conventions)
 
 ---
@@ -178,7 +179,7 @@ Copy `.env.example` to `.env.local` and provide:
 | `pnpm start`              | Serve the production build.                                    |
 | `pnpm vercel-build`       | `prisma generate && prisma migrate deploy && next build` (CI). |
 | `pnpm check-types`        | TypeScript check (`tsc --noEmit`).                             |
-| `pnpm lint`               | ESLint + Stylelint + Prettier + `next lint`.                   |
+| `pnpm lint`               | ESLint + Stylelint + Prettier.                                 |
 | `pnpm format`             | Auto-fix formatting with Prettier.                             |
 | `pnpm lint:styles`        | Stylelint CSS with auto-fix.                                   |
 | `pnpm test`               | Run the Vitest unit suite once.                                |
@@ -342,9 +343,15 @@ For **self-hosted** setups, `docker/` contains a hardened Docker `daemon.json` (
 
 ---
 
+## AI-assisted development
+
+Claude may assist with planning, prototyping, tests, and documentation. Every result must be manually reviewed, validated, and approved by a human before it is accepted.
+
+---
+
 ## Code quality & conventions
 
-This is a strict, production-grade TypeScript/React codebase. Contributions are expected to follow the rules in [`CLAUDE.md`](./CLAUDE.md). In brief:
+This is a strict, production-grade TypeScript/React codebase. Contributions are expected to follow the rules in [`Claude.md`](./Claude.md). In brief:
 
 - **Strict typing.** No `any`; type assertions avoided; prefer generics, type guards, and discriminated unions. Boolean identifiers use an `is` / `has` prefix.
 - **Documentation.** JSDoc explains intent (not the identifier name) on interface/type fields, props, and non-`useState` variables.

@@ -1,0 +1,19 @@
+# Claude development guide
+
+Claude may assist with planning, prototyping, tests, and documentation. Treat all generated output as a draft: a human must review, validate, and approve every result before it is accepted.
+
+## Development conventions
+
+- Use strict TypeScript. Do not introduce `any`; avoid type assertions; prefer generics, type guards, and discriminated unions. Prefix boolean identifiers with `is` or `has`.
+- Use JSDoc to explain intent on interface and type fields, component props, and non-`useState` variables.
+- Keep each component in its own directory with separate component and style files.
+- Use stable, build-safe `id`, `data-testid`, or `data-key` selectors for QA; do not generate random selectors.
+- Reuse existing patterns, helpers, and utilities before adding new abstractions.
+
+## Validation
+
+Before considering a change complete, run:
+
+```bash
+pnpm check-types && pnpm lint
+```
