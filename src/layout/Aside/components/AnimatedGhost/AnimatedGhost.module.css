@@ -1,4 +1,19 @@
 /* Lets the sway and breathe transforms spill past the 16x16 viewBox without clipping. */
+.trigger {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--g-color-line-brand);
+  outline-offset: 3px;
+}
+
 .ghost {
   overflow: visible;
   animation: ghost-bob 3.2s ease-in-out infinite;
@@ -24,6 +39,66 @@
   transform-box: fill-box;
   transform-origin: center;
   animation: blink 5s ease-in-out infinite;
+}
+
+.tickleBody {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ghost-tickle-body 1.5s cubic-bezier(0.22, 0.75, 0.28, 1) both;
+}
+
+.eyeGiggle {
+  animation: ghost-giggle-eyes 1.5s ease-out both;
+}
+
+@keyframes ghost-tickle-body {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  16% {
+    transform: scaleX(0.94) scaleY(1.015);
+  }
+
+  31% {
+    transform: scaleX(1.01) scaleY(0.995);
+  }
+
+  45% {
+    transform: scaleX(0.965) scaleY(1.01);
+  }
+
+  60% {
+    transform: scaleX(1.006) scaleY(0.998);
+  }
+
+  74% {
+    transform: scaleX(0.985) scaleY(1.004);
+  }
+
+  88% {
+    transform: scaleX(1.003) scaleY(0.999);
+  }
+}
+
+@keyframes ghost-giggle-eyes {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  15%,
+  43%,
+  69% {
+    transform: scaleY(0.22);
+  }
+
+  28%,
+  56%,
+  82% {
+    transform: scaleY(1);
+  }
 }
 
 @keyframes ghost-bob {

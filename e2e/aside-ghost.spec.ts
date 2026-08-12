@@ -27,6 +27,62 @@ test.describe('aside ghost', () => {
     await expect(drawer).toHaveCSS('background-color', SOFT_CHARCOAL)
   })
 
+  test('starts the tickle reaction by pointer and keyboard', async ({ page }) => {
+    await page.goto('/')
+
+    const aside = await revealAside(page)
+    const trigger = aside.getByTestId('aside-ghost-trigger')
+
+    await expect(trigger).toHaveRole('button')
+    await trigger.click()
+    await expect(trigger).toHaveAttribute('data-tickling', 'true')
+
+    await expect
+      .poll(() =>
+        trigger.evaluate((node) =>
+          node
+            .getAnimations({ subtree: true })
+            .some(({ animationName }) => animationName.includes('ghost-tickle-body')),
+        ),
+      )
+      .toBe(true)
+
+    await trigger.focus()
+    await page.keyboard.press('Enter')
+    await expect(trigger).toHaveAttribute('data-tickling', 'true')
+  })
+
+  test('restarts an active tickle reaction', async ({ page }) => {
+    await page.goto('/')
+
+    const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
+
+    await trigger.click()
+    await page.waitForTimeout(350)
+
+    const elapsedBeforeRestart = await trigger.evaluate((node) => {
+      const animation = node
+        .getAnimations({ subtree: true })
+        .find(({ animationName }) => animationName.includes('ghost-tickle-body'))
+
+      return Number(animation?.currentTime ?? 0)
+    })
+
+    await trigger.click()
+
+    await expect
+      .poll(() =>
+        trigger.evaluate((node) => {
+          const animation = node
+            .getAnimations({ subtree: true })
+            .find(({ animationName }) => animationName.includes('ghost-tickle-body'))
+
+          return Number(animation?.currentTime ?? Number.POSITIVE_INFINITY)
+        }),
+      )
+      .toBeLessThan(elapsedBeforeRestart)
+  })
+
   test('runs every layer of its animation', async ({ page }) => {
     await page.goto('/')
 
