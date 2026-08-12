@@ -22,10 +22,12 @@
 ### Task 1: Express the centered, mark-free reaction in tests
 
 **Files:**
+
 - Modify: `src/layout/Aside/components/AnimatedGhost/ghostTickle.dom.test.ts`
 - Modify: `e2e/aside-ghost.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `startGhostTickle(elements, options)` and `data-testid="aside-ghost-body"`.
 - Produces: regression coverage requiring only `{ body, eyes }`, no crease nodes, and a stationary body center during compression.
 
@@ -50,6 +52,7 @@
 ### Task 2: Remove marks and center the deformation
 
 **Files:**
+
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.tsx`
 - Modify: `src/layout/Aside/components/AnimatedGhost/AnimatedGhost.module.css`
 - Modify: `src/layout/Aside/components/AnimatedGhost/ghostTickle.ts`
@@ -57,6 +60,7 @@
 - Test: `e2e/aside-ghost.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `IGhostTickleElements` containing `body: SVGGElement` and `eyes: SVGGElement`.
 - Produces: `.tickleBody` with `transform-box: fill-box` and `transform-origin: center`, plus a two-layer tickle controller.
 
@@ -101,9 +105,11 @@
 ### Task 3: Verify the complete change
 
 **Files:**
+
 - Verify: all changed source, test, and documentation files.
 
 **Interfaces:**
+
 - Consumes: the completed centered reaction.
 - Produces: verified build and test evidence suitable for integration.
 
