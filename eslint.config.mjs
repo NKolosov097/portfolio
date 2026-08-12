@@ -80,6 +80,7 @@ export default defineConfig([
   {
     ignores: [
       'node_modules/',
+      '.worktrees/',
       '.next/',
       'out/',
       'dist/',
