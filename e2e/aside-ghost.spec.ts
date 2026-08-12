@@ -80,28 +80,58 @@ test.describe('aside ghost', () => {
       .toBeLessThan(elapsedBeforeRestart)
   })
 
-  test('folds inward and settles without remounting the idle layers', async ({ page }) => {
+  test('folds toward its center without marks and settles without remounting', async ({ page }) => {
     await page.goto('/')
 
     const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
     const body = trigger.getByTestId('aside-ghost-body')
     const sway = trigger.locator('[data-idle-layer="sway"]')
-    const leftCreases = trigger.getByTestId('aside-ghost-left-creases')
+
+    await expect(trigger.getByTestId('aside-ghost-left-creases')).toHaveCount(0)
+    await expect(trigger.getByTestId('aside-ghost-right-creases')).toHaveCount(0)
+    await expect(body).toHaveCSS('transform-box', 'fill-box')
+
+    const transformOrigin = await body.evaluate((node) => getComputedStyle(node).transformOrigin)
+    const [originX, originY] = transformOrigin.split(' ').map(Number.parseFloat)
+
+    expect(originX).toBeGreaterThan(0)
+    expect(originY).toBeGreaterThan(0)
 
     await sway.evaluate((node) => node.setAttribute('data-continuity-probe', 'preserved'))
     await trigger.click()
 
-    await expect
-      .poll(() => body.evaluate((node) => getComputedStyle(node).transform))
-      .not.toBe('none')
-    await expect
-      .poll(() => leftCreases.evaluate((node) => Number(getComputedStyle(node).opacity)))
-      .toBeGreaterThan(0.5)
+    const minimumHorizontalScale = await trigger.evaluate((node) => {
+      const bodyAnimation = node
+        .getAnimations({ subtree: true })
+        .find((animation) => animation.id === 'ghost-tickle-body')
+      const bodyNode = node.querySelector<SVGGElement>('[data-testid="aside-ghost-body"]')
+
+      if (!bodyAnimation || !bodyNode) {
+        throw new Error('The body tickle animation did not start')
+      }
+
+      bodyAnimation.pause()
+      let minimumScale = 1
+
+      for (let currentTime = 0; currentTime <= 1_800; currentTime += 20) {
+        bodyAnimation.currentTime = currentTime
+        const transform = getComputedStyle(bodyNode).transform
+        const scale = transform === 'none' ? 1 : new DOMMatrixReadOnly(transform).a
+
+        minimumScale = Math.min(minimumScale, scale)
+      }
+
+      bodyAnimation.currentTime = 0
+      bodyAnimation.play()
+
+      return minimumScale
+    })
+
+    expect(minimumHorizontalScale).toBeLessThan(0.9)
 
     await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 2_300 })
     await expect(sway).toHaveAttribute('data-continuity-probe', 'preserved')
     await expect(body).toHaveCSS('transform', 'none')
-    await expect(leftCreases).toHaveCSS('opacity', '0')
   })
 
   test('uses only brief eye feedback for reduced motion', async ({ page }) => {

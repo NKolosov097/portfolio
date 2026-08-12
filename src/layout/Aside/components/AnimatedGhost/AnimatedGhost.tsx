@@ -18,18 +18,14 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
   const [isTickling, setIsTickling] = useState(false)
   const bodyRef = useRef<SVGGElement>(null)
   const eyesRef = useRef<SVGGElement>(null)
-  const leftCreasesRef = useRef<SVGGElement>(null)
-  const rightCreasesRef = useRef<SVGGElement>(null)
   const activeRunRef = useRef<IGhostTickleRun | null>(null)
   const runIdRef = useRef(0)
 
   const handleTickle = useCallback(() => {
     const body = bodyRef.current
     const eyes = eyesRef.current
-    const leftCreases = leftCreasesRef.current
-    const rightCreases = rightCreasesRef.current
 
-    if (!body || !eyes || !leftCreases || !rightCreases) {
+    if (!body || !eyes) {
       return
     }
 
@@ -38,7 +34,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
 
     setIsTickling(true)
     activeRunRef.current = startGhostTickle(
-      { body, eyes, leftCreases, rightCreases },
+      { body, eyes },
       {
         prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
         onFinish: () => {
@@ -78,7 +74,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
         data-testid="aside-ghost"
         className={styles.ghost}
       >
-        <g ref={bodyRef} data-testid="aside-ghost-body">
+        <g ref={bodyRef} className={styles.tickleBody} data-testid="aside-ghost-body">
           <g className={styles.sway} data-idle-layer="sway">
             <g className={styles.breathe}>
               <path
@@ -95,21 +91,6 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
                 </g>
               </g>
             </g>
-          </g>
-
-          <g ref={leftCreasesRef} className={styles.creases} data-testid="aside-ghost-left-creases">
-            <path d="M3.6 5.2 Q4.35 5.55 3.75 6.1" />
-            <path d="M3.15 7.1 Q4.05 7.5 3.3 8.05" />
-            <path d="M3.45 9 Q4.25 9.35 3.65 9.95" />
-          </g>
-          <g
-            ref={rightCreasesRef}
-            className={styles.creases}
-            data-testid="aside-ghost-right-creases"
-          >
-            <path d="M12.4 5.2 Q11.65 5.55 12.25 6.1" />
-            <path d="M12.85 7.1 Q11.95 7.5 12.7 8.05" />
-            <path d="M12.55 9 Q11.75 9.35 12.35 9.95" />
           </g>
         </g>
       </svg>

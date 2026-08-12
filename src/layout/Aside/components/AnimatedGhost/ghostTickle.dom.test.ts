@@ -20,16 +20,9 @@ const createAnimatedGroup = () => {
 test('compresses the stable body three times and settles at its exact neutral transform', () => {
   const body = createAnimatedGroup()
   const eyes = createAnimatedGroup()
-  const leftCreases = createAnimatedGroup()
-  const rightCreases = createAnimatedGroup()
 
   startGhostTickle(
-    {
-      body: body.group,
-      eyes: eyes.group,
-      leftCreases: leftCreases.group,
-      rightCreases: rightCreases.group,
-    },
+    { body: body.group, eyes: eyes.group },
     { prefersReducedMotion: false, onFinish: vi.fn() },
   )
 
@@ -41,47 +34,33 @@ test('compresses the stable body three times and settles at its exact neutral tr
   expect(body.animate.mock.calls[0][1]).toMatchObject({ duration: 1_800, fill: 'none' })
 })
 
-test('reveals both crease groups during compression and hides them before completion', () => {
+test('animates only the stable body and giggling eyes during full motion', () => {
   const body = createAnimatedGroup()
   const eyes = createAnimatedGroup()
-  const leftCreases = createAnimatedGroup()
-  const rightCreases = createAnimatedGroup()
 
-  startGhostTickle(
-    {
-      body: body.group,
-      eyes: eyes.group,
-      leftCreases: leftCreases.group,
-      rightCreases: rightCreases.group,
-    },
+  const run = startGhostTickle(
+    { body: body.group, eyes: eyes.group },
     { prefersReducedMotion: false, onFinish: vi.fn() },
   )
 
-  for (const crease of [leftCreases, rightCreases]) {
-    const frames = crease.animate.mock.calls[0][0] as Keyframe[]
-    expect(frames.some(({ opacity }) => Number(opacity) >= 0.8)).toBe(true)
-    expect(frames.at(-1)?.opacity).toBe(0)
-  }
+  expect(body.animate).toHaveBeenCalledOnce()
+  expect(eyes.animate).toHaveBeenCalledOnce()
+
+  run.cancel()
+
+  expect(body.cancel).toHaveBeenCalledOnce()
+  expect(eyes.cancel).toHaveBeenCalledOnce()
 })
 
 test('uses only the eye animation for reduced motion', () => {
   const body = createAnimatedGroup()
   const eyes = createAnimatedGroup()
-  const leftCreases = createAnimatedGroup()
-  const rightCreases = createAnimatedGroup()
 
   startGhostTickle(
-    {
-      body: body.group,
-      eyes: eyes.group,
-      leftCreases: leftCreases.group,
-      rightCreases: rightCreases.group,
-    },
+    { body: body.group, eyes: eyes.group },
     { prefersReducedMotion: true, onFinish: vi.fn() },
   )
 
   expect(body.animate).not.toHaveBeenCalled()
-  expect(leftCreases.animate).not.toHaveBeenCalled()
-  expect(rightCreases.animate).not.toHaveBeenCalled()
   expect(eyes.animate).toHaveBeenCalledOnce()
 })
