@@ -6,6 +6,9 @@
 }
 
 .container {
+  --g-card-background-color: var(--aside-bg-color);
+
+  background-color: var(--aside-bg-color);
   color: #fff;
   flex: 1;
   width: var(--aside-width);
@@ -292,6 +295,7 @@
   padding: 10px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  background-color: var(--aside-bg-color);
 }
 
 .closeIcon {

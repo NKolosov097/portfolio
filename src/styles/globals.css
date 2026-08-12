@@ -42,7 +42,7 @@ body {
   --body-padding: 20px;
   --root-bg-color: #121212;
   --root-text-color: #fff;
-  --aside-bg-color: #4d4d4d;
+  --aside-bg-color: #252525;
   --aside-width: 270px;
   --aside-max-height: calc(100% - 2 * var(--body-padding));
   --min-height-section: calc(100vh - var(--header-height) - 2 * var(--body-padding));
