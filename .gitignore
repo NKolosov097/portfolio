@@ -55,6 +55,7 @@ CLAUDE.md
 
 # brainstorming visual companion
 .superpowers/
+.worktrees/
 
 # tests
 /test-results/
