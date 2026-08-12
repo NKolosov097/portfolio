@@ -4,7 +4,7 @@ import { revealAside } from './helpers/aside'
 
 /** bob + sway + breathe on the body, plus the two eye animations. */
 const EXPECTED_ANIMATION_COUNT = 5
-const SOFT_CHARCOAL = 'rgb(37, 37, 37)'
+const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
 
 test.describe('aside ghost', () => {
   test('uses the aside surface color for the language menu', async ({ page }) => {
@@ -15,24 +15,27 @@ test.describe('aside ghost', () => {
     const languageMenu = page.locator('.g-dropdown-menu__popup-content .g-menu')
 
     await expect(languageMenu).toBeVisible()
-    await expect(languageMenu).toHaveCSS('background-color', SOFT_CHARCOAL)
+    await expect(languageMenu).toHaveCSS('background-color', ORIGINAL_ASIDE_BACKGROUND)
   })
 
-  test('uses the soft charcoal surface on desktop', async ({ page }) => {
+  test('uses the original aside surface on desktop', async ({ page }) => {
     await page.goto('/')
 
     await revealAside(page)
 
-    await expect(page.getByTestId('aside-surface')).toHaveCSS('background-color', SOFT_CHARCOAL)
+    await expect(page.getByTestId('aside-surface')).toHaveCSS(
+      'background-color',
+      ORIGINAL_ASIDE_BACKGROUND,
+    )
   })
 
-  test('uses the soft charcoal surface in the mobile drawer', async ({ page }) => {
+  test('uses the original aside surface in the mobile drawer', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/')
 
     const drawer = await revealAside(page)
 
-    await expect(drawer).toHaveCSS('background-color', SOFT_CHARCOAL)
+    await expect(drawer).toHaveCSS('background-color', ORIGINAL_ASIDE_BACKGROUND)
   })
 
   test('starts the tickle reaction by pointer and keyboard', async ({ page }) => {
