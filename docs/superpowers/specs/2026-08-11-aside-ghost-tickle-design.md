@@ -17,11 +17,10 @@ The ghost becomes an interactive button while retaining its current rendered siz
 Each click, tap, Enter press, or Space press restarts one reaction sequence lasting approximately 1.8 seconds:
 
 1. The left and right boundaries of the ghost body move clearly inward. The ghost does not shake or travel noticeably across the panel.
-2. Two or three short curved crease lines appear beside each compressed boundary, making the silhouette look softly folded by the tickle.
-3. The body repeats three inward compressions with decreasing amplitude while the crease lines gradually flatten and fade.
-4. The eyes synchronously narrow and reopen three times to communicate a quiet giggle.
-5. The final body compression is followed by a small, slow settling expansion, like a calming breath.
-6. The ghost returns seamlessly to its existing bob, sway, breathe, look-around, and blink idle animations.
+2. The body repeats three inward compressions with decreasing amplitude.
+3. The eyes synchronously narrow and reopen three times to communicate a quiet giggle.
+4. The final body compression is followed by a small, slow settling expansion, like a calming breath.
+5. The ghost returns seamlessly to its existing bob, sway, breathe, look-around, and blink idle animations.
 
 The reaction should use smooth easing. Its silhouette deformation and eye movement should feel elastic but restrained, with no abrupt direction changes.
 
@@ -31,10 +30,11 @@ The reaction should use smooth easing. Its silhouette deformation and eye moveme
 - Add a dedicated interaction state controlled by the `AnimatedGhost` component without changing React keys on the idle SVG subtree.
 - Restart the reaction on stable SVG elements so repeated activation never resets the current idle animation phase.
 - Apply the tickle deformation to a stable wrapper around the ghost body so the body and eyes remain spatially coherent.
-- Add dedicated left and right crease groups made from short curved SVG paths. Animate their inward position, curvature impression, and opacity in sync with the body compressions.
+- Set the body wrapper to `transform-box: fill-box` and `transform-origin: center`, ensuring every horizontal compression converges symmetrically on the rendered ghost body's center rather than the SVG coordinate origin.
+- Do not render crease paths, dotted lines, motion marks, or any other decorative marks around the silhouette during the reaction.
 - Apply the giggling eye animation to the existing eye group without remounting it.
 - Restart the reaction when activated again, including while a previous reaction is still running.
-- Remove the interaction state only after the body and crease animations have returned to their exact neutral visual values. Clearing the state must not alter the transform or timing of any idle layer.
+- Remove the interaction state only after the body and eye animations have returned to their exact neutral visual values. Clearing the state must not alter the transform or timing of any idle layer.
 
 ## Reduced motion
 
@@ -53,7 +53,8 @@ Add end-to-end coverage that verifies:
 - Activation starts the tickle animation state.
 - A second activation restarts the reaction.
 - The body reaches a clearly narrower horizontal scale during the reaction.
-- The crease paths become visible during compression and disappear after settling.
+- No decorative line paths appear during compression.
+- At the strongest compression, the left and right silhouette boundaries move inward by equal visual amounts while the body's center remains stationary.
 - The reaction state is removed after animation completion and the existing idle animations retain their current nodes and timing rather than restarting from their first frame.
 - Reduced-motion mode suppresses body deformation and retains brief eye feedback.
 
