@@ -138,7 +138,7 @@ export const HeaderTabs = () => {
     setIsOpenDrawer(true)
   }, [])
 
-  return pathname === '/' ? (
+  return (
     <>
       <Button
         data-testid="header-open-profile"
@@ -151,15 +151,17 @@ export const HeaderTabs = () => {
         <Icon width={30} height={30} data={Person} />
       </Button>
 
-      <Tabs
-        items={tabs}
-        size={width !== undefined && width < tabsCompactBreakpoint ? 'm' : 'l'}
-        activeTab={currentTab}
-        onSelectTab={handleSelectTab}
-        className={styles.tabs}
-      />
+      {pathname === '/' ? (
+        <Tabs
+          items={tabs}
+          size={width !== undefined && width < tabsCompactBreakpoint ? 'm' : 'l'}
+          activeTab={currentTab}
+          onSelectTab={handleSelectTab}
+          className={styles.tabs}
+        />
+      ) : (
+        <div className={styles.tabs} />
+      )}
     </>
-  ) : (
-    <div className={styles.tabs} />
   )
 }
