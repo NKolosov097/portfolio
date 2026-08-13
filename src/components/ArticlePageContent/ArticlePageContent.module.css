@@ -1,0 +1,28 @@
+.article {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--min-height-section);
+  padding-top: 1rem;
+}
+
+.backLink {
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--g-color-line-brand);
+}
+
+.title {
+  max-width: 68ch;
+  margin: 0 auto 0.5rem;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.meta {
+  max-width: 68ch;
+  margin: 0 auto 2.5rem;
+  font-size: 0.9rem;
+  color: rgb(255 255 255 / 60%);
+  text-align: center;
+}
