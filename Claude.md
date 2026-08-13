@@ -13,6 +13,10 @@ Claude may assist with planning, prototyping, tests, and documentation. Treat al
 - Reuse existing patterns, helpers, and utilities before adding new abstractions.
 - Prefer destructuring — function params, callback args, object fields — over repeated dotted access.
 
+## Git
+
+- Commits are authored by the repo owner only. Do not add yourself as a co-author or participant (no `Co-Authored-By` trailer).
+
 ## Validation
 
 Before considering a change complete, run:
