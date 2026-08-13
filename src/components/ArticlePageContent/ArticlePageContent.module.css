@@ -6,7 +6,8 @@
 }
 
 .breadcrumb {
-  margin-bottom: 1.5rem;
+  max-width: 68ch;
+  margin: 0 auto 1.5rem;
   font-size: 0.9rem;
   color: rgb(255 255 255 / 50%);
 }
@@ -29,4 +30,9 @@
   font-size: 0.9rem;
   color: rgb(255 255 255 / 60%);
   text-align: center;
+}
+
+.body {
+  position: relative;
+  width: 100%;
 }

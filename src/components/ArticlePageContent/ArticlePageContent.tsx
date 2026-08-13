@@ -2,13 +2,15 @@
 
 import styles from './ArticlePageContent.module.css'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
 import { ELanguage, ETabID } from '@/constants/header.constants'
 import { IArticleMeta } from '@/constants/articles.constants'
 import { ArticleContent } from '@/components/ArticleContent/ArticleContent'
+import { ReadingProgressNav } from '@/components/ReadingProgressNav/ReadingProgressNav'
+import { articleHeadingsRegistry } from '@/content/articles/registry'
 
 interface IArticlePageContentProps {
   /** Metadata of the article being displayed, looked up by the page from the article registry. */
@@ -17,6 +19,8 @@ interface IArticlePageContentProps {
 
 export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
   const { t, i18n } = useTranslation()
+
+  const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
 
   // The root layout's Suspense boundary briefly swaps in its loading fallback during
   // hydration, which unmounts this tree after the browser's native "scroll to URL
@@ -32,10 +36,17 @@ export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
     document.getElementById(hash)?.scrollIntoView()
   }, [])
 
-  const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
-
   const formattedDate = new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(
     new Date(article.publishedDate),
+  )
+
+  const headings = useMemo(
+    () =>
+      (articleHeadingsRegistry[article.slug] ?? []).map((heading) => ({
+        id: heading.id,
+        label: t(heading.labelKey),
+      })),
+    [article.slug, t],
   )
 
   return (
@@ -53,7 +64,10 @@ export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
         {t('articles.minRead', { count: article.readingTimeMinutes })}
       </p>
 
-      <ArticleContent slug={article.slug} />
+      <div className={styles.body}>
+        <ArticleContent slug={article.slug} />
+        <ReadingProgressNav headings={headings} />
+      </div>
     </article>
   )
 }

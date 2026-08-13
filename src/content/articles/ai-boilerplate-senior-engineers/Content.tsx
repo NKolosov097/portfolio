@@ -2,6 +2,24 @@
 
 import { useTranslation } from 'react-i18next'
 
+import { AdoptionStatsChart } from './AdoptionStatsChart/AdoptionStatsChart'
+
+/** This article's section headings, in document order, for the reading-progress rail. */
+export const HEADINGS = [
+  {
+    id: 'what-ai-actually-closes-well',
+    labelKey: 'articleContent.aiBoilerplateSeniorEngineers.closesWellHeading',
+  },
+  {
+    id: 'three-decisions-ai-wont-make-for-you',
+    labelKey: 'articleContent.aiBoilerplateSeniorEngineers.decisionsHeading',
+  },
+  {
+    id: 'the-real-skill-gap-is-direction-not-typing',
+    labelKey: 'articleContent.aiBoilerplateSeniorEngineers.skillGapHeading',
+  },
+]
+
 export const AiBoilerplateSeniorEngineersContent = () => {
   const { t } = useTranslation()
 
@@ -10,6 +28,8 @@ export const AiBoilerplateSeniorEngineersContent = () => {
       <p>{t('articleContent.aiBoilerplateSeniorEngineers.intro1')}</p>
       <p>{t('articleContent.aiBoilerplateSeniorEngineers.intro2')}</p>
       <p>{t('articleContent.aiBoilerplateSeniorEngineers.intro3')}</p>
+
+      <AdoptionStatsChart />
 
       <h2 id="what-ai-actually-closes-well">
         {t('articleContent.aiBoilerplateSeniorEngineers.closesWellHeading')}

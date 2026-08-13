@@ -6,7 +6,7 @@
   color: rgb(255 255 255 / 88%);
 }
 
-.content h2 {
+.content > h2 {
   margin-top: 2.5em;
   margin-bottom: 0.75em;
   font-size: 1.5rem;
@@ -16,7 +16,7 @@
   scroll-margin-top: calc(var(--header-height) + var(--body-padding));
 }
 
-.content h3 {
+.content > h3 {
   margin-top: 2em;
   margin-bottom: 0.6em;
   font-size: 1.2rem;
@@ -25,7 +25,7 @@
   scroll-margin-top: calc(var(--header-height) + var(--body-padding));
 }
 
-.content p {
+.content > p {
   margin: 0 0 1.25em;
 }
 
@@ -33,7 +33,7 @@
   color: #fff;
 }
 
-.content p:last-child {
+.content > p:last-child {
   margin-bottom: 0;
 }
 
