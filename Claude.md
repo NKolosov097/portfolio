@@ -6,6 +6,7 @@ Claude may assist with planning, prototyping, tests, and documentation. Treat al
 
 - Use strict TypeScript. Do not introduce `any`; avoid type assertions; prefer generics, type guards, and discriminated unions. Prefix boolean identifiers with `is` or `has`.
 - Use JSDoc to explain intent on interface and type fields, component props, and non-`useState` variables.
+- Keep comments to 1-2 lines — short but information-dense: state the non-obvious reason, not paragraph-length blocks.
 - Keep each component in its own directory with separate component and style files.
 - Use stable, build-safe `id`, `data-testid`, or `data-key` selectors for QA; do not generate random selectors.
 - Reuse existing patterns, helpers, and utilities before adding new abstractions.

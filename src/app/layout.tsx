@@ -1,4 +1,5 @@
 import { PropsWithChildren, Suspense } from 'react'
+import { cookies, headers } from 'next/headers'
 import { ToastContainer } from 'react-toastify'
 import type { Metadata, Viewport } from 'next'
 
@@ -16,6 +17,7 @@ import { Footer } from '@/layout/Footer/Footer'
 
 import { SkipToNavigationLink } from '@/components/SkipToNavigationLink/SkipToNavigationLink'
 import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
+import { LANG_COOKIE_KEY, resolveRequestLanguage } from '@/helpers/language'
 
 import {
   AUTHOR_NAME,
@@ -82,9 +84,17 @@ export const viewport: Viewport = {
   viewportFit: 'auto',
 }
 
-export default function RootLayout({ children }: PropsWithChildren) {
+export default async function RootLayout({ children }: PropsWithChildren) {
+  const [cookieStore, headerList] = await Promise.all([cookies(), headers()])
+
+  /** Resolved once per request so the server render and the client's first render already agree. */
+  const initialLanguage = resolveRequestLanguage(
+    cookieStore.get(LANG_COOKIE_KEY)?.value,
+    headerList.get('accept-language'),
+  )
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={initialLanguage} suppressHydrationWarning>
       <body className={rootClassName} suppressHydrationWarning>
         <script
           id="structured-data"
@@ -95,7 +105,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
           }}
         />
         <Suspense fallback={<LoaderSection />}>
-          <Providers>
+          <Providers initialLanguage={initialLanguage}>
             <SkipToNavigationLink />
             <Header />
             <Aside />
