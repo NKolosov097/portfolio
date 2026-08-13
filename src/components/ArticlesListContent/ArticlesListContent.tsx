@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
 import { ETabID } from '@/constants/header.constants'
-import { articles } from '@/constants/articles.constants'
+import { ARTICLES } from '@/constants/articles.constants'
 import { ArticleListItem } from '@/components/ArticleListItem/ArticleListItem'
 
 export const ArticlesListContent = () => {
@@ -22,7 +22,7 @@ export const ArticlesListContent = () => {
       <p className={styles.description}>{t('articles.pageDescription')}</p>
 
       <ul className={styles.list}>
-        {articles.map((article) => (
+        {ARTICLES.map((article) => (
           <ArticleListItem key={article.slug} {...article} />
         ))}
       </ul>

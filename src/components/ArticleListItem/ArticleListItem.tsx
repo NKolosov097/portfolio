@@ -5,8 +5,8 @@ import styles from './ArticleListItem.module.css'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
-import { ELanguage } from '@/constants/header.constants'
 import { IArticleMeta } from '@/constants/articles.constants'
+import { useResolvedLanguage } from '@/hooks/useResolvedLanguage'
 
 export const ArticleListItem = ({
   slug,
@@ -15,9 +15,8 @@ export const ArticleListItem = ({
   publishedDate,
   readingTimeMinutes,
 }: IArticleMeta) => {
-  const { t, i18n } = useTranslation()
-
-  const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
+  const { t } = useTranslation()
+  const language = useResolvedLanguage()
 
   const formattedDate = new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(
     new Date(publishedDate),

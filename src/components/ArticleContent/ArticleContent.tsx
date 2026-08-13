@@ -2,6 +2,8 @@
 
 import styles from './ArticleContent.module.css'
 
+import { useTranslation } from 'react-i18next'
+
 import { articleContentRegistry } from '@/content/articles/registry'
 
 interface IArticleContentProps {
@@ -10,10 +12,15 @@ interface IArticleContentProps {
 }
 
 export const ArticleContent = ({ slug }: IArticleContentProps) => {
+  const { t } = useTranslation()
   const Content = articleContentRegistry[slug]
 
   if (!Content) {
-    return null
+    return (
+      <p className={styles.missing} data-testid={`article-content-${slug}`}>
+        {t('articles.missingContent')}
+      </p>
+    )
   }
 
   return (

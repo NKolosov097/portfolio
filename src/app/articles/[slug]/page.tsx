@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { SITE_URL } from '@/constants/seo.constants'
 import { ELanguage } from '@/constants/header.constants'
-import { articles, IArticleMeta } from '@/constants/articles.constants'
+import { ARTICLES, IArticleMeta } from '@/constants/articles.constants'
 
 import { ArticlePageContent } from '@/components/ArticlePageContent/ArticlePageContent'
 
@@ -13,10 +13,10 @@ interface IArticlePageProps {
 
 /** Looks up an article's registry entry by slug, or `undefined` for an unknown slug. */
 const findArticle = (slug: string): IArticleMeta | undefined =>
-  articles.find((article) => article.slug === slug)
+  ARTICLES.find(({ slug: articleSlug }) => articleSlug === slug)
 
 export function generateStaticParams() {
-  return articles.map((article) => ({ slug: article.slug }))
+  return ARTICLES.map(({ slug }) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: IArticlePageProps): Promise<Metadata> {

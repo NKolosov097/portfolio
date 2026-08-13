@@ -28,9 +28,11 @@ export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
       return
     }
 
-    const elements = headings
-      .map((heading) => document.getElementById(heading.id))
-      .filter((element): element is HTMLElement => element !== null)
+    /** Resolved in one pass — only headings whose element actually exists in the DOM. */
+    const elements = headings.reduce<HTMLElement[]>((found, { id }) => {
+      const element = document.getElementById(id)
+      return element ? [...found, element] : found
+    }, [])
 
     if (elements.length === 0) {
       return
@@ -95,29 +97,26 @@ export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
     return null
   }
 
-  const activeIndex = Math.max(
-    0,
-    headings.findIndex((heading) => heading.id === activeId),
-  )
+  const activeIndex = Math.max(0, headings.findIndex(({ id }) => id === activeId))
 
   return (
     <div className={styles.navSlot}>
       <nav className={styles.nav} aria-label="Article sections">
         <ul className={styles.list}>
-          {headings.map((heading, index) => {
+          {headings.map(({ id, label }, index) => {
             const state = index === activeIndex ? 'active' : index < activeIndex ? 'read' : 'unread'
 
             return (
-              <li key={heading.id} className={styles.item} data-read={index < activeIndex}>
+              <li key={id} className={styles.item} data-read={index < activeIndex}>
                 <button
                   type="button"
                   className={styles.link}
                   data-state={state}
                   aria-current={state === 'active' ? 'true' : undefined}
-                  onClick={() => handleSelect(heading.id)}
+                  onClick={() => handleSelect(id)}
                 >
                   <span className={styles.dot} />
-                  <span className={styles.label}>{heading.label}</span>
+                  <span className={styles.label}>{label}</span>
                 </button>
               </li>
             )

@@ -33,4 +33,4 @@ export const aiBoilerplateSeniorEngineersArticle: IArticleMeta = {
 }
 
 /** Every self-hosted article, in reverse-chronological display order. */
-export const articles: IArticleMeta[] = [aiBoilerplateSeniorEngineersArticle]
+export const ARTICLES: IArticleMeta[] = [aiBoilerplateSeniorEngineersArticle]

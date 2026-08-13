@@ -2,10 +2,12 @@
 
 import { useTranslation } from 'react-i18next'
 
+import type { IArticleHeadingEntry } from '@/content/articles/registry'
+
 import { AdoptionStatsChart } from './AdoptionStatsChart/AdoptionStatsChart'
 
 /** This article's section headings, in document order, for the reading-progress rail. */
-export const HEADINGS = [
+export const HEADINGS: IArticleHeadingEntry[] = [
   {
     id: 'what-ai-actually-closes-well',
     labelKey: 'articleContent.aiBoilerplateSeniorEngineers.closesWellHeading',

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 import { SITE_URL } from '@/constants/seo.constants'
-import { articles } from '@/constants/articles.constants'
+import { ARTICLES } from '@/constants/articles.constants'
 
 /** Generates `/sitemap.xml`: root page, articles index, and one entry per article. */
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -24,9 +24,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
-    ...articles.map((article) => ({
-      url: `${SITE_URL}/articles/${article.slug}`,
-      lastModified: new Date(article.publishedDate),
+    ...ARTICLES.map(({ slug, publishedDate }) => ({
+      url: `${SITE_URL}/articles/${slug}`,
+      lastModified: new Date(publishedDate),
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     })),

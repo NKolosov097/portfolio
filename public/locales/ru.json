@@ -72,7 +72,8 @@
     "pageDescription": "Статьи о фронтенд-разработке, real-time системах и разработке с использованием ИИ.",
     "minRead": "{{count}} мин чтения",
     "publishedOn": "Опубликовано {{date}}",
-    "backToList": "Все статьи"
+    "backToList": "Все статьи",
+    "missingContent": "Не удалось загрузить содержимое статьи."
   },
 
   "articleContent": {

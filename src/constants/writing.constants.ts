@@ -4,7 +4,7 @@ import { ELanguage } from '@/constants/header.constants'
 import { aiBoilerplateSeniorEngineersArticle } from '@/constants/articles.constants'
 
 /** Section and header tab stay hidden while this array is empty. */
-export const writingArticles: IArticle[] = [
+export const WRITING_ARTICLES: IArticle[] = [
   {
     id: aiBoilerplateSeniorEngineersArticle.slug,
     title: aiBoilerplateSeniorEngineersArticle.title[ELanguage.en],

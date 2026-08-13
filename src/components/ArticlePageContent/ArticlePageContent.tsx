@@ -6,11 +6,12 @@ import { useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
-import { ELanguage, ETabID } from '@/constants/header.constants'
+import { ETabID } from '@/constants/header.constants'
 import { IArticleMeta } from '@/constants/articles.constants'
 import { ArticleContent } from '@/components/ArticleContent/ArticleContent'
 import { ReadingProgressNav } from '@/components/ReadingProgressNav/ReadingProgressNav'
 import { articleHeadingsRegistry } from '@/content/articles/registry'
+import { useResolvedLanguage } from '@/hooks/useResolvedLanguage'
 
 interface IArticlePageContentProps {
   /** Metadata of the article being displayed, looked up by the page from the article registry. */
@@ -18,9 +19,8 @@ interface IArticlePageContentProps {
 }
 
 export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
-  const { t, i18n } = useTranslation()
-
-  const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
+  const { t } = useTranslation()
+  const language = useResolvedLanguage()
 
   // Re-run the URL-fragment scroll after mount; the Suspense fallback flash during
   // hydration can undo the browser's own attempt at it.
@@ -39,9 +39,9 @@ export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
 
   const headings = useMemo(
     () =>
-      (articleHeadingsRegistry[article.slug] ?? []).map((heading) => ({
-        id: heading.id,
-        label: t(heading.labelKey),
+      (articleHeadingsRegistry[article.slug] ?? []).map(({ id, labelKey }) => ({
+        id,
+        label: t(labelKey),
       })),
     [article.slug, t],
   )

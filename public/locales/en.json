@@ -72,7 +72,8 @@
     "pageDescription": "Long-form articles on frontend engineering, real-time systems, and building with AI.",
     "minRead": "{{count}} min read",
     "publishedOn": "Published {{date}}",
-    "backToList": "All articles"
+    "backToList": "All articles",
+    "missingContent": "This article's content couldn't be loaded."
   },
 
   "articleContent": {
