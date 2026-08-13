@@ -2,9 +2,6 @@
 
 import styles from './ArticleContent.module.css'
 
-import { useTranslation } from 'react-i18next'
-
-import { ELanguage } from '@/constants/header.constants'
 import { articleContentRegistry } from '@/content/articles/registry'
 
 interface IArticleContentProps {
@@ -13,10 +10,7 @@ interface IArticleContentProps {
 }
 
 export const ArticleContent = ({ slug }: IArticleContentProps) => {
-  const { i18n } = useTranslation()
-
-  const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
-  const Content = articleContentRegistry[slug]?.[language]
+  const Content = articleContentRegistry[slug]
 
   if (!Content) {
     return null

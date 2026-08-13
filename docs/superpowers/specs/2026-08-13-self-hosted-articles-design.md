@@ -21,17 +21,19 @@ Deep-linking to a section within an article uses a plain URL fragment (`/article
 
 ## Content authoring format
 
-Each article's body is a pair of plain TSX components, not Markdown/MDX:
+Each article's body is a single TSX component, not Markdown/MDX and not a pair of per-language files:
 
 ```
 src/content/articles/ai-boilerplate-senior-engineers/
-  en.tsx   -- export default function Content(): JSX with <h2>/<p>/<strong> etc, hand-set heading ids
-  ru.tsx   -- Russian translation, same heading ids (so #fragments work in either language)
+  Content.tsx   -- export default function Content(): the article's markup — <h2>/<p>/<strong>
+                   with hand-set heading ids — sourcing every piece of text via useTranslation()
 ```
 
-Rationale: the project has no Markdown/MDX pipeline today (no `@next/mdx`, `remark`, or `rehype`), and none of its content is currently rendered from raw strings via `dangerouslySetInnerHTML`. Introducing an MDX toolchain for a single article is more infrastructure than the current scope justifies. Plain TSX needs no new dependency, is fully covered by the project's existing strict-TypeScript/ESLint/Prettier setup, and gives full control over markup for the readability requirements below. The tradeoff, accepted for this scope: writing a future article means writing JSX, not a `.md` file.
+Rationale: the project has no Markdown/MDX pipeline today (no `@next/mdx`, `remark`, or `rehype`), and none of its content is currently rendered from raw strings via `dangerouslySetInnerHTML`. Introducing an MDX toolchain for a single article is more infrastructure than the current scope justifies. Plain TSX needs no new dependency and is fully covered by the project's existing strict-TypeScript/ESLint/Prettier setup.
 
-The article detail page picks `en.tsx` or `ru.tsx` at render time based on the active `i18next` language (`useTranslation().i18n.language`), the same mechanism already used to switch UI copy elsewhere in the app. Heading ids are identical between the two language variants so a shared fragment link resolves in either language.
+An earlier version of this spec used a _pair_ of TSX files per article (`en.tsx`/`ru.tsx`), each holding its own copy of the full markup. That was rejected during implementation: it means every heading, paragraph, and inline `<strong>`/`<em>` exists twice, so a structural change (reordering a section, adding a paragraph) has to be repeated correctly in both files, and a third language would mean a third full copy of the markup. Instead, the markup lives in exactly one file, and every text string is a key resolved via `t('articleContent.<slug>.<key>')`, with the translated values living in `public/locales/en.json` / `ru.json` — the same locale files (and the same parity test, `src/configs/i18n/locales.test.ts`) already used for every other piece of UI copy in the app. Adding a language later means adding one more locale file's worth of translated strings, not a new component. Heading `id`s stay as literal strings in the single component (not translated), so a fragment link resolves identically regardless of the active language.
+
+Inline emphasis inside a paragraph (e.g. the italicized "when" in the second section) is expressed by splitting that paragraph into multiple adjacent `t()` calls — a "before" key, the emphasized word as its own key, and an "after" key — rather than embedding markup inside a translation string. This avoids introducing `react-i18next`'s `<Trans>` component, which no other file in the project uses; plain `t()` calls stay consistent with the rest of the codebase's i18n usage.
 
 ## Article registry
 
@@ -79,7 +81,7 @@ No separate reader-mode toggle. The article page itself is the reading experienc
 
 ## Rendering & performance
 
-Both routes are fully static: no request-time data fetching, `generateStaticParams` on `/articles/[slug]` pre-renders every slug from the registry at build time, so both routes ship as plain pre-rendered HTML (same deployment model the rest of the site already uses on Vercel). No client component is needed for the body text itself — only the language-variant switch (`en.tsx` vs `ru.tsx`) runs client-side, the same way the rest of the app's i18n already works. This keeps first paint of the article text as fast as the rest of the site.
+Both routes are fully static: no request-time data fetching, `generateStaticParams` on `/articles/[slug]` pre-renders every slug from the registry at build time, so both routes ship as plain pre-rendered HTML (same deployment model the rest of the site already uses on Vercel). The article body component is a client component only because it calls `useTranslation()` to resolve its strings — the same mechanism the rest of the app's i18n already relies on — not because of any per-language file switch. This keeps first paint of the article text as fast as the rest of the site.
 
 ## SEO
 

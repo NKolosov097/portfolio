@@ -148,295 +148,137 @@
 
 ---
 
-### Task 2: Article body content (English + Russian) with deep-link heading ids
+### Task 2: Article body content, via a single component and locale strings
+
+> **Revised during implementation.** The first version of this task wrote a separate `en.tsx`/`ru.tsx`
+> pair per article, each holding a full copy of the markup. The author flagged that as
+> duplication: any structural change (a new paragraph, a reordered section) would need to be
+> made correctly in both files, and a third language would mean a third copy of the same markup.
+> This task now matches the corrected approach recorded in the design spec: one component, every
+> string sourced from the locale files that already carry the rest of the app's UI copy.
 
 **Files:**
 
-- Create: `src/content/articles/ai-boilerplate-senior-engineers/en.tsx`
-- Create: `src/content/articles/ai-boilerplate-senior-engineers/ru.tsx`
-- Create: `src/content/articles/ai-boilerplate-senior-engineers/content.test.ts`
+- Create: `src/content/articles/ai-boilerplate-senior-engineers/Content.tsx`
+- Modify: `public/locales/en.json`
+- Modify: `public/locales/ru.json`
 
 **Interfaces:**
 
-- Produces: `export default function AiBoilerplateSeniorEngineersEn(): JSX.Element` and `export default function AiBoilerplateSeniorEngineersRu(): JSX.Element`, each a zero-prop component rendering `<h2 id="...">`/`<p>`/`<strong>`/`<em>` content. Heading ids, identical across both files: `what-ai-actually-closes-well`, `three-decisions-ai-wont-make-for-you`, `the-real-skill-gap-is-direction-not-typing`.
+- Produces: `export default function AiBoilerplateSeniorEngineersContent(): JSX.Element`, a zero-prop component rendering `<h2 id="...">`/`<p>`/`<strong>`/`<em>` content, with every string sourced via `useTranslation()` under the `articleContent.aiBoilerplateSeniorEngineers.*` namespace. Heading ids (literal, not translated): `what-ai-actually-closes-well`, `three-decisions-ai-wont-make-for-you`, `the-real-skill-gap-is-direction-not-typing`.
 
-- [ ] **Step 1: Write the failing heading-id parity test**
+- [ ] **Step 1: Add the English strings**
 
-  Create `src/content/articles/ai-boilerplate-senior-engineers/content.test.ts`:
+  In `public/locales/en.json`, insert a new top-level block right after the `"articles"` block added in Task 5 (add this task's locale edits together with Task 5's, in either order):
 
-  ```ts
-  import { describe, expect, it } from 'vitest'
-  import { renderToStaticMarkup } from 'react-dom/server'
+  ```json
+    "articleContent": {
+      "aiBoilerplateSeniorEngineers": {
+        "intro1": "Ninety percent of developers now use an AI coding assistant regularly. Copilot, Cursor, Claude Code — pick one, and it will write you a working component in seconds. A form with validation. A CRUD screen. A data table with sorting. Code that compiles, passes the linter, and looks like something a human wrote.",
+        "intro2": "None of that means it's ready to ship.",
+        "intro3": "There's a gap between “the code runs” and “the product survives production,” and in 2026 that gap is exactly where the job of a senior engineer lives. AI closed the distance on typing code. It didn't close the distance on owning it.",
+        "closesWellHeading": "What AI Actually Closes Well",
+        "closesWell1": "Worth saying plainly: AI is genuinely good at boilerplate, and pretending otherwise wastes everyone's time. Scaffolding a new route, wiring a form to a schema, generating a test skeleton, translating a Figma layout into markup — these are pattern-matching tasks, and pattern-matching is what large models do best. If a task has been solved the same way a thousand times on GitHub, an AI assistant will solve it for you in seconds, and it should.",
+        "closesWell2": "The failure mode isn't using AI for this. It's treating everything else as if it worked the same way.",
+        "decisionsHeading": "Three Decisions AI Won't Make for You",
+        "decision1Lead": "1. Rendering strategy, not just rendering code.",
+        "decision1Before": "On a real-time product I worked on — video and audio streaming in the browser — the question was never “can you render this component.” It was ",
+        "decision1Em": "when",
+        "decision1After": ": does this piece hydrate before the media connection opens, or after? Get it backwards and you either block the user on JavaScript that doesn't matter yet, or you let them click “join” before the stream is actually ready to receive input. An AI assistant will happily generate a component that renders correctly in isolation. It has no opinion on where that component sits in your connection lifecycle, because that opinion depends on your architecture, not your syntax.",
+        "decision2Lead": "2. Where the weight goes.",
+        "decision2Body": "Bundle-splitting and offloading work to a Web Worker both “work” almost anywhere you put them — that's what makes them dangerous to delegate. AI will suggest a lazy-loaded chunk boundary that's syntactically fine and practically wrong: splitting at a point that still blocks first paint, or moving computation to a worker that then has to serialize a payload so large the postMessage cost erases the benefit. Judging that trade-off means knowing your actual traffic shape, your device targets, your performance budget — context that lives in your team's dashboards, not in the prompt.",
+        "decision3Lead": "3. What deserves a test, and what a passing test actually proves.",
+        "decision3Body": "Ask an AI assistant to write tests for a component and it will write tests — for the happy path, matching whatever the component currently does. That's the trap: it tests the implementation, not the requirement. On the same real-time product, the tests that mattered weren't “does the button render” — they were “does the UI recover correctly when the connection drops mid-call” and “does the reconnect logic race against a user who already closed the tab.” Nobody generates that test by pattern-matching the codebase, because the failure case isn't in the codebase yet. Deciding what should break the build is a judgment call about risk, and judgment calls are the one thing you can't outsource to autocomplete.",
+        "skillGapHeading": "The Real Skill Gap Is Direction, Not Typing",
+        "skillGap1": "Put these three together and a pattern shows up: none of them are about writing code faster. They're about deciding what the code is for before a single line exists. AI collapses the distance between “I know what I want” and “it's written.” It does nothing to help you figure out what you want in the first place — and in a system with real-time constraints, real users, and real failure modes, that's most of the job.",
+        "skillGap2": "This is also the cleanest way to tell candidates apart in an interview. Anyone can now produce a working component on request — that stopped being a signal the moment AI assistants got good. What still separates a senior hire from a junior one is whether they can look at generated code and say why it's wrong for this system, or whether they ship whatever came back from the prompt because it passed CI. One of those people is directing a tool. The other is hoping it's right.",
+        "skillGap3": "If you're hiring for “AI-native” engineers, that's the question worth asking in the interview — not “do you use Copilot,” but “show me a time an AI suggestion was reasonable and still wrong.” The answer tells you whether you're looking at ownership or autocomplete with a job title.",
+        "closing": "AI didn't make senior engineers less necessary. It just made the necessary part more visible."
+      }
+    },
+  ```
 
-  import AiBoilerplateSeniorEngineersEn from './en'
-  import AiBoilerplateSeniorEngineersRu from './ru'
+- [ ] **Step 2: Add the Russian strings**
 
-  /** Extracts every `<h2>`/`<h3>` `id` attribute from a rendered article body, in document order. */
-  const extractHeadingIds = (Content: () => JSX.Element): string[] => {
-    const html = renderToStaticMarkup(Content())
-    return [...html.matchAll(/<h[23] id="([^"]+)"/g)].map((match) => match[1])
+  In `public/locales/ru.json`, insert the matching block (same keys, translated values) in the same position.
+
+- [ ] **Step 3: Write the content component**
+
+  Create `src/content/articles/ai-boilerplate-senior-engineers/Content.tsx`:
+
+  ```tsx
+  'use client'
+
+  import { useTranslation } from 'react-i18next'
+
+  export const AiBoilerplateSeniorEngineersContent = () => {
+    const { t } = useTranslation()
+
+    return (
+      <>
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.intro1')}</p>
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.intro2')}</p>
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.intro3')}</p>
+
+        <h2 id="what-ai-actually-closes-well">
+          {t('articleContent.aiBoilerplateSeniorEngineers.closesWellHeading')}
+        </h2>
+
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.closesWell1')}</p>
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.closesWell2')}</p>
+
+        <h2 id="three-decisions-ai-wont-make-for-you">
+          {t('articleContent.aiBoilerplateSeniorEngineers.decisionsHeading')}
+        </h2>
+
+        <p>
+          <strong>{t('articleContent.aiBoilerplateSeniorEngineers.decision1Lead')}</strong>{' '}
+          {t('articleContent.aiBoilerplateSeniorEngineers.decision1Before')}
+          <em>{t('articleContent.aiBoilerplateSeniorEngineers.decision1Em')}</em>
+          {t('articleContent.aiBoilerplateSeniorEngineers.decision1After')}
+        </p>
+
+        <p>
+          <strong>{t('articleContent.aiBoilerplateSeniorEngineers.decision2Lead')}</strong>{' '}
+          {t('articleContent.aiBoilerplateSeniorEngineers.decision2Body')}
+        </p>
+
+        <p>
+          <strong>{t('articleContent.aiBoilerplateSeniorEngineers.decision3Lead')}</strong>{' '}
+          {t('articleContent.aiBoilerplateSeniorEngineers.decision3Body')}
+        </p>
+
+        <h2 id="the-real-skill-gap-is-direction-not-typing">
+          {t('articleContent.aiBoilerplateSeniorEngineers.skillGapHeading')}
+        </h2>
+
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.skillGap1')}</p>
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.skillGap2')}</p>
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.skillGap3')}</p>
+
+        <p>{t('articleContent.aiBoilerplateSeniorEngineers.closing')}</p>
+      </>
+    )
   }
 
-  describe('ai-boilerplate-senior-engineers content', () => {
-    it('defines at least one deep-linkable heading', () => {
-      expect(extractHeadingIds(AiBoilerplateSeniorEngineersEn).length).toBeGreaterThan(0)
-    })
-
-    it('uses the exact same heading ids in both languages, in the same order', () => {
-      expect(extractHeadingIds(AiBoilerplateSeniorEngineersRu)).toEqual(
-        extractHeadingIds(AiBoilerplateSeniorEngineersEn),
-      )
-    })
-  })
+  export default AiBoilerplateSeniorEngineersContent
   ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 4: Run the locale parity test**
 
-  Run: `pnpm vitest run src/content/articles/ai-boilerplate-senior-engineers/content.test.ts`
-  Expected: FAIL — `Cannot find module './en'`.
+  Run: `pnpm vitest run src/configs/i18n/locales.test.ts`
+  Expected: PASS — confirms `en.json`/`ru.json` still have identical key sets with no blank values, covering the new `articleContent.*` keys.
 
-- [ ] **Step 3: Write the English content**
-
-  Create `src/content/articles/ai-boilerplate-senior-engineers/en.tsx`:
-
-  ```tsx
-  export const AiBoilerplateSeniorEngineersEn = () => (
-    <>
-      <p>
-        Ninety percent of developers now use an AI coding assistant regularly. Copilot, Cursor,
-        Claude Code — pick one, and it will write you a working component in seconds. A form with
-        validation. A CRUD screen. A data table with sorting. Code that compiles, passes the linter,
-        and looks like something a human wrote.
-      </p>
-
-      <p>None of that means it&apos;s ready to ship.</p>
-
-      <p>
-        There&apos;s a gap between &ldquo;the code runs&rdquo; and &ldquo;the product survives
-        production,&rdquo; and in 2026 that gap is exactly where the job of a senior engineer lives.
-        AI closed the distance on typing code. It didn&apos;t close the distance on owning it.
-      </p>
-
-      <h2 id="what-ai-actually-closes-well">What AI Actually Closes Well</h2>
-
-      <p>
-        Worth saying plainly: AI is genuinely good at boilerplate, and pretending otherwise wastes
-        everyone&apos;s time. Scaffolding a new route, wiring a form to a schema, generating a test
-        skeleton, translating a Figma layout into markup — these are pattern-matching tasks, and
-        pattern-matching is what large models do best. If a task has been solved the same way a
-        thousand times on GitHub, an AI assistant will solve it for you in seconds, and it should.
-      </p>
-
-      <p>
-        The failure mode isn&apos;t using AI for this. It&apos;s treating everything else as if it
-        worked the same way.
-      </p>
-
-      <h2 id="three-decisions-ai-wont-make-for-you">Three Decisions AI Won&apos;t Make for You</h2>
-
-      <p>
-        <strong>1. Rendering strategy, not just rendering code.</strong> On a real-time product I
-        worked on — video and audio streaming in the browser — the question was never &ldquo;can you
-        render this component.&rdquo; It was <em>when</em>: does this piece hydrate before the media
-        connection opens, or after? Get it backwards and you either block the user on JavaScript
-        that doesn&apos;t matter yet, or you let them click &ldquo;join&rdquo; before the stream is
-        actually ready to receive input. An AI assistant will happily generate a component that
-        renders correctly in isolation. It has no opinion on where that component sits in your
-        connection lifecycle, because that opinion depends on your architecture, not your syntax.
-      </p>
-
-      <p>
-        <strong>2. Where the weight goes.</strong> Bundle-splitting and offloading work to a Web
-        Worker both &ldquo;work&rdquo; almost anywhere you put them — that&apos;s what makes them
-        dangerous to delegate. AI will suggest a lazy-loaded chunk boundary that&apos;s
-        syntactically fine and practically wrong: splitting at a point that still blocks first
-        paint, or moving computation to a worker that then has to serialize a payload so large the
-        postMessage cost erases the benefit. Judging that trade-off means knowing your actual
-        traffic shape, your device targets, your performance budget — context that lives in your
-        team&apos;s dashboards, not in the prompt.
-      </p>
-
-      <p>
-        <strong>3. What deserves a test, and what a passing test actually proves.</strong> Ask an AI
-        assistant to write tests for a component and it will write tests — for the happy path,
-        matching whatever the component currently does. That&apos;s the trap: it tests the
-        implementation, not the requirement. On the same real-time product, the tests that mattered
-        weren&apos;t &ldquo;does the button render&rdquo; — they were &ldquo;does the UI recover
-        correctly when the connection drops mid-call&rdquo; and &ldquo;does the reconnect logic race
-        against a user who already closed the tab.&rdquo; Nobody generates that test by
-        pattern-matching the codebase, because the failure case isn&apos;t in the codebase yet.
-        Deciding what should break the build is a judgment call about risk, and judgment calls are
-        the one thing you can&apos;t outsource to autocomplete.
-      </p>
-
-      <h2 id="the-real-skill-gap-is-direction-not-typing">
-        The Real Skill Gap Is Direction, Not Typing
-      </h2>
-
-      <p>
-        Put these three together and a pattern shows up: none of them are about writing code faster.
-        They&apos;re about deciding what the code is for before a single line exists. AI collapses
-        the distance between &ldquo;I know what I want&rdquo; and &ldquo;it&apos;s written.&rdquo;
-        It does nothing to help you figure out what you want in the first place — and in a system
-        with real-time constraints, real users, and real failure modes, that&apos;s most of the job.
-      </p>
-
-      <p>
-        This is also the cleanest way to tell candidates apart in an interview. Anyone can now
-        produce a working component on request — that stopped being a signal the moment AI
-        assistants got good. What still separates a senior hire from a junior one is whether they
-        can look at generated code and say why it&apos;s wrong for this system, or whether they ship
-        whatever came back from the prompt because it passed CI. One of those people is directing a
-        tool. The other is hoping it&apos;s right.
-      </p>
-
-      <p>
-        If you&apos;re hiring for &ldquo;AI-native&rdquo; engineers, that&apos;s the question worth
-        asking in the interview — not &ldquo;do you use Copilot,&rdquo; but &ldquo;show me a time an
-        AI suggestion was reasonable and still wrong.&rdquo; The answer tells you whether
-        you&apos;re looking at ownership or autocomplete with a job title.
-      </p>
-
-      <p>
-        AI didn&apos;t make senior engineers less necessary. It just made the necessary part more
-        visible.
-      </p>
-    </>
-  )
-
-  export default AiBoilerplateSeniorEngineersEn
-  ```
-
-- [ ] **Step 4: Write the Russian content**
-
-  Create `src/content/articles/ai-boilerplate-senior-engineers/ru.tsx`:
-
-  ```tsx
-  export const AiBoilerplateSeniorEngineersRu = () => (
-    <>
-      <p>
-        Девяносто процентов разработчиков сегодня регулярно пользуются ИИ-ассистентами для написания
-        кода. Copilot, Cursor, Claude Code — не важно, что выбрать: за несколько секунд любой из них
-        сгенерирует рабочий компонент. Форму с валидацией. CRUD-экран. Таблицу данных с сортировкой.
-        Код, который компилируется, проходит линтер и выглядит так, будто его написал человек.
-      </p>
-
-      <p>Ничего из этого не означает, что он готов к продакшену.</p>
-
-      <p>
-        Между «код запускается» и «продукт выживает в проде» есть разрыв, и в 2026 году именно в
-        этом разрыве живёт работа senior-инженера. ИИ сократил путь от идеи до напечатанного кода.
-        Путь до владения этим кодом он не сократил ни на шаг.
-      </p>
-
-      <h2 id="what-ai-actually-closes-well">Что ИИ закрывает по-настоящему хорошо</h2>
-
-      <p>
-        Стоит сказать прямо: ИИ действительно хорошо справляется с boilerplate, и делать вид, что
-        это не так, — значит тратить время всех участников впустую. Разметка нового роута, привязка
-        формы к схеме валидации, генерация каркаса теста, перевод макета из Figma в разметку — это
-        задачи на распознавание паттернов, а распознавание паттернов — именно то, в чём большие
-        модели сильны больше всего. Если задача решалась одним и тем же способом тысячу раз на
-        GitHub, ИИ-ассистент решит её за вас за секунды — и это правильно.
-      </p>
-
-      <p>
-        Проблема не в том, чтобы использовать ИИ для этого. Проблема в том, чтобы относиться ко
-        всему остальному так, будто оно работает так же.
-      </p>
-
-      <h2 id="three-decisions-ai-wont-make-for-you">Три решения, которые ИИ не примет за вас</h2>
-
-      <p>
-        <strong>1. Стратегия рендеринга, а не просто код рендеринга.</strong> В real-time продукте,
-        над которым я работал — видео- и аудиостриминг в браузере — вопрос никогда не звучал как
-        «можешь ли ты отрендерить этот компонент». Вопрос был «когда»: гидрируется ли этот кусок
-        интерфейса до того, как откроется медиа-соединение, или после? Перепутаете порядок — и либо
-        заблокируете пользователя на JavaScript, который пока не важен, либо позволите ему нажать
-        «войти» до того, как поток реально готов принимать данные. ИИ-ассистент с радостью
-        сгенерирует компонент, который корректно рендерится в изоляции. У него нет мнения о том, где
-        этому компоненту место в жизненном цикле соединения, — потому что это мнение зависит от
-        вашей архитектуры, а не от синтаксиса.
-      </p>
-
-      <p>
-        <strong>2. Куда девать вес.</strong> Bundle-splitting и вынос вычислений в Web Worker
-        одинаково «работают» почти в любом месте, куда их ни поставь, — именно это делает их
-        опасными для делегирования. ИИ предложит границу ленивой подгрузки чанка, которая
-        синтаксически безупречна и практически неверна: разбиение в точке, которая всё ещё блокирует
-        первую отрисовку, или перенос вычислений в воркер, которому затем приходится сериализовать
-        настолько большой payload, что стоимость postMessage перекрывает всю выгоду. Оценить этот
-        компромисс можно, только зная реальную форму трафика, целевые устройства, бюджет
-        производительности — контекст, который живёт в дашбордах вашей команды, а не в промпте.
-      </p>
-
-      <p>
-        <strong>3. Что заслуживает теста и что на самом деле доказывает прошедший тест.</strong>{' '}
-        Попросите ИИ-ассистента написать тесты для компонента — и он напишет тесты, покрывающие
-        happy path, то есть то, что компонент делает прямо сейчас. В этом и ловушка: тест проверяет
-        реализацию, а не требование. В том же real-time продукте важны были не тесты вида
-        «рендерится ли кнопка», а «корректно ли восстанавливается интерфейс, если соединение
-        обрывается посреди звонка» и «не возникает ли гонка между логикой переподключения и
-        пользователем, который уже закрыл вкладку». Такой тест никто не сгенерирует сопоставлением
-        паттернов по кодовой базе, потому что сценарий отказа в этой кодовой базе ещё не существует.
-        Решить, что должно ломать сборку, — это суждение о риске, а суждения о риске — единственное,
-        что нельзя делегировать автодополнению.
-      </p>
-
-      <h2 id="the-real-skill-gap-is-direction-not-typing">
-        Настоящий дефицит навыка — это направление, а не скорость печати
-      </h2>
-
-      <p>
-        Сложите эти три пункта вместе — и проступает закономерность: ни один из них не о том, чтобы
-        писать код быстрее. Все они о том, чтобы решить, для чего этот код нужен, до того как
-        написана хоть одна строка. ИИ схлопывает дистанцию между «я знаю, чего хочу» и «это
-        написано». Он никак не помогает понять, чего вы хотите на самом деле, — а в системе с
-        real-time ограничениями, реальными пользователями и реальными сценариями отказа это и есть
-        большая часть работы.
-      </p>
-
-      <p>
-        Это же самый чистый способ отличить кандидатов на собеседовании. Сегодня рабочий компонент
-        по запросу может выдать кто угодно — это перестало быть сигналом в тот момент, когда
-        ИИ-ассистенты стали достаточно хороши. Senior-найм от junior-найма по-прежнему отличает то,
-        может ли человек посмотреть на сгенерированный код и объяснить, почему он не подходит именно
-        этой системе, — или он просто отправляет в прод то, что вернул промпт, потому что это прошло
-        CI. Один из них управляет инструментом. Другой на него надеется.
-      </p>
-
-      <p>
-        Если вы нанимаете «ИИ-нативных» инженеров, именно это стоит спрашивать на собеседовании — не
-        «пользуетесь ли вы Copilot», а «покажите случай, когда предложение ИИ выглядело разумным и
-        всё равно было неверным». Ответ покажет, видите вы перед собой владение продуктом или
-        автодополнение с должностью в резюме.
-      </p>
-
-      <p>
-        ИИ не сделал senior-инженеров менее нужными. Он просто сделал ту часть работы, ради которой
-        они нужны, более заметной.
-      </p>
-    </>
-  )
-
-  export default AiBoilerplateSeniorEngineersRu
-  ```
-
-- [ ] **Step 5: Run the test to verify it passes**
-
-  Run: `pnpm vitest run src/content/articles/ai-boilerplate-senior-engineers/content.test.ts`
-  Expected: PASS (2 tests).
-
-- [ ] **Step 6: Type-check and lint**
+- [ ] **Step 5: Type-check and lint**
 
   Run: `pnpm check-types && pnpm lint`
-  Expected: no errors. If ESLint flags unescaped entities, confirm every `'`/`"` inside JSX text is one of `&apos;`/`&ldquo;`/`&rdquo;` as written above.
+  Expected: no errors.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
   ```bash
-  git add src/content/articles/ai-boilerplate-senior-engineers
-  git commit -m "feat: add ai-boilerplate-senior-engineers article content (en/ru)"
+  git add src/content/articles/ai-boilerplate-senior-engineers public/locales/en.json public/locales/ru.json
+  git commit -m "feat: add ai-boilerplate-senior-engineers article content"
   ```
 
 ---
@@ -451,8 +293,8 @@
 
 **Interfaces:**
 
-- Consumes: `AiBoilerplateSeniorEngineersEn`/`Ru` (Task 2), `ELanguage` (`@/constants/header.constants`).
-- Produces: `export const articleContentRegistry: Record<string, Record<ELanguage, ComponentType>>`; `export const ArticleContent = ({ slug }: { slug: string }) => JSX.Element | null`, rendered as `<div data-testid={\`article-content-${slug}\`}>`.
+- Consumes: `AiBoilerplateSeniorEngineersContent` (Task 2), `aiBoilerplateSeniorEngineersArticle` (Task 1).
+- Produces: `export const articleContentRegistry: Record<string, ComponentType>`; `export const ArticleContent = ({ slug }: { slug: string }) => JSX.Element | null`, rendered as `<div data-testid={\`article-content-${slug}\`}>`. The registry is keyed only by slug — each component resolves its own language internally via `useTranslation()`, so there is nothing language-specific left for `ArticleContent` to select.
 
 - [ ] **Step 1: Create the content registry**
 
@@ -461,24 +303,13 @@
   ```ts
   import { ComponentType } from 'react'
 
-  import { ELanguage } from '@/constants/header.constants'
   import { aiBoilerplateSeniorEngineersArticle } from '@/constants/articles.constants'
 
-  import AiBoilerplateSeniorEngineersEn from './ai-boilerplate-senior-engineers/en'
-  import AiBoilerplateSeniorEngineersRu from './ai-boilerplate-senior-engineers/ru'
+  import AiBoilerplateSeniorEngineersContent from './ai-boilerplate-senior-engineers/Content'
 
-  /** An article's body, as a per-language TSX component with no props. */
-  type ArticleContentComponent = ComponentType
-
-  /** Maps every article slug to its body component in each supported language. */
-  export const articleContentRegistry: Record<
-    string,
-    Record<ELanguage, ArticleContentComponent>
-  > = {
-    [aiBoilerplateSeniorEngineersArticle.slug]: {
-      [ELanguage.en]: AiBoilerplateSeniorEngineersEn,
-      [ELanguage.ru]: AiBoilerplateSeniorEngineersRu,
-    },
+  /** Maps every article slug to its body component. Each component resolves its own text via i18next, so one component serves every supported language. */
+  export const articleContentRegistry: Record<string, ComponentType> = {
+    [aiBoilerplateSeniorEngineersArticle.slug]: AiBoilerplateSeniorEngineersContent,
   }
   ```
 
@@ -543,9 +374,6 @@
 
   import styles from './ArticleContent.module.css'
 
-  import { useTranslation } from 'react-i18next'
-
-  import { ELanguage } from '@/constants/header.constants'
   import { articleContentRegistry } from '@/content/articles/registry'
 
   interface IArticleContentProps {
@@ -554,10 +382,7 @@
   }
 
   export const ArticleContent = ({ slug }: IArticleContentProps) => {
-    const { i18n } = useTranslation()
-
-    const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
-    const Content = articleContentRegistry[slug]?.[language]
+    const Content = articleContentRegistry[slug]
 
     if (!Content) {
       return null
