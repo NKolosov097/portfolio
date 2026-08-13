@@ -5,9 +5,13 @@
   padding-top: 1rem;
 }
 
-.backLink {
+.breadcrumb {
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
+  color: rgb(255 255 255 / 50%);
+}
+
+.breadcrumb a {
   color: var(--g-color-line-brand);
 }
 

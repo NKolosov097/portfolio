@@ -40,9 +40,11 @@ export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
 
   return (
     <article className={styles.article}>
-      <Link href="/articles" className={styles.backLink}>
-        {t('articles.backToList')}
-      </Link>
+      <nav className={styles.breadcrumb} aria-label={t('articles.backToList')}>
+        <Link href="/">{t('aside.backToHome')}</Link>
+        <span aria-hidden="true"> / </span>
+        <Link href="/articles">{t('articles.backToList')}</Link>
+      </nav>
 
       <h1 className={styles.title}>{article.title[language]}</h1>
 

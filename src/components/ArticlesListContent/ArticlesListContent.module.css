@@ -7,6 +7,12 @@
   margin: 0 auto;
 }
 
+.backLink {
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--g-color-line-brand);
+}
+
 .header {
   margin-bottom: 0.5rem;
 }

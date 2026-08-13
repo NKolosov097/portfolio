@@ -30,11 +30,14 @@ export const ArticleListItem = ({
         data-testid={`article-list-item-${slug}`}
         className={styles.card}
       >
+        <span className={styles.meta}>
+          <span>{formattedDate}</span>
+          <span className={styles.readingTime}>
+            {t('articles.minRead', { count: readingTimeMinutes })}
+          </span>
+        </span>
         <span className={styles.title}>{title[language]}</span>
         <span className={styles.description}>{description[language]}</span>
-        <span className={styles.meta}>
-          {formattedDate} · {t('articles.minRead', { count: readingTimeMinutes })}
-        </span>
       </Link>
     </li>
   )

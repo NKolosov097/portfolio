@@ -2,6 +2,7 @@
 
 import styles from './ArticlesListContent.module.css'
 
+import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
 import { articles } from '@/constants/articles.constants'
@@ -12,6 +13,10 @@ export const ArticlesListContent = () => {
 
   return (
     <section className={styles.section}>
+      <Link href="/" className={styles.backLink}>
+        ← {t('aside.backToHome')}
+      </Link>
+
       <h1 className={styles.header}>{t('articles.pageTitle')}</h1>
       <p className={styles.description}>{t('articles.pageDescription')}</p>
 
