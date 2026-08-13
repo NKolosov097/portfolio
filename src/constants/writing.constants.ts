@@ -1,11 +1,20 @@
 import { IArticle } from '@/home-sections/Writing/types/writing.type'
 
+import { ELanguage } from '@/constants/header.constants'
+import { aiBoilerplateSeniorEngineersArticle } from '@/constants/articles.constants'
+
 /**
- * TODO(publications): add articles, notes and talks here to surface the Writing section.
- *
- * The Writing section and its header tab stay hidden while this array is empty, so
- * appending entries is all that is required to publish them. Each entry needs:
- * a lowercase kebab-case `id` (React key + `data-testid`), a `title`, a one-line
- * `description`, an absolute `href`, and a `source` label (e.g. "Habr", "Medium").
+ * Publications surfaced in the Writing section: self-hosted articles (linked in-app via
+ * `isExternal: false`) and, going forward, external ones (Habr, Medium, YouTube, etc.).
+ * The section and its header tab stay hidden while this array is empty.
  */
-export const writingArticles: IArticle[] = []
+export const writingArticles: IArticle[] = [
+  {
+    id: aiBoilerplateSeniorEngineersArticle.slug,
+    title: aiBoilerplateSeniorEngineersArticle.title[ELanguage.en],
+    description: aiBoilerplateSeniorEngineersArticle.description[ELanguage.en],
+    href: `/articles/${aiBoilerplateSeniorEngineersArticle.slug}`,
+    source: 'My blog',
+    isExternal: false,
+  },
+]
