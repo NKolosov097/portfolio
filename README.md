@@ -1,6 +1,6 @@
 # Portfolio — [NKolosov097](https://nkolosov.com)
 
-A production-grade personal portfolio built as a single-page application on the **Next.js App Router** with **React 19** and **TypeScript** (strict). It ships a fully internationalised (English / Russian) UI, a database-backed contact form with transactional email, and an accessibility- and performance-conscious layout shell.
+A production-grade personal portfolio built on the **Next.js App Router** with **React 19** and **TypeScript** (strict): a single-page home experience plus a small set of statically generated article pages. It ships a fully internationalised (English / Russian) UI, a database-backed contact form with transactional email, and an accessibility- and performance-conscious layout shell.
 
 > Live metadata targets `https://nkolosov.com`.
 
@@ -28,13 +28,13 @@ A production-grade personal portfolio built as a single-page application on the 
 
 ## Highlights
 
-- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D, rendered in an OffscreenCanvas worker where supported and on the main thread otherwise, with a runtime governor scaling particle count and pixel ratio to the device), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) — behind a persistent layout shell rendered inside a `<Suspense>` boundary.
+- **Section-based home SPA + self-hosted articles.** The home page (`/`) composes independent sections — `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D, rendered in an OffscreenCanvas worker where supported and on the main thread otherwise, with a runtime governor scaling particle count and pixel ratio to the device), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) — behind a persistent layout shell rendered inside a `<Suspense>` boundary. Writing cards for self-hosted posts open a dedicated, statically generated `/articles/[slug]` page rather than staying in-page.
 - **First-class i18n.** All user-facing copy is translated (`en` / `ru`), resolved from a `lang` query string then a cookie, and served from `public/locales`.
 - **Type-safe, server-first data flow.** Contact submissions run through a `'use server'` action with **Zod** validation, persist to **PostgreSQL** via **Prisma 7**, and trigger a transactional email via **Nodemailer**.
 - **Accessibility & performance built in.** Skip-to-navigation link, zoomable viewport, `prefers-reduced-motion` support, and a `requestAnimationFrame`-throttled scroll-spy.
 - **Consistent design language.** Themed entirely through **Gravity UI**, with the dark theme applied server-side to avoid a flash of unstyled content.
 - **Operational readiness.** A `/api/health` endpoint reports status, uptime, environment, and version for liveness/readiness probes.
-- **SEO out of the box.** Rich metadata (Open Graph, Twitter card, canonical + `hreflang` alternates), `Person` + `WebSite` JSON-LD structured data, a dynamically generated 1200×630 social banner (`next/og`), and generated `/robots.txt` and `/sitemap.xml` — all driven from a single `src/constants/seo.constants.ts` source of truth.
+- **SEO out of the box.** Rich metadata (Open Graph, Twitter card, canonical + `hreflang` alternates), `Person` + `WebSite` JSON-LD structured data, a dynamically generated 1200×630 social banner (`next/og`), and generated `/robots.txt` and `/sitemap.xml` — all driven from a single `src/constants/seo.constants.ts` source of truth. Each article page gets its own metadata, `BlogPosting` JSON-LD, and OG image, generated per slug via `generateStaticParams`.
 
 ---
 
@@ -59,7 +59,7 @@ A production-grade personal portfolio built as a single-page application on the 
 
 ## Architecture
 
-The app is a **single-page portfolio**: one route (`src/app/page.tsx`) renders a stack of self-contained sections, wrapped by a persistent shell defined in `src/app/layout.tsx`.
+The app is a **single-page portfolio plus a small set of statically generated article pages**, all wrapped by one persistent shell defined in `src/app/layout.tsx`. The portfolio itself (`src/app/page.tsx`) renders a stack of self-contained sections; `src/app/articles/` adds a list page and a `[slug]` page per article, both rendered through the same root layout.
 
 ```
 RootLayout (layout.tsx)
@@ -69,7 +69,9 @@ RootLayout (layout.tsx)
       ├─ Header            ← navigation tabs + language switch
       ├─ Aside             ← mobile drawer
       ├─ Main
-      │  └─ HomePage       ← Home · Portfolio · AboutMe · Resume · Writing
+      │  ├─ HomePage           ← "/" — Home · Portfolio · AboutMe · Resume · Writing
+      │  ├─ ArticlesListContent ← "/articles"
+      │  └─ ArticlePageContent  ← "/articles/[slug]"
       ├─ Footer
       └─ ToastContainer
 ```
@@ -77,6 +79,7 @@ RootLayout (layout.tsx)
 Key architectural decisions:
 
 - **Section ownership.** Each section under `src/home-sections/<Section>/` owns its own types, sub-components, schemas, and server actions — no cross-section coupling.
+- **Article content as code.** Each article's body lives in `src/content/articles/<slug>/`, registered in `src/content/articles/registry.ts` by slug; article metadata (title, description, publish date, reading time) lives separately in `src/constants/articles.constants.ts` so route generation and SEO don't need to import the body component.
 - **Server-side theming.** The Gravity UI dark theme is resolved with `getRootClassName` in the root layout, so the correct theme class is present on first paint (no client flash).
 - **Server-only boundaries.** Database and mail singletons live in `src/lib/` and are guarded with `import 'server-only'`; server actions are marked `'use server'`.
 - **Path aliases.** `@/*` → `src/*`, `@public/*` → `public/*`, and `@tests/*` → `tests/*` (configured in `tsconfig.json`, the ESLint resolver, and `vitest.config.mts`).
@@ -87,7 +90,8 @@ Key architectural decisions:
 
 ```
 src/
-├─ app/                 # App Router: layout, root page, /api/health, robots.ts, sitemap.ts, opengraph-image.tsx, error & not-found
+├─ app/                 # App Router: layout, root page, /articles + /articles/[slug], /api/health,
+│                        #   robots.ts, sitemap.ts, opengraph-image.tsx, error & not-found
 ├─ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Writing, Contact, LoaderSection)
 │  └─ <Section>/
 │     ├─ components/    #   section-local sub-components
@@ -96,15 +100,20 @@ src/
 │     ├─ helpers/       #   section-local pure helpers
 │     ├─ workers/       #   section-local web workers
 │     └─ types/         #   section-local types
+├─ content/articles/    # Article body components, one directory per slug, plus registry.ts
 ├─ layout/              # Persistent shell: Header, Aside (drawer), Main, Footer
-├─ components/          # Shared UI atoms (Tag, SkipToNavigationLink)
+├─ components/          # Shared UI: Tag, SkipToNavigationLink, and the articles list/page/nav components
 ├─ providers/           # React context providers, composed in Providers.tsx
 │  └─ stores/           #   store providers that instantiate Zustand stores once
 ├─ stores/              # Zustand vanilla stores (AsideStore, HeaderStore)
 ├─ constants/           # App-wide constants & enums
-├─ helpers/             # Pure utilities (scroll, clipboard, storage, language)
+├─ helpers/             # Pure utilities (scroll, clipboard, storage, language, idle callback)
+├─ hooks/               # Shared React hooks (e.g. useResolvedLanguage)
 ├─ configs/i18n/        # i18next initialisation & context types
 ├─ contexts/            # React contexts
+├─ assets/              # Static SVGs (logos, social icons) imported directly into components
+├─ styles/              # Global CSS: globals.css, reset.css
+├─ types/               # Cross-cutting shared types (e.g. IResponse)
 ├─ lib/                 # Server-only singletons: prisma.ts, mail.tsx
 └─ generated/prisma/    # Prisma client output — do not edit manually
 
@@ -172,22 +181,27 @@ Copy `.env.example` to `.env.local` and provide:
 
 ## Available scripts
 
-| Script                    | Description                                                    |
-| ------------------------- | -------------------------------------------------------------- |
-| `pnpm dev`                | Start the dev server with Turbopack.                           |
-| `pnpm build`              | Production build.                                              |
-| `pnpm start`              | Serve the production build.                                    |
-| `pnpm vercel-build`       | `prisma generate && prisma migrate deploy && next build` (CI). |
-| `pnpm check-types`        | TypeScript check (`tsc --noEmit`).                             |
-| `pnpm lint`               | ESLint + Stylelint + Prettier.                                 |
-| `pnpm format`             | Auto-fix formatting with Prettier.                             |
-| `pnpm lint:styles`        | Stylelint CSS with auto-fix.                                   |
-| `pnpm test`               | Run the Vitest unit suite once.                                |
-| `pnpm test:watch`         | Run Vitest in watch mode.                                      |
-| `pnpm test:e2e`           | Production build, then the Playwright E2E suite.               |
-| `pnpm prisma generate`    | Regenerate the Prisma client into `src/generated/prisma`.      |
-| `pnpm prisma migrate dev` | Apply migrations locally.                                      |
-| `pnpm prisma db seed`     | Seed the database via `prisma/seed.ts`.                        |
+| Script                    | Description                                                                |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `pnpm dev`                | Start the dev server with Turbopack.                                       |
+| `pnpm build`              | Production build.                                                          |
+| `pnpm start`              | Serve the production build.                                                |
+| `pnpm vercel-build`       | `prisma generate && prisma migrate deploy && next build` (CI).             |
+| `pnpm postinstall`        | `prisma generate` — runs automatically after `pnpm install`.               |
+| `pnpm check-types`        | TypeScript check (`tsc --pretty --noEmit`).                                |
+| `pnpm check-lint`         | ESLint check only, no auto-fix — a standalone alternative to `lint:js`.    |
+| `pnpm check-format`       | Prettier check only, no write, over the whole repo.                        |
+| `pnpm lint`               | `lint:js && lint:styles && lint:prettier` — ESLint + Stylelint + Prettier. |
+| `pnpm lint:js`            | ESLint check, no auto-fix (part of `pnpm lint`).                           |
+| `pnpm lint:styles`        | Stylelint CSS with auto-fix.                                               |
+| `pnpm lint:prettier`      | Prettier check for Markdown files only.                                    |
+| `pnpm format`             | Auto-fix formatting with Prettier.                                         |
+| `pnpm test`               | Run the Vitest unit suite once.                                            |
+| `pnpm test:watch`         | Run Vitest in watch mode.                                                  |
+| `pnpm test:e2e`           | Production build, then the Playwright E2E suite.                           |
+| `pnpm prisma generate`    | Regenerate the Prisma client into `src/generated/prisma`.                  |
+| `pnpm prisma migrate dev` | Apply migrations locally.                                                  |
+| `pnpm prisma db seed`     | Seed the database via `prisma/seed.ts`.                                    |
 
 Before considering any change complete, the validation gate must pass:
 
@@ -218,6 +232,11 @@ What is covered today:
   the mail step fails. Prisma and the mailer are mocked, so no database or SMTP is needed.
 - **Locale catalogues** — `en.json` / `ru.json` key parity in both directions, no blank or
   non-string leaves.
+- **Articles registry** — every article has a unique kebab-case slug and a translated title and
+  description in both languages.
+- **`requestIdle` / `cancelIdle`** — falls back to a timer where `requestIdleCallback` is
+  unavailable, and a cancelled callback never fires. Named `idleCallback.dom.test.ts`, routed to
+  the jsdom environment.
 - **E2E smoke** (`e2e/smoke.spec.ts`) — every section anchor the header navigates to exists, the
   aside renders, the page loads without uncaught errors, and clicking a tab scrolls to its section.
 - **Aside ghost** (`e2e/aside-ghost.spec.ts`) — all five animation layers run, the silhouette
@@ -225,6 +244,15 @@ What is covered today:
 - **Profile drawer** (`e2e/mobile-drawer.spec.ts`) — below the breakpoint the sidebar is hidden
   and its content is reachable only through the drawer, which opens and closes on demand. The
   spec skips itself on viewports that render the sidebar.
+- **Home sparkle field** (`e2e/home-sparkle-field.spec.ts`) — the canvas fades in behind the hero
+  without covering the headline, and holds a still frame under `prefers-reduced-motion: reduce`.
+- **Self-hosted articles** (`e2e/articles.spec.ts`) — the article is listed on `/articles`, its
+  page renders with a heading and content, an in-page anchor scrolls a section clear of the fixed
+  header, the body switches language with the site's language switcher, and opening a Writing card
+  navigates to the article in the same tab rather than a new one.
+- **Locale hydration** (`e2e/locale-hydration.spec.ts`) — with a Russian language cookie set,
+  both `/` and an article page render in that language with no console or page error, guarding
+  against the server/client language mismatch fixed on this branch.
 
 Tests reuse the app's own sources of truth rather than restating them: section anchors come from
 `ETabID`, tab labels and contact error messages from `public/locales/en.json`, and profile links
@@ -296,6 +324,9 @@ A user is uniquely keyed by email; each contact submission **upserts** the user 
 - Catalogues live in `public/locales/en.json` and `public/locales/ru.json`.
 - Supported languages are declared in the `ELanguage` enum (`src/constants/header.constants.ts`).
 - Language is detected from the `lang` query string first, then a cookie.
+- Article metadata (title, description) is stored as an `ELanguage`-keyed record rather than i18next
+  keys, since it's data (`src/constants/articles.constants.ts`), not UI copy. Components read the
+  active language for these via the `useResolvedLanguage()` hook (`src/hooks/`).
 
 > **Convention:** every new user-facing string must be added to **both** locale files simultaneously and consumed via `useTranslation()` — no hardcoded UI copy. Zod validation messages are passed into schemas at call time so errors are rendered in the visitor's active language.
 
@@ -339,7 +370,7 @@ For **self-hosted** setups, `docker/` contains a hardened Docker `daemon.json` (
 
 **Health check:** `GET /api/health` returns status, ISO timestamp, uptime, environment, and version; `HEAD /api/health` returns `200` with no body for lightweight probes.
 
-**SEO endpoints:** `GET /robots.txt` (`src/app/robots.ts`), `GET /sitemap.xml` (`src/app/sitemap.ts`), and the `GET /opengraph-image` social banner (`src/app/opengraph-image.tsx`, rendered with `next/og`) are all produced from `src/constants/seo.constants.ts`, which also feeds the metadata and JSON-LD in `src/app/layout.tsx`.
+**SEO endpoints:** `GET /robots.txt` (`src/app/robots.ts`), `GET /sitemap.xml` (`src/app/sitemap.ts` — the root page, `/articles`, and one entry per article), and the `GET /opengraph-image` social banner (`src/app/opengraph-image.tsx`, rendered with `next/og`) are all produced from `src/constants/seo.constants.ts`, which also feeds the metadata and JSON-LD in `src/app/layout.tsx`. Each article page additionally generates its own `opengraph-image` at `src/app/articles/[slug]/opengraph-image.tsx`.
 
 ---
 
