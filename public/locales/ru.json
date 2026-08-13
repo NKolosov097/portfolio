@@ -84,7 +84,7 @@
       "chartHeroValue": "~88%",
       "chartHeroCaption": "разработчиков теперь регулярно пользуются ИИ-ассистентом для написания кода",
       "chartHeroSource": "Опросы разработчиков JetBrains и Stack Overflow, 2025–2026",
-      "chartTitle": "Сложность рынка труда во frontend, по уровню опыта",
+      "chartTitle": "Доля тех, кто считает нынешний рынок труда во frontend сложным",
       "chartJuniorLabel": "Junior-разработчики",
       "chartSeniorLabel": "Senior-разработчики",
       "chartTooltipSuffix": "считают текущий рынок труда сложным",
