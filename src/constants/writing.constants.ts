@@ -1,16 +1,15 @@
 import { IArticle } from '@/home-sections/Writing/types/writing.type'
 
-import { ELanguage } from '@/constants/header.constants'
 import { aiBoilerplateSeniorEngineersArticle } from '@/constants/articles.constants'
 
 /** Section and header tab stay hidden while this array is empty. */
 export const WRITING_ARTICLES: IArticle[] = [
   {
     id: aiBoilerplateSeniorEngineersArticle.slug,
-    title: aiBoilerplateSeniorEngineersArticle.title[ELanguage.en],
-    description: aiBoilerplateSeniorEngineersArticle.description[ELanguage.en],
+    title: aiBoilerplateSeniorEngineersArticle.title,
+    description: aiBoilerplateSeniorEngineersArticle.description,
     href: `/articles/${aiBoilerplateSeniorEngineersArticle.slug}`,
-    source: 'My blog',
+    sourceKey: 'writing.myBlog',
     isExternal: false,
   },
 ]
