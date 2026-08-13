@@ -21,13 +21,13 @@ const BARS: IStatBar[] = [
   {
     id: 'junior',
     labelKey: 'articleContent.aiBoilerplateSeniorEngineers.chartJuniorLabel',
-    value: 61,
+    value: 53,
     color: '#d95926',
   },
   {
     id: 'senior',
     labelKey: 'articleContent.aiBoilerplateSeniorEngineers.chartSeniorLabel',
-    value: 34,
+    value: 29,
     color: '#3987e5',
   },
 ]
