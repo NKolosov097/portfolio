@@ -2,18 +2,28 @@
 
 import styles from './Writing.module.css'
 
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Tag } from '@/components/Tag/Tag'
 import { Article } from './components/Article/Article'
 
 import { ETabID } from '@/constants/header.constants'
-import { writingArticles } from '@/constants/writing.constants'
+import { WRITING_ARTICLES } from '@/constants/writing.constants'
 
 export const Writing = () => {
   const { t } = useTranslation()
 
-  if (writingArticles.length === 0) {
+  // Re-run the #writing scroll after mount; the built-in fragment jump lands short.
+  useEffect(() => {
+    if (window.location.hash.slice(1) !== ETabID.writing) {
+      return
+    }
+
+    document.getElementById(ETabID.writing)?.scrollIntoView()
+  }, [])
+
+  if (WRITING_ARTICLES.length === 0) {
     return null
   }
 
@@ -24,7 +34,7 @@ export const Writing = () => {
       <h2 className="section-header">{t('writing.header')}</h2>
 
       <ul className={styles.articlesList}>
-        {writingArticles.map((article) => (
+        {WRITING_ARTICLES.map((article) => (
           <Article key={article.id} {...article} />
         ))}
       </ul>

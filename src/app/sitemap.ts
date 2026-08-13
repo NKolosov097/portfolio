@@ -1,11 +1,9 @@
 import type { MetadataRoute } from 'next'
 
 import { SITE_URL } from '@/constants/seo.constants'
+import { ARTICLES } from '@/constants/articles.constants'
 
-/**
- * Generates `/sitemap.xml`. The portfolio is a single-page app, so the sitemap
- * lists only the root route with its per-language alternates.
- */
+/** Generates `/sitemap.xml`: root page, articles index, and one entry per article. */
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
@@ -20,5 +18,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
       },
     },
+    {
+      url: `${SITE_URL}/articles`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    ...ARTICLES.map(({ slug, publishedDate }) => ({
+      url: `${SITE_URL}/articles/${slug}`,
+      lastModified: new Date(publishedDate),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
   ]
 }

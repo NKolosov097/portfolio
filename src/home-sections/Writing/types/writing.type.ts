@@ -9,4 +9,6 @@ export interface IArticle {
   href: string
   /** Platform label shown as a small caption above the title (e.g. "Habr", "Medium", "YouTube"). */
   source: string
+  /** False for self-hosted articles that navigate in-app instead of opening in a new tab. */
+  isExternal?: boolean
 }

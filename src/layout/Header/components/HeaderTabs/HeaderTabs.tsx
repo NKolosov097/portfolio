@@ -11,7 +11,7 @@ import { Tabs, type TabsItemProps as ITab } from '@gravity-ui/uikit/legacy'
 import { Person } from '@gravity-ui/icons'
 
 import { ETabID, tabsCompactBreakpoint } from '@/constants/header.constants'
-import { writingArticles } from '@/constants/writing.constants'
+import { WRITING_ARTICLES } from '@/constants/writing.constants'
 import { getElementPosition, scrollTo } from '@/helpers/scrollTo'
 
 import { IPosition } from '@/layout/Header/types/header.type'
@@ -53,7 +53,7 @@ export const HeaderTabs = () => {
         title: t('headerTabs.resume'),
       },
       // Surfaced only once the Writing section has publications (see writing.constants.ts).
-      ...(writingArticles.length > 0
+      ...(WRITING_ARTICLES.length > 0
         ? [
             {
               id: ETabID.writing,
@@ -138,7 +138,7 @@ export const HeaderTabs = () => {
     setIsOpenDrawer(true)
   }, [])
 
-  return pathname === '/' ? (
+  return (
     <>
       <Button
         data-testid="header-open-profile"
@@ -151,15 +151,17 @@ export const HeaderTabs = () => {
         <Icon width={30} height={30} data={Person} />
       </Button>
 
-      <Tabs
-        items={tabs}
-        size={width !== undefined && width < tabsCompactBreakpoint ? 'm' : 'l'}
-        activeTab={currentTab}
-        onSelectTab={handleSelectTab}
-        className={styles.tabs}
-      />
+      {pathname === '/' ? (
+        <Tabs
+          items={tabs}
+          size={width !== undefined && width < tabsCompactBreakpoint ? 'm' : 'l'}
+          activeTab={currentTab}
+          onSelectTab={handleSelectTab}
+          className={styles.tabs}
+        />
+      ) : (
+        <div className={styles.tabs} />
+      )}
     </>
-  ) : (
-    <div className={styles.tabs} />
   )
 }

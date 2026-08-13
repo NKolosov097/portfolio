@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
 import styles from '@/layout/Aside/aside.module.css'
@@ -24,21 +25,25 @@ export const AsideContent = () => {
           <AnimatedGhost width={50} height={50} />
 
           <h1 className={styles.fullname}>
-            <span>{t('firstName')}</span>
-            <span>{t('lastName')}</span>
+            <Link href="/" className={styles.homeLink} aria-label={t('aside.backToHome')}>
+              <span>{t('firstName')}</span>
+              <span>{t('lastName')}</span>
+            </Link>
           </h1>
         </div>
 
-        <Image
-          width={250}
-          height={250}
-          priority
-          src="/assets/img/avatar/avatar.webp"
-          alt="Avatar"
-          placeholder="blur"
-          blurDataURL="/assets/img/avatar/avatar.webp"
-          className={styles.avatar}
-        />
+        <Link href="/" className={styles.avatarLink} aria-label={t('aside.backToHome')}>
+          <Image
+            width={250}
+            height={250}
+            priority
+            src="/assets/img/avatar/avatar.webp"
+            alt="Avatar"
+            placeholder="blur"
+            blurDataURL="/assets/img/avatar/avatar.webp"
+            className={styles.avatar}
+          />
+        </Link>
       </div>
 
       <ul className={styles.list}>

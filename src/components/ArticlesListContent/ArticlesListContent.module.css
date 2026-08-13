@@ -1,0 +1,31 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: var(--min-height-section);
+  padding-top: 1rem;
+}
+
+.backLink {
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--g-color-line-brand);
+}
+
+.header {
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  margin-bottom: 2rem;
+  color: rgb(255 255 255 / 70%);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  padding: 0;
+  list-style: none;
+}
