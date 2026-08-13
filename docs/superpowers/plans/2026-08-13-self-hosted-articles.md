@@ -205,28 +205,26 @@
       <p>
         Ninety percent of developers now use an AI coding assistant regularly. Copilot, Cursor,
         Claude Code — pick one, and it will write you a working component in seconds. A form with
-        validation. A CRUD screen. A data table with sorting. Code that compiles, passes the
-        linter, and looks like something a human wrote.
+        validation. A CRUD screen. A data table with sorting. Code that compiles, passes the linter,
+        and looks like something a human wrote.
       </p>
 
       <p>None of that means it&apos;s ready to ship.</p>
 
       <p>
         There&apos;s a gap between &ldquo;the code runs&rdquo; and &ldquo;the product survives
-        production,&rdquo; and in 2026 that gap is exactly where the job of a senior engineer
-        lives. AI closed the distance on typing code. It didn&apos;t close the distance on owning
-        it.
+        production,&rdquo; and in 2026 that gap is exactly where the job of a senior engineer lives.
+        AI closed the distance on typing code. It didn&apos;t close the distance on owning it.
       </p>
 
       <h2 id="what-ai-actually-closes-well">What AI Actually Closes Well</h2>
 
       <p>
         Worth saying plainly: AI is genuinely good at boilerplate, and pretending otherwise wastes
-        everyone&apos;s time. Scaffolding a new route, wiring a form to a schema, generating a
-        test skeleton, translating a Figma layout into markup — these are pattern-matching tasks,
-        and pattern-matching is what large models do best. If a task has been solved the same way
-        a thousand times on GitHub, an AI assistant will solve it for you in seconds, and it
-        should.
+        everyone&apos;s time. Scaffolding a new route, wiring a form to a schema, generating a test
+        skeleton, translating a Figma layout into markup — these are pattern-matching tasks, and
+        pattern-matching is what large models do best. If a task has been solved the same way a
+        thousand times on GitHub, an AI assistant will solve it for you in seconds, and it should.
       </p>
 
       <p>
@@ -238,14 +236,13 @@
 
       <p>
         <strong>1. Rendering strategy, not just rendering code.</strong> On a real-time product I
-        worked on — video and audio streaming in the browser — the question was never &ldquo;can
-        you render this component.&rdquo; It was <em>when</em>: does this piece hydrate before the
-        media connection opens, or after? Get it backwards and you either block the user on
-        JavaScript that doesn&apos;t matter yet, or you let them click &ldquo;join&rdquo; before
-        the stream is actually ready to receive input. An AI assistant will happily generate a
-        component that renders correctly in isolation. It has no opinion on where that component
-        sits in your connection lifecycle, because that opinion depends on your architecture, not
-        your syntax.
+        worked on — video and audio streaming in the browser — the question was never &ldquo;can you
+        render this component.&rdquo; It was <em>when</em>: does this piece hydrate before the media
+        connection opens, or after? Get it backwards and you either block the user on JavaScript
+        that doesn&apos;t matter yet, or you let them click &ldquo;join&rdquo; before the stream is
+        actually ready to receive input. An AI assistant will happily generate a component that
+        renders correctly in isolation. It has no opinion on where that component sits in your
+        connection lifecycle, because that opinion depends on your architecture, not your syntax.
       </p>
 
       <p>
@@ -260,13 +257,13 @@
       </p>
 
       <p>
-        <strong>3. What deserves a test, and what a passing test actually proves.</strong> Ask an
-        AI assistant to write tests for a component and it will write tests — for the happy path,
+        <strong>3. What deserves a test, and what a passing test actually proves.</strong> Ask an AI
+        assistant to write tests for a component and it will write tests — for the happy path,
         matching whatever the component currently does. That&apos;s the trap: it tests the
-        implementation, not the requirement. On the same real-time product, the tests that
-        mattered weren&apos;t &ldquo;does the button render&rdquo; — they were &ldquo;does the UI
-        recover correctly when the connection drops mid-call&rdquo; and &ldquo;does the reconnect
-        logic race against a user who already closed the tab.&rdquo; Nobody generates that test by
+        implementation, not the requirement. On the same real-time product, the tests that mattered
+        weren&apos;t &ldquo;does the button render&rdquo; — they were &ldquo;does the UI recover
+        correctly when the connection drops mid-call&rdquo; and &ldquo;does the reconnect logic race
+        against a user who already closed the tab.&rdquo; Nobody generates that test by
         pattern-matching the codebase, because the failure case isn&apos;t in the codebase yet.
         Deciding what should break the build is a judgment call about risk, and judgment calls are
         the one thing you can&apos;t outsource to autocomplete.
@@ -277,27 +274,26 @@
       </h2>
 
       <p>
-        Put these three together and a pattern shows up: none of them are about writing code
-        faster. They&apos;re about deciding what the code is for before a single line exists. AI
-        collapses the distance between &ldquo;I know what I want&rdquo; and &ldquo;it&apos;s
-        written.&rdquo; It does nothing to help you figure out what you want in the first place —
-        and in a system with real-time constraints, real users, and real failure modes,
-        that&apos;s most of the job.
+        Put these three together and a pattern shows up: none of them are about writing code faster.
+        They&apos;re about deciding what the code is for before a single line exists. AI collapses
+        the distance between &ldquo;I know what I want&rdquo; and &ldquo;it&apos;s written.&rdquo;
+        It does nothing to help you figure out what you want in the first place — and in a system
+        with real-time constraints, real users, and real failure modes, that&apos;s most of the job.
       </p>
 
       <p>
         This is also the cleanest way to tell candidates apart in an interview. Anyone can now
         produce a working component on request — that stopped being a signal the moment AI
         assistants got good. What still separates a senior hire from a junior one is whether they
-        can look at generated code and say why it&apos;s wrong for this system, or whether they
-        ship whatever came back from the prompt because it passed CI. One of those people is
-        directing a tool. The other is hoping it&apos;s right.
+        can look at generated code and say why it&apos;s wrong for this system, or whether they ship
+        whatever came back from the prompt because it passed CI. One of those people is directing a
+        tool. The other is hoping it&apos;s right.
       </p>
 
       <p>
         If you&apos;re hiring for &ldquo;AI-native&rdquo; engineers, that&apos;s the question worth
-        asking in the interview — not &ldquo;do you use Copilot,&rdquo; but &ldquo;show me a time
-        an AI suggestion was reasonable and still wrong.&rdquo; The answer tells you whether
+        asking in the interview — not &ldquo;do you use Copilot,&rdquo; but &ldquo;show me a time an
+        AI suggestion was reasonable and still wrong.&rdquo; The answer tells you whether
         you&apos;re looking at ownership or autocomplete with a job title.
       </p>
 
@@ -319,11 +315,10 @@
   export const AiBoilerplateSeniorEngineersRu = () => (
     <>
       <p>
-        Девяносто процентов разработчиков сегодня регулярно пользуются ИИ-ассистентами для
-        написания кода. Copilot, Cursor, Claude Code — не важно, что выбрать: за несколько секунд
-        любой из них сгенерирует рабочий компонент. Форму с валидацией. CRUD-экран. Таблицу данных
-        с сортировкой. Код, который компилируется, проходит линтер и выглядит так, будто его
-        написал человек.
+        Девяносто процентов разработчиков сегодня регулярно пользуются ИИ-ассистентами для написания
+        кода. Copilot, Cursor, Claude Code — не важно, что выбрать: за несколько секунд любой из них
+        сгенерирует рабочий компонент. Форму с валидацией. CRUD-экран. Таблицу данных с сортировкой.
+        Код, который компилируется, проходит линтер и выглядит так, будто его написал человек.
       </p>
 
       <p>Ничего из этого не означает, что он готов к продакшену.</p>
@@ -350,9 +345,7 @@
         всему остальному так, будто оно работает так же.
       </p>
 
-      <h2 id="three-decisions-ai-wont-make-for-you">
-        Три решения, которые ИИ не примет за вас
-      </h2>
+      <h2 id="three-decisions-ai-wont-make-for-you">Три решения, которые ИИ не примет за вас</h2>
 
       <p>
         <strong>1. Стратегия рендеринга, а не просто код рендеринга.</strong> В real-time продукте,
@@ -361,8 +354,8 @@
         интерфейса до того, как откроется медиа-соединение, или после? Перепутаете порядок — и либо
         заблокируете пользователя на JavaScript, который пока не важен, либо позволите ему нажать
         «войти» до того, как поток реально готов принимать данные. ИИ-ассистент с радостью
-        сгенерирует компонент, который корректно рендерится в изоляции. У него нет мнения о том,
-        где этому компоненту место в жизненном цикле соединения, — потому что это мнение зависит от
+        сгенерирует компонент, который корректно рендерится в изоляции. У него нет мнения о том, где
+        этому компоненту место в жизненном цикле соединения, — потому что это мнение зависит от
         вашей архитектуры, а не от синтаксиса.
       </p>
 
@@ -478,13 +471,15 @@
   type ArticleContentComponent = ComponentType
 
   /** Maps every article slug to its body component in each supported language. */
-  export const articleContentRegistry: Record<string, Record<ELanguage, ArticleContentComponent>> =
-    {
-      [aiBoilerplateSeniorEngineersArticle.slug]: {
-        [ELanguage.en]: AiBoilerplateSeniorEngineersEn,
-        [ELanguage.ru]: AiBoilerplateSeniorEngineersRu,
-      },
-    }
+  export const articleContentRegistry: Record<
+    string,
+    Record<ELanguage, ArticleContentComponent>
+  > = {
+    [aiBoilerplateSeniorEngineersArticle.slug]: {
+      [ELanguage.en]: AiBoilerplateSeniorEngineersEn,
+      [ELanguage.ru]: AiBoilerplateSeniorEngineersRu,
+    },
+  }
   ```
 
 - [ ] **Step 2: Create the reader component's styles**
@@ -633,7 +628,14 @@
 
   import { IArticle } from '@/home-sections/Writing/types/writing.type'
 
-  export const Article = ({ id, title, description, href, source, isExternal = true }: IArticle) => {
+  export const Article = ({
+    id,
+    title,
+    description,
+    href,
+    source,
+    isExternal = true,
+  }: IArticle) => {
     const { t } = useTranslation()
 
     const cardContent = (
@@ -1225,30 +1227,28 @@
     const host = new URL(SITE_URL).host
 
     return new ImageResponse(
-      (
-        <div
-          style={{
-            height: '100%',
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '80px',
-            color: '#ffffff',
-            backgroundColor: '#0b0b0f',
-            backgroundImage:
-              'radial-gradient(circle at 18% 20%, rgba(110, 168, 255, 0.20), transparent 45%), radial-gradient(circle at 85% 88%, rgba(154, 110, 255, 0.18), transparent 42%)',
-          }}
-        >
-          <div style={{ display: 'flex', fontSize: '30px', color: '#6ea8ff' }}>{AUTHOR_NAME}</div>
+      <div
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '80px',
+          color: '#ffffff',
+          backgroundColor: '#0b0b0f',
+          backgroundImage:
+            'radial-gradient(circle at 18% 20%, rgba(110, 168, 255, 0.20), transparent 45%), radial-gradient(circle at 85% 88%, rgba(154, 110, 255, 0.18), transparent 42%)',
+        }}
+      >
+        <div style={{ display: 'flex', fontSize: '30px', color: '#6ea8ff' }}>{AUTHOR_NAME}</div>
 
-          <div style={{ display: 'flex', fontSize: '64px', lineHeight: 1.15, letterSpacing: '-1px' }}>
-            {title}
-          </div>
-
-          <div style={{ display: 'flex', fontSize: '28px', color: '#6b7280' }}>{host}</div>
+        <div style={{ display: 'flex', fontSize: '64px', lineHeight: 1.15, letterSpacing: '-1px' }}>
+          {title}
         </div>
-      ),
+
+        <div style={{ display: 'flex', fontSize: '28px', color: '#6b7280' }}>{host}</div>
+      </div>,
       size,
     )
   }

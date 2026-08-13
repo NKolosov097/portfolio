@@ -51,7 +51,9 @@ export interface IArticleMeta {
   readingTimeMinutes: number
 }
 
-export const articles: IArticleMeta[] = [ /* the one entry */ ]
+export const articles: IArticleMeta[] = [
+  /* the one entry */
+]
 ```
 
 This registry is the single source of truth consumed by: the `/articles` list page, `generateStaticParams` + `generateMetadata` on `/articles/[slug]`, and the Writing section (below).
