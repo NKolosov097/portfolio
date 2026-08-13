@@ -1,10 +1,9 @@
 .section {
   display: flex;
   flex-direction: column;
+  width: 100%;
   min-height: var(--min-height-section);
-  max-width: 68ch;
   padding-top: 1rem;
-  margin: 0 auto;
 }
 
 .backLink {

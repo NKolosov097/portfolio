@@ -6,6 +6,11 @@
   margin-top: 25px;
   margin-bottom: calc(2 * var(--body-padding));
   text-align: start;
+
+  /* Cross-page links (e.g. from /articles) land here via a plain #writing
+     hash, which — unlike a tab click — bypasses the JS scrollTo helper's own
+     header offset, so the target needs to reserve the space itself. */
+  scroll-margin-top: var(--header-height);
 }
 
 .articlesList {
