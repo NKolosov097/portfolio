@@ -13,6 +13,10 @@ Claude may assist with planning, prototyping, tests, and documentation. Treat al
 - Reuse existing patterns, helpers, and utilities before adding new abstractions.
 - Prefer destructuring — function params, callback args, object fields — over repeated dotted access.
 
+## Documentation
+
+- After any change to the code structure (new/removed/renamed top-level `src/*` directories, new routes, new scripts, new test files), check whether `README.md` still matches reality and update it if not — Architecture, Project structure, Available scripts, Testing, and Code quality & conventions are the sections most likely to drift.
+
 ## Git
 
 - Commits are authored by the repo owner only. Do not add yourself as a co-author or participant (no `Co-Authored-By` trailer).
