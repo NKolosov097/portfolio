@@ -118,7 +118,7 @@
     "proofixBullet6": "Architected real-time features on WebSocket, WebRTC and LiveKit, with observability via ElasticSearch and DataDog.",
 
     "everypixelBullet1": "AI-native creative platform for video and image generation, leading the frontend architecture end-to-end.",
-    "everypixelBullet2": "Aggregated 10+ third-party AI models (Kling, Runway, Veo) into a single editing workflow with real-time progress.",
+    "everypixelBullet2": "Aggregated 10+ third-party AI models (Kling, Runway, Veo, Wan, Seedance) into a single editing workflow with real-time progress.",
     "everypixelBullet3": "Owned the FE↔BE contract — REST schemas and WebSocket protocols — removing ad-hoc endpoints.",
     "everypixelBullet4": "Built a virtualized media library with @tanstack/react-virtual for thousands of assets without layout thrashing.",
     "everypixelBullet5": "Delivered race-condition-free uploads with react-dropzone and async-mutex and an accessible (WAI-ARIA) design system on Radix UI.",

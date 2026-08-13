@@ -118,7 +118,7 @@
     "proofixBullet6": "Спроектировал real-time функции на WebSocket, WebRTC и LiveKit с наблюдаемостью на ElasticSearch и DataDog.",
 
     "everypixelBullet1": "AI-платформа для генерации видео и изображений, где я вёл фронтенд-архитектуру от начала до конца.",
-    "everypixelBullet2": "Объединил 10+ сторонних AI-моделей (Kling, Runway, Veo) в единый процесс редактирования с прогрессом в реальном времени.",
+    "everypixelBullet2": "Объединил 10+ сторонних AI-моделей (Kling, Runway, Veo, Wan, Seedance) в единый процесс редактирования с прогрессом в реальном времени.",
     "everypixelBullet3": "Владел контрактом FE↔BE — REST-схемами и WebSocket-протоколами, убрав ad-hoc эндпоинты.",
     "everypixelBullet4": "Построил виртуализированную медиатеку на @tanstack/react-virtual для тысяч ассетов без layout thrashing.",
     "everypixelBullet5": "Сделал загрузку без race-condition на react-dropzone и async-mutex и доступную (WAI-ARIA) дизайн-систему на Radix UI.",
