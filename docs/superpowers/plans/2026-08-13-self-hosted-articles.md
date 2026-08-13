@@ -864,6 +864,7 @@
 
   import styles from './ArticlePageContent.module.css'
 
+  import { useEffect } from 'react'
   import Link from 'next/link'
   import { useTranslation } from 'react-i18next'
 
@@ -878,6 +879,20 @@
 
   export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
     const { t, i18n } = useTranslation()
+
+    // The root layout's Suspense boundary briefly swaps in its loading fallback during
+    // hydration, which unmounts this tree after the browser's native "scroll to URL
+    // fragment" step already ran (and against a shorter, not-yet-laid-out page). Once this
+    // component's real content is mounted for good, re-run that scroll ourselves —
+    // `scrollIntoView` honors the `scroll-margin-top` set on headings in ArticleContent.module.css.
+    useEffect(() => {
+      const hash = window.location.hash.slice(1)
+      if (!hash) {
+        return
+      }
+
+      document.getElementById(hash)?.scrollIntoView()
+    }, [])
 
     const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
 
@@ -1202,6 +1217,27 @@
 
 ### Task 10: End-to-end coverage and final verification
 
+> **Two issues surfaced and were fixed while writing this task's tests:**
+>
+> 1. **Deep-link fragment scroll was silently lost on first load.** The root layout's
+>    `<Suspense fallback={<LoaderSection />}>` briefly unmounts the real page during hydration
+>    (observed consistently ~1–1.2s after `page.goto`), which happens _after_ the browser's
+>    one-shot "scroll to URL fragment" step already ran against a shorter, not-yet-laid-out
+>    page. `ArticlePageContent` now re-runs that scroll itself once mounted for good (see its
+>    `useEffect`), which is the fix reflected in Step 3 of Task 7 above and in the code below.
+> 2. **The Writing-card navigation test was flaky under WebKit** (`--project=safari`):
+>    `card.click()`'s built-in auto-scroll can race the page's smooth scrolling, landing the
+>    click on the wrong element. Fixed by explicitly calling `scrollIntoViewIfNeeded()` before
+>    the click in the test — reflected in Step 1 below.
+>
+> **Known, deferred issue:** the language switcher's dropdown item click is flaky under
+> `--project=mobile-firefox` specifically on the (long) article page — not reproducible on the
+> home page with the same steps. Root cause looks like a reflow/scrollbar-width race triggered
+> by the much larger `i18next` language-switch re-render on a long article body, colliding with
+> the sticky header's positioning in Firefox's mobile viewport. This plan's verification is
+> scoped to `--project=chromium` (see Step 2 and the final verification pass), where the full
+> suite is green; the mobile-firefox flake is left as a follow-up rather than fixed here.
+
 **Files:**
 
 - Create: `e2e/articles.spec.ts`
@@ -1232,7 +1268,8 @@
     test('renders the article page with its content', async ({ page }) => {
       await page.goto(`/articles/${ARTICLE_SLUG}`)
 
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      // Scoped to <article> — the Aside's own name is also an <h1> on every page.
+      await expect(page.locator('article').getByRole('heading', { level: 1 })).toBeVisible()
       await expect(page.getByTestId(`article-content-${ARTICLE_SLUG}`)).toBeVisible()
     })
 
@@ -1255,7 +1292,8 @@
     test('switches the article body language with the site language switcher', async ({ page }) => {
       await page.goto(`/articles/${ARTICLE_SLUG}`)
 
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(article.title[ELanguage.en])
+      const heading = page.locator('article').getByRole('heading', { level: 1 })
+      await expect(heading).toHaveText(article.title[ELanguage.en])
 
       await page.getByRole('button', { name: 'change language' }).click()
       await page
@@ -1263,7 +1301,7 @@
         .getByText('Русский', { exact: true })
         .click()
 
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(article.title[ELanguage.ru])
+      await expect(heading).toHaveText(article.title[ELanguage.ru])
     })
 
     test('opens the self-hosted article in-app from the Writing section, not a new tab', async ({
@@ -1274,6 +1312,9 @@
 
       const card = page.getByTestId(`writing-article-${ARTICLE_SLUG}`)
       await expect(card).toBeVisible()
+      // Explicit pre-scroll: WebKit's click-triggered auto-scroll otherwise races the
+      // page's smooth scrolling and can land the click on the wrong element.
+      await card.scrollIntoViewIfNeeded()
       await card.click()
 
       await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_SLUG}$`))
