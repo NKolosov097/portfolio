@@ -9,10 +9,6 @@ export interface IArticle {
   href: string
   /** Platform label shown as a small caption above the title (e.g. "Habr", "Medium", "YouTube"). */
   source: string
-  /**
-   * False for self-hosted articles that should navigate in-app via `next/link` instead of
-   * opening as an external link in a new tab. Omit (or set `true`) for external publications —
-   * this preserves the existing external-link behavior.
-   */
+  /** False for self-hosted articles that navigate in-app instead of opening in a new tab. */
   isExternal?: boolean
 }

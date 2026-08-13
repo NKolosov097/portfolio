@@ -14,11 +14,7 @@ import { writingArticles } from '@/constants/writing.constants'
 export const Writing = () => {
   const { t } = useTranslation()
 
-  // A cross-page link (e.g. from /articles) arrives here as a plain `/#writing` URL.
-  // Both the browser's native fragment jump and Next's own Link-triggered scroll can
-  // fire before this section's final layout settles, landing short of its top edge.
-  // Re-run the scroll ourselves once mounted — `scrollIntoView` honors the
-  // `scroll-margin-top` set on `.section` in Writing.module.css.
+  // Re-run the #writing scroll after mount; the built-in fragment jump lands short.
   useEffect(() => {
     if (window.location.hash.slice(1) !== ETabID.writing) {
       return

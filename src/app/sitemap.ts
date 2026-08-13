@@ -3,10 +3,7 @@ import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/constants/seo.constants'
 import { articles } from '@/constants/articles.constants'
 
-/**
- * Generates `/sitemap.xml`: the root page with its per-language alternates, the articles
- * index, and one entry per self-hosted article.
- */
+/** Generates `/sitemap.xml`: root page, articles index, and one entry per article. */
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {

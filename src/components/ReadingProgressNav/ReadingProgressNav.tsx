@@ -17,6 +17,9 @@ interface IReadingProgressNavProps {
   headings: IReadingProgressHeading[]
 }
 
+/** How far below the sticky header a heading must scroll before it counts as "reached". */
+const ACTIVATION_LINE_PX = 160
+
 export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
   const [activeId, setActiveId] = useState<string | null>(headings[0]?.id ?? null)
 
@@ -33,33 +36,55 @@ export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
       return
     }
 
-    /** Tracks which observed headings are currently intersecting, keyed by id. */
-    const visibleIds = new Set<string>()
+    /** Recomputes which heading is current from live positions, not crossing events —
+     * correct whether the user scrolled gradually or jumped straight to a heading. */
+    const updateActiveHeading = () => {
+      const isAtDocumentBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            visibleIds.add(entry.target.id)
-          } else {
-            visibleIds.delete(entry.target.id)
-          }
-        })
+      if (isAtDocumentBottom) {
+        setActiveId(elements[elements.length - 1].id)
+        return
+      }
 
-        const firstVisible = headings.find((heading) => visibleIds.has(heading.id))
+      let current = elements[0]
 
-        if (firstVisible) {
-          setActiveId(firstVisible.id)
+      for (const element of elements) {
+        if (element.getBoundingClientRect().top <= ACTIVATION_LINE_PX) {
+          current = element
+        } else {
+          break
         }
-      },
-      // A heading counts as "reached" once it crosses the upper fifth of the viewport,
-      // and stays current until the next heading does the same.
-      { rootMargin: '-20% 0px -75% 0px', threshold: 0 },
-    )
+      }
 
-    elements.forEach((element) => observer.observe(element))
+      setActiveId(current.id)
+    }
 
-    return () => observer.disconnect()
+    let frame: number | null = null
+
+    const scheduleUpdate = () => {
+      if (frame !== null) {
+        return
+      }
+
+      frame = window.requestAnimationFrame(() => {
+        frame = null
+        updateActiveHeading()
+      })
+    }
+
+    updateActiveHeading()
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate)
+
+    return () => {
+      window.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame)
+      }
+    }
   }, [headings])
 
   const handleSelect = (id: string) => {
@@ -74,24 +99,16 @@ export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
     0,
     headings.findIndex((heading) => heading.id === activeId),
   )
-  const progressPercent = (activeIndex / Math.max(1, headings.length - 1)) * 100
 
   return (
     <div className={styles.navSlot}>
       <nav className={styles.nav} aria-label="Article sections">
         <ul className={styles.list}>
-          <span className={styles.track} aria-hidden="true" />
-          <span
-            className={styles.progress}
-            aria-hidden="true"
-            style={{ height: `${progressPercent}%` }}
-          />
-
           {headings.map((heading, index) => {
             const state = index === activeIndex ? 'active' : index < activeIndex ? 'read' : 'unread'
 
             return (
-              <li key={heading.id} className={styles.item}>
+              <li key={heading.id} className={styles.item} data-read={index < activeIndex}>
                 <button
                   type="button"
                   className={styles.link}

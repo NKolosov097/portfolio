@@ -22,11 +22,8 @@ export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
 
   const language: ELanguage = i18n.language === ELanguage.ru ? ELanguage.ru : ELanguage.en
 
-  // The root layout's Suspense boundary briefly swaps in its loading fallback during
-  // hydration, which unmounts this tree after the browser's native "scroll to URL
-  // fragment" step already ran (and against a shorter, not-yet-laid-out page). Once this
-  // component's real content is mounted for good, re-run that scroll ourselves —
-  // `scrollIntoView` honors the `scroll-margin-top` set on headings in ArticleContent.module.css.
+  // Re-run the URL-fragment scroll after mount; the Suspense fallback flash during
+  // hydration can undo the browser's own attempt at it.
   useEffect(() => {
     const hash = window.location.hash.slice(1)
     if (!hash) {

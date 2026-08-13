@@ -13,11 +13,7 @@ export interface IArticleMeta {
   readingTimeMinutes: number
 }
 
-/**
- * The first self-hosted article. Exported individually (not just looked up from
- * {@link articles}) so consumers that need exactly this article — like the homepage
- * Writing card — get a type-checked reference instead of a runtime `.find()` lookup.
- */
+/** Exported individually so consumers needing exactly this article skip a runtime `.find()`. */
 export const aiBoilerplateSeniorEngineersArticle: IArticleMeta = {
   slug: 'ai-boilerplate-senior-engineers',
   title: {

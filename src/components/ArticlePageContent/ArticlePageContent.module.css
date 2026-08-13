@@ -6,9 +6,9 @@
 }
 
 .breadcrumb {
-  max-width: 68ch;
-  margin: 0 auto 1.5rem;
+  width: 100%;
   font-size: 0.9rem;
+  text-align: left;
   color: rgb(255 255 255 / 50%);
 }
 
