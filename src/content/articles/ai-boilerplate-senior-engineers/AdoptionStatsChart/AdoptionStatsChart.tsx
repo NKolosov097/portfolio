@@ -2,7 +2,7 @@
 
 import styles from './AdoptionStatsChart.module.css'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 /** A single labeled bar in the seniority comparison chart. */
@@ -11,6 +11,8 @@ interface IStatBar {
   id: string
   /** Locale key for the bar's category label (e.g. "Junior developers"). */
   labelKey: string
+  /** Locale key for the full tooltip sentence tail that follows "{value}% ". */
+  tooltipKey: string
   /** Share of that category, as a whole number percentage. */
   value: number
   /** Categorical color for this bar's fill (fixed slot from the palette, not cycled). */
@@ -21,12 +23,14 @@ const BARS: IStatBar[] = [
   {
     id: 'junior',
     labelKey: 'articleContent.aiBoilerplateSeniorEngineers.chartJuniorLabel',
+    tooltipKey: 'articleContent.aiBoilerplateSeniorEngineers.chartJuniorTooltip',
     value: 53,
     color: '#d95926',
   },
   {
     id: 'senior',
     labelKey: 'articleContent.aiBoilerplateSeniorEngineers.chartSeniorLabel',
+    tooltipKey: 'articleContent.aiBoilerplateSeniorEngineers.chartSeniorTooltip',
     value: 29,
     color: '#3987e5',
   },
@@ -35,6 +39,20 @@ const BARS: IStatBar[] = [
 export const AdoptionStatsChart = () => {
   const { t } = useTranslation()
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const barsRef = useRef<HTMLUListElement>(null)
+
+  useEffect(() => {
+    if (hoveredId === null) return
+
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !barsRef.current?.contains(event.target)) {
+        setHoveredId(null)
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown)
+    return () => document.removeEventListener('pointerdown', handleOutsidePointerDown)
+  }, [hoveredId])
 
   return (
     <div className={styles.card} data-testid="adoption-stats-chart">
@@ -59,9 +77,10 @@ export const AdoptionStatsChart = () => {
         {t('articleContent.aiBoilerplateSeniorEngineers.chartTitle')}
       </h3>
 
-      <ul className={styles.bars}>
+      <ul className={styles.bars} ref={barsRef}>
         {BARS.map((bar) => {
           const label = t(bar.labelKey)
+          const tooltipTail = t(bar.tooltipKey)
           const isHovered = hoveredId === bar.id
 
           return (
@@ -82,17 +101,29 @@ export const AdoptionStatsChart = () => {
                 <button
                   type="button"
                   className={styles.hitArea}
-                  aria-label={`${label}: ${bar.value}%. ${t('articleContent.aiBoilerplateSeniorEngineers.chartTooltipSuffix')}`}
-                  onPointerEnter={() => setHoveredId(bar.id)}
-                  onPointerLeave={() => setHoveredId(null)}
+                  aria-label={`${label}: ${bar.value}% ${tooltipTail}`}
+                  onPointerEnter={(event) => {
+                    if (event.pointerType !== 'touch') setHoveredId(bar.id)
+                  }}
+                  onPointerLeave={(event) => {
+                    if (event.pointerType !== 'touch') setHoveredId(null)
+                  }}
+                  onPointerUp={(event) => {
+                    if (event.pointerType === 'touch') {
+                      setHoveredId((prev) => (prev === bar.id ? null : bar.id))
+                    }
+                  }}
                   onFocus={() => setHoveredId(bar.id)}
                   onBlur={() => setHoveredId(null)}
                 />
 
                 {isHovered && (
-                  <span className={styles.tooltip} role="tooltip">
-                    <span className={styles.tooltipValue}>{bar.value}%</span> {label.toLowerCase()}{' '}
-                    {t('articleContent.aiBoilerplateSeniorEngineers.chartTooltipSuffix')}
+                  <span
+                    className={styles.tooltip}
+                    role="tooltip"
+                    style={{ bottom: `calc(${bar.value}% + 46px)` }}
+                  >
+                    <span className={styles.tooltipValue}>{bar.value}%</span> {tooltipTail}
                   </span>
                 )}
               </span>

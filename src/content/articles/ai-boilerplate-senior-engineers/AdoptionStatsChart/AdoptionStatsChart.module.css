@@ -31,6 +31,9 @@
   font-weight: 700;
   line-height: 1;
   color: #fff;
+  text-shadow:
+    0 0 18px rgb(255 255 255 / 45%),
+    0 0 40px rgb(255 255 255 / 20%);
 }
 
 .heroCaption {
@@ -130,7 +133,6 @@
 
 .tooltip {
   position: absolute;
-  bottom: calc(100% + 28px);
   left: 50%;
   z-index: 1;
   width: max-content;
