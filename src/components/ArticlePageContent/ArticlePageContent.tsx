@@ -12,6 +12,7 @@ import { ArticleContent } from '@/components/ArticleContent/ArticleContent'
 import { ReadingProgressNav } from '@/components/ReadingProgressNav/ReadingProgressNav'
 import { articleHeadingsRegistry } from '@/content/articles/registry'
 import { useResolvedLanguage } from '@/hooks/useResolvedLanguage'
+import { scrollToLocationHash } from '@/helpers/scrollTo'
 
 interface IArticlePageContentProps {
   /** Metadata of the article being displayed, looked up by the page from the article registry. */
@@ -25,12 +26,7 @@ export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
   // Re-run the URL-fragment scroll after mount; the Suspense fallback flash during
   // hydration can undo the browser's own attempt at it.
   useEffect(() => {
-    const hash = window.location.hash.slice(1)
-    if (!hash) {
-      return
-    }
-
-    document.getElementById(hash)?.scrollIntoView()
+    scrollToLocationHash()
   }, [])
 
   const formattedDate = new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(

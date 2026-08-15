@@ -10,17 +10,14 @@ import { Article } from './components/Article/Article'
 
 import { ETabID } from '@/constants/header.constants'
 import { WRITING_ARTICLES } from '@/constants/writing.constants'
+import { scrollToLocationHash } from '@/helpers/scrollTo'
 
 export const Writing = () => {
   const { t } = useTranslation()
 
   // Re-run the #writing scroll after mount; the built-in fragment jump lands short.
   useEffect(() => {
-    if (window.location.hash.slice(1) !== ETabID.writing) {
-      return
-    }
-
-    document.getElementById(ETabID.writing)?.scrollIntoView()
+    scrollToLocationHash(ETabID.writing)
   }, [])
 
   if (WRITING_ARTICLES.length === 0) {
