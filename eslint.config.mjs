@@ -78,6 +78,15 @@ export default defineConfig([
     },
   },
   {
+    // ThemeToggleDemo reads matchMedia/localStorage — client-only APIs — in a mount
+    // effect and must setState with what it finds; the initial render has to match
+    // the server's placeholder, so this can't be computed during render instead.
+    files: ['src/content/articles/two-states-are-enough/ThemeToggleDemo/ThemeToggleDemo.tsx'],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
+  {
     ignores: [
       'node_modules/',
       '.worktrees/',
