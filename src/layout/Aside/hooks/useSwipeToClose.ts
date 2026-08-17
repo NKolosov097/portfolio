@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   clampSwipeTranslateX,
@@ -16,8 +16,6 @@ const SNAP_BACK_TRANSITION = 'transform 0.2s ease'
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
 export interface IUseSwipeToCloseParams {
-  /** Element the swipe is read from and dragged via inline `transform`. */
-  ref: RefObject<HTMLElement | null>
   /** Called once a swipe crosses the close threshold. */
   onClose: () => void
   /** Gates the listeners; attach only while the panel is actually open. */
@@ -25,12 +23,32 @@ export interface IUseSwipeToCloseParams {
 }
 
 /**
- * Wires touch-driven swipe-to-close onto `ref`: drags it under the finger while a horizontal
- * swipe is in progress, closes past a distance/velocity threshold, otherwise snaps back to rest.
+ * Wires touch-driven swipe-to-close onto the node passed to the returned ref callback: drags it
+ * under the finger while a horizontal swipe is in progress, closes past a distance/velocity
+ * threshold, otherwise snaps back to rest.
+ *
+ * Takes a ref callback rather than a `RefObject` on purpose: an animated `Drawer` mounts its
+ * content on a later render than the one that flips `isEnabled` (after its own open-transition
+ * state settles), and that later mount doesn't re-render this hook's owner. A `RefObject` would
+ * leave `useEffect`'s dependency array with nothing to react to, so listeners would never attach.
+ * The ref callback fires exactly when the node mounts, regardless of what triggered it.
  */
-export const useSwipeToClose = ({ ref, onClose, isEnabled }: IUseSwipeToCloseParams): void => {
+export const useSwipeToClose = ({
+  onClose,
+  isEnabled,
+}: IUseSwipeToCloseParams): ((node: HTMLElement | null) => void) => {
+  /** Holds the mounted node itself; a plain ref so the gesture handlers can mutate its style. */
+  const elementRef = useRef<HTMLElement | null>(null)
+  /** Bumped by the ref callback so the effect below re-runs once the node actually mounts. */
+  const [mountTick, setMountTick] = useState(0)
+
+  const setRef = useCallback((node: HTMLElement | null) => {
+    elementRef.current = node
+    setMountTick((tick) => tick + 1)
+  }, [])
+
   useEffect(() => {
-    const element = ref.current
+    const element = elementRef.current
 
     if (!isEnabled || !element) {
       return
@@ -122,5 +140,7 @@ export const useSwipeToClose = ({ ref, onClose, isEnabled }: IUseSwipeToClosePar
       element.removeEventListener('touchend', endGesture)
       element.removeEventListener('touchcancel', endGesture)
     }
-  }, [ref, onClose, isEnabled])
+  }, [mountTick, onClose, isEnabled])
+
+  return setRef
 }

@@ -9,6 +9,7 @@ import { Button, Drawer } from '@gravity-ui/uikit'
 
 import { AsideContent } from '@/layout/Aside/components/AsideContent/AsideContent'
 
+import { useSwipeToClose } from '@/layout/Aside/hooks/useSwipeToClose'
 import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 import { CircleXmark } from '@gravity-ui/icons'
 
@@ -20,6 +21,8 @@ export const MobileAside = () => {
   const handleCloseDrawer = useCallback(() => {
     setIsOpenDrawer(false)
   }, [])
+
+  const swipeToCloseRef = useSwipeToClose({ onClose: handleCloseDrawer, isEnabled: isOpenDrawer })
 
   useEffect(() => {
     const handleResize = () => {
@@ -42,7 +45,12 @@ export const MobileAside = () => {
       className={styles.drawer}
       contentClassName={styles.drawerItem}
     >
-      <div id="aside-card" data-testid="aside-drawer" className={styles.drawerItemContent}>
+      <div
+        id="aside-card"
+        ref={swipeToCloseRef}
+        data-testid="aside-drawer"
+        className={styles.drawerItemContent}
+      >
         <Button
           data-testid="aside-close-profile"
           view="flat"

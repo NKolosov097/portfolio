@@ -304,6 +304,7 @@
   padding: 10px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   background-color: var(--aside-bg-color);
 }
 
