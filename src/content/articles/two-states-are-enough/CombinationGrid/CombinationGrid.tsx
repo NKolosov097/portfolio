@@ -16,6 +16,9 @@ interface ICombination {
 
 const SHADES: TShade[] = ['light', 'dark']
 
+/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
+
 export const CombinationGrid = () => {
   const { t } = useTranslation()
   /** Real matchMedia, read-only — used only to badge the one tile that matches the reader's actual OS setting. */
@@ -50,6 +53,8 @@ export const CombinationGrid = () => {
     <div className={styles.card} data-testid="combination-grid">
       <p className={styles.eyebrow}>{t('articleContent.twoStatesAreEnough.gridEyebrow')}</p>
 
+      {/* Every tile's native/site pairing is fixed by its own row/column — never derived from the
+          reader's real OS, so all four states always render distinctly regardless of environment. */}
       <div className={styles.grid}>
         {SHADES.map((native) =>
           SHADES.map((site) => {
@@ -72,15 +77,22 @@ export const CombinationGrid = () => {
                   </span>
                 )}
 
-                <span className={styles.tileLabel}>
-                  <span className={styles.nativeDot} data-theme={native} aria-hidden="true" />
-                  {t('articleContent.twoStatesAreEnough.gridNativeLabel')}: {shadeLabel(native)}
+                <span className={styles.window}>
+                  <span className={styles.titlebar} data-theme={native}>
+                    {TRAFFIC_LIGHTS.map((color) => (
+                      <span key={color} className={styles.trafficLight} data-color={color} />
+                    ))}
+                  </span>
+                  <span className={styles.page} data-theme={site}>
+                    <span className={styles.pageLine} />
+                    <span className={styles.pageLineShort} />
+                  </span>
                 </span>
 
-                <span className={styles.swatch} data-theme={site}>
-                  <span className={styles.swatchLabel}>
-                    {t('articleContent.twoStatesAreEnough.gridSiteLabel')}: {shadeLabel(site)}
-                  </span>
+                <span className={styles.tileCaption}>
+                  {t('articleContent.twoStatesAreEnough.gridNativeLabel')}: {shadeLabel(native)}
+                  {' · '}
+                  {t('articleContent.twoStatesAreEnough.gridSiteLabel')}: {shadeLabel(site)}
                 </span>
               </button>
             )

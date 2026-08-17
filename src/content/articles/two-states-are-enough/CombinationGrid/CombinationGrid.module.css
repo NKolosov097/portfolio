@@ -72,55 +72,91 @@
   border-radius: 999px;
 }
 
-.tileLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgb(255 255 255 / 65%);
+.window {
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgb(0 0 0 / 40%);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 14px -6px rgb(0 0 0 / 60%);
 }
 
-.nativeDot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border: 1px solid rgb(255 255 255 / 40%);
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.titlebar[data-theme='light'] {
+  background: #e4e4e2;
+}
+
+.titlebar[data-theme='dark'] {
+  background: #2c2c2e;
+}
+
+.trafficLight {
+  width: 0.45rem;
+  height: 0.45rem;
   border-radius: 50%;
 }
 
-.nativeDot[data-theme='light'] {
-  background: #f5f5f4;
+.trafficLight[data-color='red'] {
+  background: #ff5f57;
 }
 
-.nativeDot[data-theme='dark'] {
-  background: #1a1a19;
+.trafficLight[data-color='yellow'] {
+  background: #febc2e;
 }
 
-.swatch {
+.trafficLight[data-color='green'] {
+  background: #28c840;
+}
+
+.page {
   display: flex;
-  align-items: center;
-  padding: 0.75rem 0.6rem;
-  background: rgb(255 255 255 / 6%);
-  border-radius: 0.5rem;
-  transition: background-color 0.15s ease-out;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.7rem 0.55rem;
 }
 
-.swatch[data-theme='light'] {
-  background: #f5f5f4;
+.page[data-theme='light'] {
+  background: #fff;
 }
 
-.swatch[data-theme='dark'] {
-  background: #1a1a19;
+.page[data-theme='dark'] {
+  background: #1e1e1e;
 }
 
-.swatchLabel {
-  font-size: 0.75rem;
+.pageLine,
+.pageLineShort {
+  display: block;
+  height: 0.3rem;
+  border-radius: 2px;
+}
+
+.pageLine {
+  width: 80%;
+}
+
+.pageLineShort {
+  width: 45%;
+}
+
+.page[data-theme='light'] .pageLine,
+.page[data-theme='light'] .pageLineShort {
+  background: rgb(0 0 0 / 15%);
+}
+
+.page[data-theme='dark'] .pageLine,
+.page[data-theme='dark'] .pageLineShort {
+  background: rgb(255 255 255 / 20%);
+}
+
+.tileCaption {
+  font-size: 0.7rem;
   font-weight: 600;
-  color: #fff;
-}
-
-.swatch[data-theme='light'] .swatchLabel {
-  color: #1a1a19;
+  color: rgb(255 255 255 / 65%);
 }
 
 .explanation {

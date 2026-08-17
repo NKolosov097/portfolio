@@ -3,7 +3,8 @@
 import styles from './PatternGallery.module.css'
 
 import { useEffect, useState } from 'react'
-import { Switch } from '@gravity-ui/uikit'
+import { Icon, Switch } from '@gravity-ui/uikit'
+import { Moon, Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
 import { ThemeDropdown } from './ThemeDropdown/ThemeDropdown'
@@ -72,9 +73,9 @@ export const PatternGallery = () => {
     }
   }
 
-  /** A real switch has only two positions, so — unlike Button — it always sets an explicit override; it can't hand you back to "system". */
+  /** A real switch has only two positions, so — unlike Button — it always sets an explicit override; it can't hand you back to "system". Checked (on) means light, mirroring a physical light switch. */
   const handleSwitchChange = (checked: boolean) => {
-    const next: TResolvedTheme = checked ? 'dark' : 'light'
+    const next: TResolvedTheme = checked ? 'light' : 'dark'
     setOverride(next)
     window.localStorage.setItem(STORAGE_KEY, next)
   }
@@ -140,14 +141,16 @@ export const PatternGallery = () => {
           className={styles.toggleButton}
           onClick={handleCycle}
           disabled={!isMounted}
+          aria-label={cycleLabel}
+          title={cycleLabel}
         >
-          {cycleLabel}
+          <Icon data={resolvedTheme === 'dark' ? Sun : Moon} size={20} />
         </button>
       )}
 
       {activePattern === 'switch' && (
         <Switch
-          checked={isMounted && resolvedTheme === 'dark'}
+          checked={isMounted && resolvedTheme === 'light'}
           onUpdate={handleSwitchChange}
           disabled={!isMounted}
           content={isMounted ? resolvedLabel : undefined}

@@ -50,6 +50,7 @@ export const TwoStatesAreEnoughContent = () => {
         <li>{t('articleContent.twoStatesAreEnough.hardPartsBullet1')}</li>
         <li>{t('articleContent.twoStatesAreEnough.hardPartsBullet2')}</li>
         <li>{t('articleContent.twoStatesAreEnough.hardPartsBullet3')}</li>
+        <li>{t('articleContent.twoStatesAreEnough.hardPartsBullet4')}</li>
       </ul>
 
       <h2 id="when-three-states-still-earn-their-keep">
