@@ -38,11 +38,11 @@ segment when `notFound()` is called from `page.tsx` — no changes needed there.
 
 ### Copy (new `articleNotFound` namespace, added to both locale files)
 
-| key | en | ru |
-|---|---|---|
-| `title` | There is no such article | Такой статьи не существует |
+| key           | en                                                               | ru                                                                           |
+| ------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `title`       | There is no such article                                         | Такой статьи не существует                                                   |
 | `description` | But don't worry! There's always something interesting to read :) | Но вы не расстраивайтесь! Всегда можно найти что-то интересное для чтения :) |
-| `backBtn` | Browse all articles | Ко всем статьям |
+| `backBtn`     | Browse all articles                                              | Ко всем статьям                                                              |
 
 Mirrors the tone of the existing sibling `notFound` namespace.
 

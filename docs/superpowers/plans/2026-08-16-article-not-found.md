@@ -23,12 +23,14 @@
 ### Task 1: Extract `NotFoundView` and refactor the global not-found page
 
 **Files:**
+
 - Create: `src/components/NotFoundView/NotFoundView.tsx`
 - Create: `src/components/NotFoundView/NotFoundView.module.css`
 - Modify: `src/app/not-found.tsx`
 - Modify: `src/styles/globals.css:173-191` (remove the four `.not-found-*` rules being migrated)
 
 **Interfaces:**
+
 - Produces: `NotFoundView` component, `import { NotFoundView } from '@/components/NotFoundView/NotFoundView'`, props `{ heading: string; description: string; linkHref: string; linkLabel: string; testId: string }`.
 
 - [ ] **Step 1: Create `NotFoundView.module.css`**
@@ -87,7 +89,11 @@ export const NotFoundView = ({
 
     <p className={styles.description}>{description}</p>
 
-    <Link href={linkHref} data-testid={testId} className={`g-link g-link_view_normal ${styles.link}`}>
+    <Link
+      href={linkHref}
+      data-testid={testId}
+      className={`g-link g-link_view_normal ${styles.link}`}
+    >
       {linkLabel}
     </Link>
   </section>
@@ -170,10 +176,12 @@ git commit -m "refactor: extract NotFoundView component from global not-found pa
 ### Task 2: Add `articleNotFound` translations
 
 **Files:**
+
 - Modify: `public/locales/en.json` (add `articleNotFound` namespace, alongside the existing `notFound` namespace)
 - Modify: `public/locales/ru.json` (same)
 
 **Interfaces:**
+
 - Consumes: nothing from Task 1.
 - Produces: translation keys `articleNotFound.title`, `articleNotFound.description`, `articleNotFound.backBtn` in both locale files, consumed by Task 3.
 
@@ -220,9 +228,11 @@ git commit -m "feat: add articleNotFound translation namespace"
 ### Task 3: Add the `articles/[slug]` not-found page
 
 **Files:**
+
 - Create: `src/app/articles/[slug]/not-found.tsx`
 
 **Interfaces:**
+
 - Consumes: `NotFoundView` from Task 1 (`import { NotFoundView } from '@/components/NotFoundView/NotFoundView'`), translation keys from Task 2 (`articleNotFound.title`, `articleNotFound.description`, `articleNotFound.backBtn`).
 
 - [ ] **Step 1: Create `src/app/articles/[slug]/not-found.tsx`**
