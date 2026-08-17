@@ -289,6 +289,9 @@
 }
 
 .drawerItem {
+  /* Gravity UI's own base-background token is a lighter gray than the app's palette; this panel's background shows through the gap that opens up on this side while the content drags away from it. */
+  --g-color-base-background: rgb(18 18 18);
+
   max-width: 100%;
 }
 
