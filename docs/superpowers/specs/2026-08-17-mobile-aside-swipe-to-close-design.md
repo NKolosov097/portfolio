@@ -13,7 +13,7 @@ Mobile users expect to also close it with a horizontal swipe gesture.
 - Swiping left on the open drawer closes it, mirroring the direction it
   opened from.
 - The panel visually follows the finger during the drag (`transform:
-  translateX()`), snapping either fully closed or back to rest depending on
+translateX()`), snapping either fully closed or back to rest depending on
   how far/fast the gesture went.
 - The gesture works anywhere on the panel, not just an edge/handle, and
   coexists with the panel's internal vertical scroll (`AsideContent` can be
@@ -77,7 +77,7 @@ State kept in refs inside the hook (not component state):
 - **`touchend` / `touchcancel`**:
   - If `direction !== 'horizontal'`: no-op (nothing was moved).
   - Compute `dx` (negative = moved left) and `velocity = |dx| /
-    (Date.now() - startTime)`.
+(Date.now() - startTime)`.
   - Close if `|dx| > element.offsetWidth * 0.25` **or**
     `velocity > 0.5` (px/ms) — the second clause catches fast short
     flicks that would miss the distance threshold.
@@ -85,12 +85,12 @@ State kept in refs inside the hook (not component state):
     `Drawer` unmounts/animates out via its own `open` prop transition, so
     the dragged element disappears with it.
   - If not closing: snap back — add a transient `transition:
-    transform 0.2s ease` inline style, set `transform: translateX(0)`,
+transform 0.2s ease` inline style, set `transform: translateX(0)`,
     then remove the inline `transition` after the transitionend (or a
     matching timeout fallback) so it doesn't fight future drags. Skip the
     animated snap-back (jump straight to `translateX(0)` with no
     transition) when `window.matchMedia('(prefers-reduced-motion:
-    reduce)').matches`.
+reduce)').matches`.
 
 ## Edge cases
 

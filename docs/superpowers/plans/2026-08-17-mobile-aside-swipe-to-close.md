@@ -658,8 +658,8 @@ git commit -m "test: cover swipe-to-close for the mobile aside drawer"
 ## Final Validation
 
 - [ ] Run `pnpm check-types && pnpm lint` — must be clean before considering this plan done (per
-  CLAUDE.md's Validation section).
+      CLAUDE.md's Validation section).
 - [ ] Run `pnpm test` (Vitest) — confirms Task 1's helpers still pass alongside the rest of the
-  suite.
+      suite.
 - [ ] Run `pnpm test:e2e` — confirms the full Playwright suite (all six projects) passes, not just
-  the new spec.
+      the new spec.
