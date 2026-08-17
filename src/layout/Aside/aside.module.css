@@ -281,6 +281,9 @@
 }
 
 .drawer {
+  /* Matches the app's own dark background so the veil composites back to the page color exactly, instead of Gravity UI's black default leaving a slightly darker seam while dragging. */
+  --g-color-sfx-veil: rgb(18 18 18 / 60%);
+
   overflow: hidden !important;
   width: 100%;
 }
