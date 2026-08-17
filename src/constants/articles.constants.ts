@@ -32,5 +32,22 @@ export const aiBoilerplateSeniorEngineersArticle: IArticleMeta = {
   readingTimeMinutes: 5,
 }
 
+/** Exported individually so consumers needing exactly this article skip a runtime `.find()`. */
+export const twoStatesAreEnoughArticle: IArticleMeta = {
+  slug: 'two-states-are-enough',
+  title: {
+    [ELanguage.en]: 'Two States Are Enough',
+    [ELanguage.ru]: 'Двух состояний достаточно',
+  },
+  description: {
+    [ELanguage.en]:
+      "A response to Lea Verou's case against tri-state dark mode toggles — and why two states plus a smart localStorage default aren't just simpler UX, they're the version that's actually easier to implement correctly.",
+    [ELanguage.ru]:
+      'Отклик на статью Леи Веру против трёхпозиционных переключателей темы — и почему связка «два состояния + localStorage по умолчанию» не только удобнее пользователю, но и проще реализовать без ошибок.',
+  },
+  publishedDate: '2026-08-17',
+  readingTimeMinutes: 4,
+}
+
 /** Every self-hosted article, in reverse-chronological display order. */
-export const ARTICLES: IArticleMeta[] = [aiBoilerplateSeniorEngineersArticle]
+export const ARTICLES: IArticleMeta[] = [twoStatesAreEnoughArticle, aiBoilerplateSeniorEngineersArticle]
