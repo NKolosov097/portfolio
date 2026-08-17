@@ -55,3 +55,28 @@ export const shouldCloseOnSwipeEnd = ({
 
 /** Clamps a drag offset so the panel can't be dragged past its resting position. */
 export const clampSwipeTranslateX = (dx: number): number => Math.min(0, dx)
+
+/**
+ * Exponent applied to drag progress before dimming the veil. The veil's own base color is a
+ * fairly light tint, so a linear fade already reads as "almost gone" a few dozen pixels into the
+ * drag; an exponent above 1 keeps early movement from dimming it much, with the fade accelerating
+ * as the drag continues.
+ */
+export const VEIL_FADE_EASE_EXPONENT = 2
+
+export interface IResolveVeilOpacityParams {
+  /** Horizontal drag offset already clamped to the resting side, in px (<= 0). */
+  clampedDx: number
+  /** Width of the dragged panel, in px — a full-width drag fully fades the veil. */
+  panelWidthPx: number
+}
+
+/** Opacity for the Drawer's veil at the current drag offset: eases in slowly, reaching 0 at a full-width drag. */
+export const resolveVeilOpacity = ({
+  clampedDx,
+  panelWidthPx,
+}: IResolveVeilOpacityParams): number => {
+  const dragProgress = panelWidthPx > 0 ? Math.min(1, Math.abs(clampedDx) / panelWidthPx) : 1
+
+  return 1 - dragProgress ** VEIL_FADE_EASE_EXPONENT
+}

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   clampSwipeTranslateX,
   resolveSwipeAxis,
+  resolveVeilOpacity,
   shouldCloseOnSwipeEnd,
   type TSwipeAxis,
 } from '@/layout/Aside/hooks/swipeGesture'
@@ -127,9 +128,9 @@ export const useSwipeToClose = ({
         element.style.transform = `translateX(${clampedDx}px)`
 
         if (veilElement) {
-          const dragProgress = Math.min(1, Math.abs(clampedDx) / element.offsetWidth)
-
-          veilElement.style.opacity = String(1 - dragProgress)
+          veilElement.style.opacity = String(
+            resolveVeilOpacity({ clampedDx, panelWidthPx: element.offsetWidth }),
+          )
         }
       }
     }

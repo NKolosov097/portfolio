@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   clampSwipeTranslateX,
   resolveSwipeAxis,
+  resolveVeilOpacity,
   shouldCloseOnSwipeEnd,
 } from '@/layout/Aside/hooks/swipeGesture'
 
@@ -58,5 +59,23 @@ describe('clampSwipeTranslateX', () => {
 
   it('leaves zero at zero', () => {
     expect(clampSwipeTranslateX(0)).toBe(0)
+  })
+})
+
+describe('resolveVeilOpacity', () => {
+  it('stays fully opaque at rest', () => {
+    expect(resolveVeilOpacity({ clampedDx: 0, panelWidthPx: 400 })).toBe(1)
+  })
+
+  it('barely dims a short drag, thanks to the ease-in curve', () => {
+    expect(resolveVeilOpacity({ clampedDx: -50, panelWidthPx: 400 })).toBeCloseTo(0.984, 3)
+  })
+
+  it('reaches zero at a full-width drag', () => {
+    expect(resolveVeilOpacity({ clampedDx: -400, panelWidthPx: 400 })).toBe(0)
+  })
+
+  it('clamps drags past the panel width to zero rather than going negative', () => {
+    expect(resolveVeilOpacity({ clampedDx: -600, panelWidthPx: 400 })).toBe(0)
   })
 })
