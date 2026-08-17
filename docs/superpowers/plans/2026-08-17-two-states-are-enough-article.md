@@ -12,7 +12,7 @@
 
 - Strict TypeScript: no `any`, no type assertions (`as`); use type guards/discriminated unions instead. Boolean identifiers prefixed `is`/`has`.
 - JSDoc on interface/type fields, component props, and non-`useState` variables — one line, states the non-obvious reason only.
-- Comments elsewhere: 1-2 lines max, state the *why*, not the *what*.
+- Comments elsewhere: 1-2 lines max, state the _why_, not the _what_.
 - True module-level constants in `UPPER_SNAKE_CASE`.
 - Each component in its own directory with a separate `.module.css` file.
 - Stable `data-testid` (no random selectors).
@@ -26,10 +26,12 @@
 ### Task 1: Article metadata
 
 **Files:**
+
 - Modify: `src/constants/articles.constants.ts`
 - Test: `src/constants/articles.constants.test.ts` (already generic — no edits, just re-run)
 
 **Interfaces:**
+
 - Consumes: `IArticleMeta`, `ELanguage` (both already defined in this file / `@/constants/header.constants`).
 - Produces: `twoStatesAreEnoughArticle: IArticleMeta` — consumed by Task 4 (registry wiring) via its `.slug`.
 
@@ -67,7 +69,10 @@ export const ARTICLES: IArticleMeta[] = [aiBoilerplateSeniorEngineersArticle]
 to (newest first — this article publishes after the existing one):
 
 ```ts
-export const ARTICLES: IArticleMeta[] = [twoStatesAreEnoughArticle, aiBoilerplateSeniorEngineersArticle]
+export const ARTICLES: IArticleMeta[] = [
+  twoStatesAreEnoughArticle,
+  aiBoilerplateSeniorEngineersArticle,
+]
 ```
 
 - [ ] **Step 3: Run the existing constants test**
@@ -87,11 +92,13 @@ git commit -m "feat: add Two States Are Enough article metadata"
 ### Task 2: Locale copy (EN + RU)
 
 **Files:**
+
 - Modify: `public/locales/en.json`
 - Modify: `public/locales/ru.json`
 - Test: `src/configs/i18n/locales.test.ts` (already generic — no edits, just re-run)
 
 **Interfaces:**
+
 - Produces: every key under `articleContent.twoStatesAreEnough.*`, consumed by Task 3 (`ThemeToggleDemo`) and Task 4 (`Content.tsx`) via `t('articleContent.twoStatesAreEnough.<key>')`.
 
 - [ ] **Step 1: Add the English keys**
@@ -181,11 +188,13 @@ git commit -m "feat: add Two States Are Enough article copy (en/ru)"
 ### Task 3: `ThemeToggleDemo` component
 
 **Files:**
+
 - Create: `src/content/articles/two-states-are-enough/ThemeToggleDemo/ThemeToggleDemo.tsx`
 - Create: `src/content/articles/two-states-are-enough/ThemeToggleDemo/ThemeToggleDemo.module.css`
 - Modify: `eslint.config.mjs`
 
 **Interfaces:**
+
 - Consumes: locale keys from Task 2 (`articleContent.twoStatesAreEnough.demo*`).
 - Produces: `ThemeToggleDemo` (default + named export), a self-contained `'use client'` component with no props — consumed by Task 4's `Content.tsx` as `<ThemeToggleDemo />`.
 
@@ -276,12 +285,7 @@ export const ThemeToggleDemo = () => {
         </p>
       </div>
 
-      <button
-        type="button"
-        className={styles.toggle}
-        onClick={handleToggle}
-        disabled={!isMounted}
-      >
+      <button type="button" className={styles.toggle} onClick={handleToggle} disabled={!isMounted}>
         {resolvedTheme === 'dark'
           ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
           : t('articleContent.twoStatesAreEnough.demoToggleToDark')}
@@ -474,10 +478,12 @@ git commit -m "feat: add the ThemeToggleDemo component for the Two States Are En
 ### Task 4: Article body + registry wiring
 
 **Files:**
+
 - Create: `src/content/articles/two-states-are-enough/Content.tsx`
 - Modify: `src/content/articles/registry.ts`
 
 **Interfaces:**
+
 - Consumes: `twoStatesAreEnoughArticle` (Task 1, for its `.slug`), `ThemeToggleDemo` (Task 3), `IArticleHeadingEntry` (already exported from `registry.ts`), locale keys from Task 2.
 - Produces: `TwoStatesAreEnoughContent` (default export) + `HEADINGS` export — consumed by this task's own `registry.ts` edit.
 
@@ -595,6 +601,7 @@ Expected: both PASS.
 
 Run: `pnpm dev`
 Visit `http://localhost:3000/articles/two-states-are-enough` and confirm:
+
 - The title, all three headings, and the closing paragraph render.
 - `ThemeToggleDemo` renders with the mini preview, one toggle button, and the three-row state readout.
 - Clicking the toggle flips the preview's background and the "Resolved theme" row; a second click returns "Your override" to "None — following system".

@@ -10,7 +10,7 @@ that a two-state toggle backed by a `localStorage` override with a
 
 The author agrees with that thesis and adds an engineering angle: two-state is
 not just better UX, it's also the version that's easier to implement
-*correctly* — with three concrete failure modes teams hit in practice.
+_correctly_ — with three concrete failure modes teams hit in practice.
 
 Lea's original post illustrates its points with screenshots of third-party
 products (Tailwind, Ant Design, Red Hat Design System, Vitepress, Radix,
@@ -74,7 +74,7 @@ any), not as a clickable link.
 3. **H2 `tri-state-is-implementation-driven-ui` — "The Tri-State Toggle Is
    Implementation-Driven UI"** — restates Lea's core argument: a theme always
    resolves to exactly one of two rendered values; the third option exists
-   because the *source* of that value can vary, not because there's a third
+   because the _source_ of that value can vary, not because there's a third
    way the page looks. Users reach for a toggle to fix a current discomfort,
    not to plan ahead.
 4. **H2 `where-two-state-actually-gets-hard` — "Where Two-State Actually Gets
@@ -102,6 +102,7 @@ Self-contained card, structurally similar to `AdoptionStatsChart` (own
 `.module.css`, own `data-testid`, `'use client'`).
 
 **Visual elements:**
+
 - Eyebrow ("Try it")
 - Mini site preview (heading + one line of body text) whose background/text
   color actually renders in the resolved light/dark theme
@@ -113,6 +114,7 @@ Self-contained card, structurally similar to `AdoptionStatsChart` (own
   not simulated
 
 **State & logic:**
+
 - `osPrefersDark: boolean | null` — `null` until mounted; set in `useEffect`
   from `window.matchMedia('(prefers-color-scheme: dark)')`, with a `change`
   listener kept live for the component's lifetime
@@ -125,6 +127,7 @@ Self-contained card, structurally similar to `AdoptionStatsChart` (own
   already used elsewhere in this codebase for mount-order-sensitive UI
 
 **Toggle click handler:**
+
 ```
 if (storedOverride === null) {
   // first press: override to the opposite of what's currently shown
@@ -134,6 +137,7 @@ if (storedOverride === null) {
   set storedOverride = null
 }
 ```
+
 This is exactly the two-press cycle Lea describes: override → follow system →
 override → ... A change to `osPrefersDark` while overridden never touches
 `storedOverride` — matching the "don't proactively clear on OS change" rule
