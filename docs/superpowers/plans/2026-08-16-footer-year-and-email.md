@@ -13,7 +13,7 @@
 - Strict TypeScript: no `any`, no type assertions; boolean identifiers prefixed `is`/`has`.
 - JSDoc on interface/type fields and component props (n/a here — no new props/types introduced).
 - Comments only where the why is non-obvious; 1-2 lines max.
-- Use stable `data-testid` selectors for QA — no randomly generated ones, and not Gravity UI's own `qa` prop (unused elsewhere in this codebase).
+- Use stable selectors for QA — no randomly generated ones. Here that's Gravity UI's `qa` prop (renders as `data-qa`): `MenuItemProps.extraProps` has no `data-*` index signature in this project's `@types/react`, so a `data-testid` there fails `tsc`'s object-literal excess-property check.
 - `pnpm check-types && pnpm lint` must pass before considering the task done.
 - Commits are authored by the repo owner only — do not add a `Co-Authored-By` trailer.
 - No new translation keys — neither the copyright string nor the email address is localized elsewhere in the project.
@@ -23,9 +23,11 @@
 ### Task 1: Add current-year copyright and email link to the footer
 
 **Files:**
+
 - Modify: `src/layout/Footer/Footer.tsx`
 
 **Interfaces:**
+
 - Consumes: `EMAIL` from `@/constants/constants` (already exported, already used the same way — untranslated, raw string — in `src/home-sections/AboutMe/AboutMe.tsx:90`).
 
 - [ ] **Step 1: Update `src/layout/Footer/Footer.tsx`**
@@ -47,7 +49,7 @@ export const Footer = () => {
         {
           text: EMAIL,
           href: `mailto:${EMAIL}`,
-          extraProps: { 'data-testid': 'footer-email-link' },
+          qa: 'footer-email-link',
         },
       ]}
     />
@@ -65,7 +67,7 @@ Expected: both pass with no errors.
 Run: `pnpm dev`, open `http://localhost:3000/` in a browser (or drive it with Playwright, as
 used earlier in this project for the not-found pages — `curl` won't show client-rendered text).
 Expected: the footer shows the current year followed by "NKolosov097", and a link with the
-email address (`data-testid="footer-email-link"`) whose `href` is `mailto:<the EMAIL constant's
+email address (`data-qa="footer-email-link"`) whose `href` is `mailto:<the EMAIL constant's
 value>`. Clicking it should trigger the OS/browser mail-client handler (or at least resolve to
 the right `href` — Playwright's `getAttribute('href')` is enough to confirm this without
 actually launching a mail client).

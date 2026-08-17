@@ -14,12 +14,18 @@ Single-file change, `src/layout/Footer/Footer.tsx`:
 
 - **Copyright:** replace the hardcoded string with `` `${new Date().getFullYear()} NKolosov097` ``,
   so the year is always current.
-- **Email link:** pass `menuItems={[{ text: EMAIL, href: `mailto:${EMAIL}`, extraProps: {
-  'data-testid': 'footer-email-link' } }]}`, importing `EMAIL` from `@/constants/constants` (same
-  constant already displayed, untranslated, in `AboutMe.tsx`). `GravityFooter` renders `menuItems`
-  as a link list to the left of the copyright — no extra markup or styling needed.
-- Uses `data-testid` for the QA selector (the project's existing convention), not Gravity UI's own
-  `qa` prop, which isn't used anywhere else in this codebase.
+- **Email link:** pass `menuItems={[{ text: EMAIL, href: `mailto:${EMAIL}`, qa:
+'footer-email-link' }]}`, importing `EMAIL` from `@/constants/constants` (same constant already
+  displayed, untranslated, in `AboutMe.tsx`). `GravityFooter` renders `menuItems` as a link list to
+  the left of the copyright — no extra markup or styling needed.
+- Uses Gravity UI's `qa` prop (renders as `data-qa` in the DOM) for the QA selector.
+  `MenuItemProps.extraProps` is typed as `HTMLAttributes<HTMLDivElement> |
+AnchorHTMLAttributes<HTMLAnchorElement>` with no `data-*` index signature in this project's
+  `@types/react` (19.2.14), so a `data-testid` there fails `tsc` with "object literal may only
+  specify known properties" — TypeScript's JSX-level allowance for arbitrary `data-*` attributes
+  doesn't extend to a plain object literal assigned to an `HTMLAttributes`-typed field. `qa` is the
+  type-safe, first-class alternative this component ships for exactly this purpose, even though
+  it isn't used elsewhere in the codebase yet.
 - No new translation keys — neither the copyright string nor the email address is localized
   elsewhere in the project.
 
