@@ -102,7 +102,7 @@ src/
 │     └─ types/         #   section-local types
 ├─ content/articles/    # Article body components, one directory per slug, plus registry.ts
 ├─ layout/              # Persistent shell: Header, Aside (drawer), Main, Footer
-├─ components/          # Shared UI: Tag, SkipToNavigationLink, and the articles list/page/nav components
+├─ components/          # Shared UI: Tag, SkipToNavigationLink, NotFoundView, and the articles list/page/nav components
 ├─ providers/           # React context providers, composed in Providers.tsx
 │  └─ stores/           #   store providers that instantiate Zustand stores once
 ├─ stores/              # Zustand vanilla stores (AsideStore, HeaderStore)
