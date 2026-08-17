@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next'
 
 import type { IArticleHeadingEntry } from '@/content/articles/registry'
 
-import { ThemeToggleDemo } from './ThemeToggleDemo/ThemeToggleDemo'
+import { CombinationGrid } from './CombinationGrid/CombinationGrid'
+import { PatternGallery } from './PatternGallery/PatternGallery'
 
 /** This article's section headings, in document order, for the reading-progress rail. */
 export const HEADINGS: IArticleHeadingEntry[] = [
@@ -29,31 +30,33 @@ export const TwoStatesAreEnoughContent = () => {
     <>
       <p>{t('articleContent.twoStatesAreEnough.intro1')}</p>
       <p>{t('articleContent.twoStatesAreEnough.intro2')}</p>
-      <p>{t('articleContent.twoStatesAreEnough.intro3')}</p>
 
-      <ThemeToggleDemo />
+      <CombinationGrid />
 
       <h2 id="the-tri-state-toggle-is-implementation-driven-ui">
         {t('articleContent.twoStatesAreEnough.implementationDrivenHeading')}
       </h2>
 
-      <p>{t('articleContent.twoStatesAreEnough.implementationDriven1')}</p>
-      <p>{t('articleContent.twoStatesAreEnough.implementationDriven2')}</p>
+      <p>{t('articleContent.twoStatesAreEnough.implementationDriven')}</p>
+
+      <PatternGallery />
 
       <h2 id="where-two-state-actually-gets-hard">
         {t('articleContent.twoStatesAreEnough.hardPartsHeading')}
       </h2>
 
-      <p>{t('articleContent.twoStatesAreEnough.hardParts1')}</p>
-      <p>{t('articleContent.twoStatesAreEnough.hardParts2')}</p>
-      <p>{t('articleContent.twoStatesAreEnough.hardParts3')}</p>
+      <p>{t('articleContent.twoStatesAreEnough.hardPartsLead')}</p>
+      <ul>
+        <li>{t('articleContent.twoStatesAreEnough.hardPartsBullet1')}</li>
+        <li>{t('articleContent.twoStatesAreEnough.hardPartsBullet2')}</li>
+        <li>{t('articleContent.twoStatesAreEnough.hardPartsBullet3')}</li>
+      </ul>
 
       <h2 id="when-three-states-still-earn-their-keep">
         {t('articleContent.twoStatesAreEnough.whenThreeEarnHeading')}
       </h2>
 
-      <p>{t('articleContent.twoStatesAreEnough.whenThreeEarn1')}</p>
-      <p>{t('articleContent.twoStatesAreEnough.whenThreeEarn2')}</p>
+      <p>{t('articleContent.twoStatesAreEnough.whenThreeEarn')}</p>
 
       <p>{t('articleContent.twoStatesAreEnough.closing')}</p>
     </>

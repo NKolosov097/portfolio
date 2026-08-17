@@ -1,9 +1,12 @@
 'use client'
 
-import styles from './ThemeToggleDemo.module.css'
+import styles from './PatternGallery.module.css'
 
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { ThemeDropdown } from './ThemeDropdown/ThemeDropdown'
+import type { TDropdownValue } from './ThemeDropdown/ThemeDropdown'
 
 /** This demo's own localStorage key — scoped to the demo only, unrelated to the site's own (dark-only) theme. */
 const STORAGE_KEY = 'demo-theme-override'
@@ -14,13 +17,26 @@ type TThemeOverride = 'light' | 'dark' | null
 /** What's actually rendered — always exactly one of these two. */
 type TResolvedTheme = 'light' | 'dark'
 
+/** Which input affordance the reader is currently trying — same underlying state, different UI. */
+type TPattern = 'button' | 'switch' | 'dropdown'
+
+const PATTERNS: TPattern[] = ['button', 'switch', 'dropdown']
+
+/** Locale key for each tab's label, keyed by pattern so lookups stay typed instead of built from a string template. */
+const TAB_LABEL_KEYS: Record<TPattern, string> = {
+  button: 'articleContent.twoStatesAreEnough.demoTabButtonLabel',
+  switch: 'articleContent.twoStatesAreEnough.demoTabSwitchLabel',
+  dropdown: 'articleContent.twoStatesAreEnough.demoTabDropdownLabel',
+}
+
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
   value === 'light' || value === 'dark'
 
-export const ThemeToggleDemo = () => {
+export const PatternGallery = () => {
   const { t } = useTranslation()
   const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
   const [override, setOverride] = useState<TThemeOverride>(null)
+  const [activePattern, setActivePattern] = useState<TPattern>('button')
 
   // matchMedia and localStorage don't exist during SSR; reading them only after mount
   // keeps the first client render identical to the server-rendered placeholder.
@@ -43,16 +59,26 @@ export const ThemeToggleDemo = () => {
   const isMounted = osPrefersDark !== null
   const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
 
-  const handleToggle = () => {
+  /** Shared by the Button and Switch patterns: press 1 overrides to the opposite shade, press 2 clears back to system. */
+  const handleCycle = () => {
     if (override === null) {
-      // First press: override to the opposite of what's currently shown.
       const next: TResolvedTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
       setOverride(next)
       window.localStorage.setItem(STORAGE_KEY, next)
     } else {
-      // Second press: drop the override and fall back to the system preference.
       setOverride(null)
       window.localStorage.removeItem(STORAGE_KEY)
+    }
+  }
+
+  /** The Dropdown pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+  const handleSelectChange = (value: TDropdownValue) => {
+    if (value === 'system') {
+      setOverride(null)
+      window.localStorage.removeItem(STORAGE_KEY)
+    } else {
+      setOverride(value)
+      window.localStorage.setItem(STORAGE_KEY, value)
     }
   }
 
@@ -66,10 +92,30 @@ export const ThemeToggleDemo = () => {
       : override === 'dark'
         ? darkLabel
         : lightLabel
+  const cycleLabel =
+    resolvedTheme === 'dark'
+      ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
+      : t('articleContent.twoStatesAreEnough.demoToggleToDark')
 
   return (
-    <div className={styles.card} data-testid="theme-toggle-demo">
+    <div className={styles.card} data-testid="pattern-gallery">
       <p className={styles.eyebrow}>{t('articleContent.twoStatesAreEnough.demoEyebrow')}</p>
+
+      <div className={styles.tabs} role="tablist" aria-label="Theme control pattern">
+        {PATTERNS.map((pattern) => (
+          <button
+            key={pattern}
+            type="button"
+            role="tab"
+            className={styles.tab}
+            aria-selected={activePattern === pattern}
+            data-active={activePattern === pattern}
+            onClick={() => setActivePattern(pattern)}
+          >
+            {t(TAB_LABEL_KEYS[pattern])}
+          </button>
+        ))}
+      </div>
 
       <div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
         <p className={styles.previewHeading}>
@@ -80,11 +126,39 @@ export const ThemeToggleDemo = () => {
         </p>
       </div>
 
-      <button type="button" className={styles.toggle} onClick={handleToggle} disabled={!isMounted}>
-        {resolvedTheme === 'dark'
-          ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
-          : t('articleContent.twoStatesAreEnough.demoToggleToDark')}
-      </button>
+      {activePattern === 'button' && (
+        <button
+          type="button"
+          className={styles.toggleButton}
+          onClick={handleCycle}
+          disabled={!isMounted}
+        >
+          {cycleLabel}
+        </button>
+      )}
+
+      {activePattern === 'switch' && (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={resolvedTheme === 'dark'}
+          aria-label={cycleLabel}
+          className={styles.switchTrack}
+          data-checked={resolvedTheme === 'dark'}
+          onClick={handleCycle}
+          disabled={!isMounted}
+        >
+          <span className={styles.switchKnob} />
+        </button>
+      )}
+
+      {activePattern === 'dropdown' && (
+        <ThemeDropdown
+          value={isMounted ? (override ?? 'system') : 'system'}
+          onChange={handleSelectChange}
+          disabled={!isMounted}
+        />
+      )}
 
       <dl className={styles.state}>
         <div className={styles.stateRow}>
@@ -112,4 +186,4 @@ export const ThemeToggleDemo = () => {
   )
 }
 
-export default ThemeToggleDemo
+export default PatternGallery

@@ -37,6 +37,23 @@
   margin-bottom: 0;
 }
 
+.content > ul {
+  padding-left: 1.25em;
+  margin: 0 0 1.25em;
+}
+
+.content > ul li {
+  margin-bottom: 0.5em;
+}
+
+.content > ul li:last-child {
+  margin-bottom: 0;
+}
+
+.content > ul:last-child {
+  margin-bottom: 0;
+}
+
 .missing {
   color: #f87171;
   font-family: monospace;

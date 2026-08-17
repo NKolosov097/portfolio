@@ -1,0 +1,108 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+  margin: 2rem 0;
+  background: #111;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 50%);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 0.75rem;
+  transition: border-color 0.15s ease-out;
+}
+
+.tile:hover:not(:disabled) {
+  border-color: rgb(255 255 255 / 35%);
+}
+
+.tile[data-selected='true'] {
+  border-color: var(--g-color-line-brand);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--g-color-line-brand);
+  outline-offset: 2px;
+}
+
+.tile:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.badge {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgb(255 255 255 / 18%);
+  border-radius: 999px;
+}
+
+.tileLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 65%);
+}
+
+.swatch {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0.6rem;
+  background: rgb(255 255 255 / 6%);
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease-out;
+}
+
+.swatch[data-theme='light'] {
+  background: #f5f5f4;
+}
+
+.swatch[data-theme='dark'] {
+  background: #1a1a19;
+}
+
+.swatchLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.swatch[data-theme='light'] .swatchLabel {
+  color: #1a1a19;
+}
+
+.caption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 45%);
+}
