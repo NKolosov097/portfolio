@@ -170,26 +170,6 @@ body:not(.error-body) {
   margin-top: 1rem;
 }
 
-.not-found-section {
-  margin-top: 2rem;
-}
-
-.not-found-header {
-  width: 100%;
-  text-align: center;
-  font-size: 1.8rem;
-  margin: 0;
-}
-
-.not-found-description,
-.not-found-link {
-  font-size: 1rem;
-}
-
-.not-found-description {
-  margin: 1rem 0;
-}
-
 aside {
   position: fixed;
   top: 50%;
