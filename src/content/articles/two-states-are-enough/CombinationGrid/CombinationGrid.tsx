@@ -66,10 +66,17 @@ export const CombinationGrid = () => {
                 disabled={!isMounted}
                 onClick={() => setSelected({ native, site })}
               >
-                {isYou && <span className={styles.badge}>{t('articleContent.twoStatesAreEnough.gridYouBadge')}</span>}
+                {isYou && (
+                  <span className={styles.badge}>
+                    {t('articleContent.twoStatesAreEnough.gridYouBadge')}
+                  </span>
+                )}
+
                 <span className={styles.tileLabel}>
+                  <span className={styles.nativeDot} data-theme={native} aria-hidden="true" />
                   {t('articleContent.twoStatesAreEnough.gridNativeLabel')}: {shadeLabel(native)}
                 </span>
+
                 <span className={styles.swatch} data-theme={site}>
                   <span className={styles.swatchLabel}>
                     {t('articleContent.twoStatesAreEnough.gridSiteLabel')}: {shadeLabel(site)}
@@ -80,6 +87,19 @@ export const CombinationGrid = () => {
           }),
         )}
       </div>
+
+      {selected !== null && (
+        <p className={styles.explanation}>
+          {selected.native === selected.site
+            ? t('articleContent.twoStatesAreEnough.gridExplanationMatches', {
+                shade: shadeLabel(selected.site),
+              })
+            : t('articleContent.twoStatesAreEnough.gridExplanationOverride', {
+                native: shadeLabel(selected.native),
+                site: shadeLabel(selected.site),
+              })}
+        </p>
+      )}
 
       <p className={styles.caption}>{t('articleContent.twoStatesAreEnough.gridCaption')}</p>
     </div>

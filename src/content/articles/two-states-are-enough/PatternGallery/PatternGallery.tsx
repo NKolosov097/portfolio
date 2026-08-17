@@ -3,6 +3,7 @@
 import styles from './PatternGallery.module.css'
 
 import { useEffect, useState } from 'react'
+import { Switch } from '@gravity-ui/uikit'
 import { useTranslation } from 'react-i18next'
 
 import { ThemeDropdown } from './ThemeDropdown/ThemeDropdown'
@@ -59,7 +60,7 @@ export const PatternGallery = () => {
   const isMounted = osPrefersDark !== null
   const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
 
-  /** Shared by the Button and Switch patterns: press 1 overrides to the opposite shade, press 2 clears back to system. */
+  /** The Button pattern's 2-press cycle: press 1 overrides to the opposite shade, press 2 clears back to system. */
   const handleCycle = () => {
     if (override === null) {
       const next: TResolvedTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
@@ -69,6 +70,13 @@ export const PatternGallery = () => {
       setOverride(null)
       window.localStorage.removeItem(STORAGE_KEY)
     }
+  }
+
+  /** A real switch has only two positions, so — unlike Button — it always sets an explicit override; it can't hand you back to "system". */
+  const handleSwitchChange = (checked: boolean) => {
+    const next: TResolvedTheme = checked ? 'dark' : 'light'
+    setOverride(next)
+    window.localStorage.setItem(STORAGE_KEY, next)
   }
 
   /** The Dropdown pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
@@ -138,18 +146,12 @@ export const PatternGallery = () => {
       )}
 
       {activePattern === 'switch' && (
-        <button
-          type="button"
-          role="switch"
-          aria-checked={resolvedTheme === 'dark'}
-          aria-label={cycleLabel}
-          className={styles.switchTrack}
-          data-checked={resolvedTheme === 'dark'}
-          onClick={handleCycle}
+        <Switch
+          checked={isMounted && resolvedTheme === 'dark'}
+          onUpdate={handleSwitchChange}
           disabled={!isMounted}
-        >
-          <span className={styles.switchKnob} />
-        </button>
+          content={isMounted ? resolvedLabel : undefined}
+        />
       )}
 
       {activePattern === 'dropdown' && (

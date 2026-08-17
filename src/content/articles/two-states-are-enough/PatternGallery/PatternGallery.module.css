@@ -117,48 +117,6 @@
   opacity: 0.5;
 }
 
-.switchTrack {
-  position: relative;
-  align-self: flex-start;
-  width: 3rem;
-  height: 1.75rem;
-  padding: 0;
-  cursor: pointer;
-  background: rgb(255 255 255 / 15%);
-  border: 1px solid rgb(255 255 255 / 20%);
-  border-radius: 999px;
-  transition: background-color 0.15s ease-out;
-}
-
-.switchTrack[data-checked='true'] {
-  background: rgb(255 255 255 / 32%);
-}
-
-.switchTrack:focus-visible {
-  outline: 2px solid var(--g-color-line-brand);
-  outline-offset: 2px;
-}
-
-.switchTrack:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.switchKnob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 1.25rem;
-  height: 1.25rem;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.15s ease-out;
-}
-
-.switchTrack[data-checked='true'] .switchKnob {
-  transform: translateX(1.25rem);
-}
-
 .state {
   display: flex;
   flex-direction: column;
