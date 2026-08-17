@@ -11,6 +11,12 @@
     "backBtn": "Go back to the main page"
   },
 
+  "articleNotFound": {
+    "title": "There is no such article",
+    "description": "But don't worry! There's always something interesting to read :)",
+    "backBtn": "Browse all articles"
+  },
+
   "firstName": "Nikita",
   "lastName": "Kolosov",
   "name": "Name",
