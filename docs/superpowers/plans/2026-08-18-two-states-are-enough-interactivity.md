@@ -660,13 +660,13 @@ still sorts between `CombinationGrid` and `PatternGallery`.)
 Then replace:
 
 ```tsx
-      <LightDarkSnippet />
+<LightDarkSnippet />
 ```
 
 with:
 
 ```tsx
-      <LightDarkDemo />
+<LightDarkDemo />
 ```
 
 No other line in `Content.tsx` changes — `lightDarkIntro` still renders as the `<p>` immediately

@@ -125,7 +125,7 @@ untouched, only the render output changes.
      (`handleSwitchChange`).
    - Tile 3: a label (`demoTabDropdownLabel`, "Dropdown") above the existing `<ThemeDropdown>`
      (`handleSelectChange`).
-   No new locale keys — the three existing tab-label keys are reused verbatim as tile captions.
+     No new locale keys — the three existing tab-label keys are reused verbatim as tile captions.
 3. The existing shared preview (`.preview`, `data-theme={resolvedTheme}`), moved to sit right after
    the controls row instead of before a single active control.
 4. The existing state readout `<dl>` (OS preference / Your override / Resolved theme) — unchanged.
