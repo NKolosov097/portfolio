@@ -5,7 +5,10 @@ import { useTranslation } from 'react-i18next'
 import type { IArticleHeadingEntry } from '@/content/articles/registry'
 
 import { CombinationGrid } from './CombinationGrid/CombinationGrid'
+import { LightDarkSnippet } from './LightDarkSnippet/LightDarkSnippet'
 import { PatternGallery } from './PatternGallery/PatternGallery'
+import { PatternsInTheWild } from './PatternsInTheWild/PatternsInTheWild'
+import { SwitchAnalogy } from './SwitchAnalogy/SwitchAnalogy'
 
 /** This article's section headings, in document order, for the reading-progress rail. */
 export const HEADINGS: IArticleHeadingEntry[] = [
@@ -31,13 +34,21 @@ export const TwoStatesAreEnoughContent = () => {
       <p>{t('articleContent.twoStatesAreEnough.intro1')}</p>
       <p>{t('articleContent.twoStatesAreEnough.intro2')}</p>
 
+      <SwitchAnalogy />
+
       <CombinationGrid />
+
+      <PatternsInTheWild />
 
       <h2 id="the-tri-state-toggle-is-implementation-driven-ui">
         {t('articleContent.twoStatesAreEnough.implementationDrivenHeading')}
       </h2>
 
       <p>{t('articleContent.twoStatesAreEnough.implementationDriven')}</p>
+
+      <p>{t('articleContent.twoStatesAreEnough.lightDarkIntro')}</p>
+
+      <LightDarkSnippet />
 
       <PatternGallery />
 
