@@ -1,0 +1,108 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+  margin: 2rem 0;
+  background: #111;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 50%);
+}
+
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tile {
+  display: flex;
+  flex: 1 1 9rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 0.75rem;
+}
+
+.segmented {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+}
+
+.segment {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 55%);
+  background: none;
+}
+
+.segment[data-active='true'] {
+  color: #111;
+  background: rgb(255 255 255 / 85%);
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.settingsLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.settingsSwitch {
+  position: relative;
+  width: 1.75rem;
+  height: 1rem;
+  background: rgb(255 255 255 / 20%);
+  border-radius: 999px;
+}
+
+.settingsSwitchKnob {
+  position: absolute;
+  top: 50%;
+  left: 70%;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.tileCaption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 55%);
+}
