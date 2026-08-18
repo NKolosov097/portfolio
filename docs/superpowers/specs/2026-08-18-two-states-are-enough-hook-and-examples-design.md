@@ -90,7 +90,7 @@ paraphrase, not a copy:
    "System") in one pill-shaped group, one marked active. Caption names real products in plain
    text: this exact shape appears in Tailwind's own docs, Ant Design, and Radix Themes.
 2. **Single icon toggle** — one round button with a sun/moon icon (reuse the existing `@gravity-ui/
-   icons` `Sun`/`Moon` icons already imported in `PatternGallery`, avoiding a new icon dependency).
+icons` `Sun`/`Moon` icons already imported in `PatternGallery`, avoiding a new icon dependency).
    Caption: this is the shape VitePress and Material Design use.
 3. **Settings-row switches** — a small mocked list row with a label ("Appearance") and a switch (or
    two, one plain rectangle standing for a second control) at the trailing edge. Caption: Bluesky
