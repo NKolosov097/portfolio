@@ -19,18 +19,6 @@ type TThemeOverride = 'light' | 'dark' | null
 /** What's actually rendered — always exactly one of these two. */
 type TResolvedTheme = 'light' | 'dark'
 
-/** Which input affordance the reader is currently trying — same underlying state, different UI. */
-type TPattern = 'button' | 'switch' | 'dropdown'
-
-const PATTERNS: TPattern[] = ['button', 'switch', 'dropdown']
-
-/** Locale key for each tab's label, keyed by pattern so lookups stay typed instead of built from a string template. */
-const TAB_LABEL_KEYS: Record<TPattern, string> = {
-  button: 'articleContent.twoStatesAreEnough.demoTabButtonLabel',
-  switch: 'articleContent.twoStatesAreEnough.demoTabSwitchLabel',
-  dropdown: 'articleContent.twoStatesAreEnough.demoTabDropdownLabel',
-}
-
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
   value === 'light' || value === 'dark'
 
@@ -38,7 +26,6 @@ export const PatternGallery = () => {
   const { t } = useTranslation()
   const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
   const [override, setOverride] = useState<TThemeOverride>(null)
-  const [activePattern, setActivePattern] = useState<TPattern>('button')
 
   // matchMedia and localStorage don't exist during SSR; reading them only after mount
   // keeps the first client render identical to the server-rendered placeholder.
@@ -110,20 +97,45 @@ export const PatternGallery = () => {
     <div className={styles.card} data-testid="pattern-gallery">
       <p className={styles.eyebrow}>{t('articleContent.twoStatesAreEnough.demoEyebrow')}</p>
 
-      <div className={styles.tabs} role="tablist" aria-label="Theme control pattern">
-        {PATTERNS.map((pattern) => (
+      <div className={styles.controls}>
+        <div className={styles.controlTile}>
+          <p className={styles.controlLabel}>
+            {t('articleContent.twoStatesAreEnough.demoTabButtonLabel')}
+          </p>
           <button
-            key={pattern}
             type="button"
-            role="tab"
-            className={styles.tab}
-            aria-selected={activePattern === pattern}
-            data-active={activePattern === pattern}
-            onClick={() => setActivePattern(pattern)}
+            className={styles.toggleButton}
+            onClick={handleCycle}
+            disabled={!isMounted}
+            aria-label={cycleLabel}
+            title={cycleLabel}
           >
-            {t(TAB_LABEL_KEYS[pattern])}
+            <Icon data={resolvedTheme === 'dark' ? Sun : Moon} size={20} />
           </button>
-        ))}
+        </div>
+
+        <div className={styles.controlTile}>
+          <p className={styles.controlLabel}>
+            {t('articleContent.twoStatesAreEnough.demoTabSwitchLabel')}
+          </p>
+          <Switch
+            checked={isMounted && resolvedTheme === 'light'}
+            onUpdate={handleSwitchChange}
+            disabled={!isMounted}
+            content={isMounted ? resolvedLabel : undefined}
+          />
+        </div>
+
+        <div className={styles.controlTile}>
+          <p className={styles.controlLabel}>
+            {t('articleContent.twoStatesAreEnough.demoTabDropdownLabel')}
+          </p>
+          <ThemeDropdown
+            value={isMounted ? (override ?? 'system') : 'system'}
+            onChange={handleSelectChange}
+            disabled={!isMounted}
+          />
+        </div>
       </div>
 
       <div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
@@ -134,36 +146,6 @@ export const PatternGallery = () => {
           {t('articleContent.twoStatesAreEnough.demoPreviewBody')}
         </p>
       </div>
-
-      {activePattern === 'button' && (
-        <button
-          type="button"
-          className={styles.toggleButton}
-          onClick={handleCycle}
-          disabled={!isMounted}
-          aria-label={cycleLabel}
-          title={cycleLabel}
-        >
-          <Icon data={resolvedTheme === 'dark' ? Sun : Moon} size={20} />
-        </button>
-      )}
-
-      {activePattern === 'switch' && (
-        <Switch
-          checked={isMounted && resolvedTheme === 'light'}
-          onUpdate={handleSwitchChange}
-          disabled={!isMounted}
-          content={isMounted ? resolvedLabel : undefined}
-        />
-      )}
-
-      {activePattern === 'dropdown' && (
-        <ThemeDropdown
-          value={isMounted ? (override ?? 'system') : 'system'}
-          onChange={handleSelectChange}
-          disabled={!isMounted}
-        />
-      )}
 
       <dl className={styles.state}>
         <div className={styles.stateRow}>
