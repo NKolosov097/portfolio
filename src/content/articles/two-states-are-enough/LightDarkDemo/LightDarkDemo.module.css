@@ -1,0 +1,139 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+  margin: 2rem 0;
+  background: #111;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 50%);
+}
+
+.pre {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 85%);
+  background: rgb(255 255 255 / 6%);
+  border-radius: 0.75rem;
+}
+
+.caption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 55%);
+}
+
+.mechanism {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 75%);
+}
+
+.demo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  color: #fff;
+  cursor: pointer;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  transition: background-color 0.15s ease-out;
+}
+
+.toggleButton:hover {
+  background: rgb(255 255 255 / 16%);
+}
+
+.toggleButton:focus-visible {
+  outline: 2px solid var(--g-color-line-brand);
+  outline-offset: 2px;
+}
+
+.window {
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgb(0 0 0 / 40%);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 14px -6px rgb(0 0 0 / 60%);
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem;
+  background: light-dark(#e4e4e2, #2c2c2e);
+}
+
+.trafficLight {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+}
+
+.trafficLight[data-color='red'] {
+  background: #ff5f57;
+}
+
+.trafficLight[data-color='yellow'] {
+  background: #febc2e;
+}
+
+.trafficLight[data-color='green'] {
+  background: #28c840;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.7rem 0.55rem;
+  background: light-dark(#fff, #1e1e1e);
+}
+
+.pageLine,
+.pageLineShort {
+  display: block;
+  height: 0.3rem;
+  border-radius: 2px;
+  background: light-dark(rgb(0 0 0 / 15%), rgb(255 255 255 / 20%));
+}
+
+.pageLine {
+  width: 6rem;
+}
+
+.pageLineShort {
+  width: 3.5rem;
+}
+
+.demoCaption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 55%);
+}

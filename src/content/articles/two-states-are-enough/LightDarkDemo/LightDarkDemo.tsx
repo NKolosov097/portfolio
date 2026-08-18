@@ -1,0 +1,84 @@
+'use client'
+
+import styles from './LightDarkDemo.module.css'
+
+import { useState } from 'react'
+import { Icon } from '@gravity-ui/uikit'
+import { Moon, Sun } from '@gravity-ui/icons'
+import { useTranslation } from 'react-i18next'
+
+/** Verbatim CSS — code samples aren't localized elsewhere in this project either. */
+const LIGHT_DARK_CSS = `:root {
+  color-scheme: light dark;
+}
+
+body {
+  background: light-dark(#fff, #111);
+  color: light-dark(#111, #fff);
+}`
+
+/** Either branch light-dark() can resolve to in the demo below — always exactly one of these two. */
+type TNativeScheme = 'light' | 'dark'
+
+/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
+
+export const LightDarkDemo = () => {
+  const { t } = useTranslation()
+  const [simulatedNative, setSimulatedNative] = useState<TNativeScheme>('light')
+
+  const handleToggle = () =>
+    setSimulatedNative((previous) => (previous === 'dark' ? 'light' : 'dark'))
+
+  const cycleLabel =
+    simulatedNative === 'dark'
+      ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
+      : t('articleContent.twoStatesAreEnough.demoToggleToDark')
+
+  return (
+    <div className={styles.card} data-testid="light-dark-demo">
+      <p className={styles.eyebrow}>{t('articleContent.twoStatesAreEnough.lightDarkEyebrow')}</p>
+
+      <pre className={styles.pre}>
+        <code>{LIGHT_DARK_CSS}</code>
+      </pre>
+      <p className={styles.caption}>{t('articleContent.twoStatesAreEnough.lightDarkCaption')}</p>
+
+      <p className={styles.mechanism}>
+        {t('articleContent.twoStatesAreEnough.lightDarkMechanism')}
+      </p>
+
+      <div className={styles.demo}>
+        <button
+          type="button"
+          className={styles.toggleButton}
+          onClick={handleToggle}
+          aria-label={cycleLabel}
+          title={cycleLabel}
+        >
+          <Icon data={simulatedNative === 'dark' ? Sun : Moon} size={20} />
+        </button>
+
+        {/* This is the only line doing any work: color-scheme here forces every light-dark()
+            value below to resolve for this branch, regardless of the real OS preference. */}
+        <div className={styles.window} style={{ colorScheme: simulatedNative }}>
+          <span className={styles.titlebar}>
+            {TRAFFIC_LIGHTS.map((color) => (
+              <span key={color} className={styles.trafficLight} data-color={color} />
+            ))}
+          </span>
+          <span className={styles.page}>
+            <span className={styles.pageLine} />
+            <span className={styles.pageLineShort} />
+          </span>
+        </div>
+      </div>
+
+      <p className={styles.demoCaption}>
+        {t('articleContent.twoStatesAreEnough.lightDarkDemoCaption')}
+      </p>
+    </div>
+  )
+}
+
+export default LightDarkDemo

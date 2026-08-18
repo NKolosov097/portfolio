@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { IArticleHeadingEntry } from '@/content/articles/registry'
 
 import { CombinationGrid } from './CombinationGrid/CombinationGrid'
-import { LightDarkSnippet } from './LightDarkSnippet/LightDarkSnippet'
+import { LightDarkDemo } from './LightDarkDemo/LightDarkDemo'
 import { PatternGallery } from './PatternGallery/PatternGallery'
 import { PatternsInTheWild } from './PatternsInTheWild/PatternsInTheWild'
 import { SwitchAnalogy } from './SwitchAnalogy/SwitchAnalogy'
@@ -48,7 +48,7 @@ export const TwoStatesAreEnoughContent = () => {
 
       <p>{t('articleContent.twoStatesAreEnough.lightDarkIntro')}</p>
 
-      <LightDarkSnippet />
+      <LightDarkDemo />
 
       <PatternGallery />
 
