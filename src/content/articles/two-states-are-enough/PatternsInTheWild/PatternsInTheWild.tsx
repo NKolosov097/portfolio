@@ -53,13 +53,20 @@ export const PatternsInTheWild = () => {
         </div>
 
         <div className={styles.tile}>
-          <div className={styles.settingsRow}>
-            <span className={styles.settingsLabel}>
-              {t('articleContent.twoStatesAreEnough.patternsInTheWildSettingsLabel')}
-            </span>
-            <span className={styles.settingsSwitch}>
-              <span className={styles.settingsSwitchKnob} />
-            </span>
+          <span className={styles.settingsHeading}>
+            {t('articleContent.twoStatesAreEnough.patternsInTheWildSettingsLabel')}
+          </span>
+          <div className={styles.settingsList}>
+            {SEGMENT_LABEL_KEYS.map((labelKey, index) => (
+              <span
+                key={labelKey}
+                className={styles.settingsRow}
+                data-active={index === ACTIVE_SEGMENT_INDEX}
+              >
+                <span className={styles.settingsDot} />
+                {t(labelKey)}
+              </span>
+            ))}
           </div>
           <p className={styles.tileCaption}>
             {t('articleContent.twoStatesAreEnough.patternsInTheWildTile3Caption')}
