@@ -1,0 +1,94 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+  margin: 2rem 0;
+  background: #111;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 50%);
+}
+
+.panels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.panel {
+  display: flex;
+  flex: 1 1 12rem;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.panelLabel {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.dialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.dialButton {
+  padding: 0.35rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 55%);
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 999px;
+}
+
+.dialButton[data-active='true'] {
+  color: #fff;
+  background: rgb(255 255 255 / 16%);
+  border-color: var(--g-color-line-brand);
+}
+
+.sliderTrack {
+  position: relative;
+  height: 0.35rem;
+  margin: 0.5rem 0;
+  background: rgb(255 255 255 / 12%);
+  border-radius: 999px;
+}
+
+.sliderKnob {
+  position: absolute;
+  top: 50%;
+  left: 70%;
+  width: 1rem;
+  height: 1rem;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--g-color-line-brand);
+  transform: translate(-50%, -50%);
+}
+
+.panelCaption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 55%);
+}
+
+.takeaway {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 85%);
+}
