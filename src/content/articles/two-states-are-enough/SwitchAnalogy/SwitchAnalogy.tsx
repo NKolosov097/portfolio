@@ -2,16 +2,24 @@
 
 import styles from './SwitchAnalogy.module.css'
 
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 /** The five labelled dial positions shown in the "read every label" panel. */
 const DIAL_PERCENTAGES: number[] = [10, 30, 50, 70, 100]
 
-/** Which dial position renders as pressed — purely decorative, not driven by any interaction. */
-const ACTIVE_DIAL_PERCENTAGE = 50
+/** Which dial position starts pressed — purely decorative, moved by clicking any dial button. */
+const DEFAULT_DIAL_PERCENTAGE = 50
+
+/** The slider's starting position (0-100) — purely decorative, moved by dragging the range input. */
+const DEFAULT_SLIDER_VALUE = 70
 
 export const SwitchAnalogy = () => {
   const { t } = useTranslation()
+  const [activeDialPercentage, setActiveDialPercentage] = useState(DEFAULT_DIAL_PERCENTAGE)
+  const [sliderValue, setSliderValue] = useState(DEFAULT_SLIDER_VALUE)
+
+  const panelALabel = t('articleContent.twoStatesAreEnough.switchAnalogyPanelALabel')
 
   return (
     <div className={styles.card} data-testid="switch-analogy">
@@ -21,18 +29,19 @@ export const SwitchAnalogy = () => {
 
       <div className={styles.panels}>
         <div className={styles.panel}>
-          <p className={styles.panelLabel}>
-            {t('articleContent.twoStatesAreEnough.switchAnalogyPanelALabel')}
-          </p>
-          <div className={styles.dialRow}>
+          <p className={styles.panelLabel}>{panelALabel}</p>
+          <div className={styles.dialRow} role="group" aria-label={panelALabel}>
             {DIAL_PERCENTAGES.map((percentage) => (
-              <span
+              <button
                 key={percentage}
+                type="button"
                 className={styles.dialButton}
-                data-active={percentage === ACTIVE_DIAL_PERCENTAGE}
+                data-active={percentage === activeDialPercentage}
+                aria-pressed={percentage === activeDialPercentage}
+                onClick={() => setActiveDialPercentage(percentage)}
               >
                 {percentage}%
-              </span>
+              </button>
             ))}
           </div>
           <p className={styles.panelCaption}>
@@ -44,9 +53,15 @@ export const SwitchAnalogy = () => {
           <p className={styles.panelLabel}>
             {t('articleContent.twoStatesAreEnough.switchAnalogyPanelBLabel')}
           </p>
-          <div className={styles.sliderTrack}>
-            <span className={styles.sliderKnob} />
-          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={sliderValue}
+            onChange={(event) => setSliderValue(Number(event.target.value))}
+            className={styles.slider}
+            aria-label={t('articleContent.twoStatesAreEnough.switchAnalogySliderLabel')}
+          />
           <p className={styles.panelCaption}>
             {t('articleContent.twoStatesAreEnough.switchAnalogyPanelBCaption')}
           </p>
