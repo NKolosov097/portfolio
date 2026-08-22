@@ -122,16 +122,16 @@ type TNativeSimulation = 'light' | 'dark' | null
 Find:
 
 ```tsx
-  const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
-  const [override, setOverride] = useState<TThemeOverride>(null)
+const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
+const [override, setOverride] = useState<TThemeOverride>(null)
 ```
 
 Replace with:
 
 ```tsx
-  const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
-  const [override, setOverride] = useState<TThemeOverride>(null)
-  const [simulatedNative, setSimulatedNative] = useState<TNativeSimulation>(null)
+const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
+const [override, setOverride] = useState<TThemeOverride>(null)
+const [simulatedNative, setSimulatedNative] = useState<TNativeSimulation>(null)
 ```
 
 - [ ] **Step 2: Add `nativeChromeTheme` and `handleSimulateNativeCycle`**
@@ -139,57 +139,57 @@ Replace with:
 Find:
 
 ```tsx
-  /** Stays neutral for one frame instead of guessing, until the client-only read above resolves. */
-  const isMounted = osPrefersDark !== null
-  const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
+/** Stays neutral for one frame instead of guessing, until the client-only read above resolves. */
+const isMounted = osPrefersDark !== null
+const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
 ```
 
 Replace with:
 
 ```tsx
-  /** Stays neutral for one frame instead of guessing, until the client-only read above resolves. */
-  const isMounted = osPrefersDark !== null
-  const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
-  const nativeChromeTheme: TResolvedTheme = simulatedNative ?? (osPrefersDark ? 'dark' : 'light')
+/** Stays neutral for one frame instead of guessing, until the client-only read above resolves. */
+const isMounted = osPrefersDark !== null
+const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
+const nativeChromeTheme: TResolvedTheme = simulatedNative ?? (osPrefersDark ? 'dark' : 'light')
 ```
 
 Find:
 
 ```tsx
-  /** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
-  const handleSegmentChange = (value: TSegmentValue) => {
-    if (value === 'system') {
-      setOverride(null)
-      window.localStorage.removeItem(STORAGE_KEY)
-    } else {
-      setOverride(value)
-      window.localStorage.setItem(STORAGE_KEY, value)
-    }
+/** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+const handleSegmentChange = (value: TSegmentValue) => {
+  if (value === 'system') {
+    setOverride(null)
+    window.localStorage.removeItem(STORAGE_KEY)
+  } else {
+    setOverride(value)
+    window.localStorage.setItem(STORAGE_KEY, value)
   }
+}
 ```
 
 Replace with:
 
 ```tsx
-  /** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
-  const handleSegmentChange = (value: TSegmentValue) => {
-    if (value === 'system') {
-      setOverride(null)
-      window.localStorage.removeItem(STORAGE_KEY)
-    } else {
-      setOverride(value)
-      window.localStorage.setItem(STORAGE_KEY, value)
-    }
+/** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+const handleSegmentChange = (value: TSegmentValue) => {
+  if (value === 'system') {
+    setOverride(null)
+    window.localStorage.removeItem(STORAGE_KEY)
+  } else {
+    setOverride(value)
+    window.localStorage.setItem(STORAGE_KEY, value)
   }
+}
 
-  /** Simulates the native/OS theme independently of the site's own override — press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
-  const handleSimulateNativeCycle = () => {
-    if (simulatedNative === null) {
-      setSimulatedNative(nativeChromeTheme === 'dark' ? 'light' : 'dark')
-    } else {
-      setSimulatedNative(null)
-    }
+/** Simulates the native/OS theme independently of the site's own override — press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
+const handleSimulateNativeCycle = () => {
+  if (simulatedNative === null) {
+    setSimulatedNative(nativeChromeTheme === 'dark' ? 'light' : 'dark')
+  } else {
+    setSimulatedNative(null)
   }
+}
 ```
 
 - [ ] **Step 3: Add `simulateCycleLabel`**
@@ -197,25 +197,25 @@ Replace with:
 Find:
 
 ```tsx
-  const cycleLabel =
-    resolvedTheme === 'dark'
-      ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
-      : t('articleContent.twoStatesAreEnough.demoToggleToDark')
-  const segmentedLabel = t('articleContent.twoStatesAreEnough.demoTabSegmentedLabel')
+const cycleLabel =
+  resolvedTheme === 'dark'
+    ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
+    : t('articleContent.twoStatesAreEnough.demoToggleToDark')
+const segmentedLabel = t('articleContent.twoStatesAreEnough.demoTabSegmentedLabel')
 ```
 
 Replace with:
 
 ```tsx
-  const cycleLabel =
-    resolvedTheme === 'dark'
-      ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
-      : t('articleContent.twoStatesAreEnough.demoToggleToDark')
-  const simulateCycleLabel =
-    nativeChromeTheme === 'dark'
-      ? t('articleContent.twoStatesAreEnough.demoSimulateToggleToLight')
-      : t('articleContent.twoStatesAreEnough.demoSimulateToggleToDark')
-  const segmentedLabel = t('articleContent.twoStatesAreEnough.demoTabSegmentedLabel')
+const cycleLabel =
+  resolvedTheme === 'dark'
+    ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
+    : t('articleContent.twoStatesAreEnough.demoToggleToDark')
+const simulateCycleLabel =
+  nativeChromeTheme === 'dark'
+    ? t('articleContent.twoStatesAreEnough.demoSimulateToggleToLight')
+    : t('articleContent.twoStatesAreEnough.demoSimulateToggleToDark')
+const segmentedLabel = t('articleContent.twoStatesAreEnough.demoTabSegmentedLabel')
 ```
 
 - [ ] **Step 4: Add the fourth control tile**
