@@ -65,18 +65,22 @@ export const LightDarkDemo = () => {
           <Icon data={simulatedNative === 'dark' ? Sun : Moon} size={20} />
         </button>
 
-        {/* This is the only line doing any work: color-scheme here forces every light-dark()
-            value below to resolve for this branch, regardless of the real OS preference. */}
-        <div className={styles.window} style={{ colorScheme: simulatedNative }}>
-          <span className={styles.titlebar} style={TITLEBAR_STYLE}>
-            {TRAFFIC_LIGHTS.map((color) => (
-              <span key={color} className={styles.trafficLight} data-color={color} />
-            ))}
-          </span>
-          <span className={styles.page} style={PAGE_STYLE}>
-            <span className={styles.pageLine} style={PAGE_LINE_STYLE} />
-            <span className={styles.pageLineShort} style={PAGE_LINE_STYLE} />
-          </span>
+        <div className={styles.windowStack}>
+          <code className={styles.liveProperty}>{`color-scheme: ${simulatedNative};`}</code>
+
+          {/* This is the only line doing any work: color-scheme here forces every light-dark()
+              value below to resolve for this branch, regardless of the real OS preference. */}
+          <div className={styles.window} style={{ colorScheme: simulatedNative }}>
+            <span className={styles.titlebar} style={TITLEBAR_STYLE}>
+              {TRAFFIC_LIGHTS.map((color) => (
+                <span key={color} className={styles.trafficLight} data-color={color} />
+              ))}
+            </span>
+            <span className={styles.page} style={PAGE_STYLE}>
+              <span className={styles.pageLine} style={PAGE_LINE_STYLE} />
+              <span className={styles.pageLineShort} style={PAGE_LINE_STYLE} />
+            </span>
+          </div>
         </div>
       </div>
 

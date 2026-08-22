@@ -49,6 +49,19 @@
   gap: 1rem;
 }
 
+.windowStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.liveProperty {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  color: rgb(255 255 255 / 55%);
+}
+
 .toggleButton {
   display: flex;
   align-items: center;
