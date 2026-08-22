@@ -22,6 +22,9 @@ type TSegmentValue = 'light' | 'dark' | 'system'
 /** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
 const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 
+/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
+
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
   value === 'light' || value === 'dark'
 
@@ -156,12 +159,22 @@ export const PatternGallery = () => {
       </div>
 
       <div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
-        <p className={styles.previewHeading}>
-          {t('articleContent.twoStatesAreEnough.demoPreviewHeading')}
-        </p>
-        <p className={styles.previewBody}>
-          {t('articleContent.twoStatesAreEnough.demoPreviewBody')}
-        </p>
+        <div className={styles.previewTitlebar}>
+          <span className={styles.previewTrafficLights}>
+            {TRAFFIC_LIGHTS.map((color) => (
+              <span key={color} className={styles.previewTrafficLight} data-color={color} />
+            ))}
+          </span>
+          <span className={styles.previewUrlBar}>yoursite.dev</span>
+        </div>
+        <div className={styles.previewPage}>
+          <p className={styles.previewHeading}>
+            {t('articleContent.twoStatesAreEnough.demoPreviewHeading')}
+          </p>
+          <p className={styles.previewBody}>
+            {t('articleContent.twoStatesAreEnough.demoPreviewBody')}
+          </p>
+        </div>
       </div>
 
       <dl className={styles.state}>

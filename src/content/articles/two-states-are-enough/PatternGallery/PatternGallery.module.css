@@ -84,7 +84,7 @@
 }
 
 .preview {
-  padding: 1.25rem 1.5rem;
+  overflow: hidden;
   background: rgb(255 255 255 / 6%);
   border-radius: 0.75rem;
   transition:
@@ -98,6 +98,69 @@
 
 .preview[data-theme='dark'] {
   background: #1a1a19;
+}
+
+.previewTitlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: rgb(255 255 255 / 8%);
+}
+
+.preview[data-theme='light'] .previewTitlebar {
+  background: #e4e4e2;
+}
+
+.preview[data-theme='dark'] .previewTitlebar {
+  background: #2c2c2e;
+}
+
+.previewTrafficLights {
+  display: flex;
+  flex: none;
+  gap: 0.35rem;
+}
+
+.previewTrafficLight {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.previewTrafficLight[data-color='red'] {
+  background: #ff5f57;
+}
+
+.previewTrafficLight[data-color='yellow'] {
+  background: #febc2e;
+}
+
+.previewTrafficLight[data-color='green'] {
+  background: #28c840;
+}
+
+.previewUrlBar {
+  flex: 1 1 auto;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 55%);
+  background: rgb(255 255 255 / 10%);
+  border-radius: 999px;
+}
+
+.preview[data-theme='light'] .previewUrlBar {
+  color: rgb(26 26 25 / 60%);
+  background: rgb(0 0 0 / 6%);
+}
+
+.preview[data-theme='dark'] .previewUrlBar {
+  color: rgb(255 255 255 / 55%);
+  background: rgb(255 255 255 / 10%);
+}
+
+.previewPage {
+  padding: 1.25rem 1.5rem;
 }
 
 .previewHeading {
