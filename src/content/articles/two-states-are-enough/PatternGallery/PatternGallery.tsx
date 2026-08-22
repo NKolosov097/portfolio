@@ -179,19 +179,21 @@ export const PatternGallery = () => {
           <p className={styles.controlLabel}>
             {t('articleContent.twoStatesAreEnough.demoSimulateOsLabel')}
           </p>
-          <button
-            type="button"
-            className={styles.toggleButton}
-            onClick={handleSimulateNativeCycle}
-            disabled={!isMounted}
-            aria-label={simulateCycleLabel}
-            title={simulateCycleLabel}
-          >
-            <Icon data={effectiveOsTheme === 'dark' ? Sun : Moon} size={20} />
-          </button>
-          <p className={styles.controlCaption}>
-            {t('articleContent.twoStatesAreEnough.demoSimulateOsCaption')}
-          </p>
+          <div className={styles.simulateRow}>
+            <button
+              type="button"
+              className={styles.toggleButton}
+              onClick={handleSimulateNativeCycle}
+              disabled={!isMounted}
+              aria-label={simulateCycleLabel}
+              title={simulateCycleLabel}
+            >
+              <Icon data={effectiveOsTheme === 'dark' ? Sun : Moon} size={20} />
+            </button>
+            <p className={styles.controlCaption}>
+              {t('articleContent.twoStatesAreEnough.demoSimulateOsCaption')}
+            </p>
+          </div>
         </div>
       </div>
 
