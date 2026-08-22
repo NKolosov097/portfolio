@@ -44,6 +44,11 @@ export const SwitchAnalogy = () => {
               </button>
             ))}
           </div>
+          <div
+            className={styles.swatch}
+            aria-hidden="true"
+            style={{ backgroundColor: `hsl(0 0% ${activeDialPercentage}%)` }}
+          />
           <p className={styles.panelCaption}>
             {t('articleContent.twoStatesAreEnough.switchAnalogyPanelACaption')}
           </p>
@@ -61,6 +66,11 @@ export const SwitchAnalogy = () => {
             onChange={(event) => setSliderValue(Number(event.target.value))}
             className={styles.slider}
             aria-label={t('articleContent.twoStatesAreEnough.switchAnalogySliderLabel')}
+          />
+          <div
+            className={styles.swatch}
+            aria-hidden="true"
+            style={{ backgroundColor: `hsl(0 0% ${sliderValue}%)` }}
           />
           <p className={styles.panelCaption}>
             {t('articleContent.twoStatesAreEnough.switchAnalogyPanelBCaption')}
