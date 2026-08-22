@@ -23,6 +23,16 @@ type TNativeScheme = 'light' | 'dark'
 /** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
+/**
+ * light-dark() values that must stay out of the CSS module: Lightning CSS rewrites light-dark() in
+ * .module.css files into a prefers-color-scheme-driven fallback (this project's browserslist
+ * includes browsers without native support), which ignores the color-scheme this demo sets and
+ * breaks the toggle. Inline style strings bypass that build step entirely.
+ */
+const TITLEBAR_STYLE = { background: 'light-dark(#e4e4e2, #2c2c2e)' }
+const PAGE_STYLE = { background: 'light-dark(#fff, #1e1e1e)' }
+const PAGE_LINE_STYLE = { background: 'light-dark(rgb(0 0 0 / 15%), rgb(255 255 255 / 20%))' }
+
 export const LightDarkDemo = () => {
   const { t } = useTranslation()
   const [simulatedNative, setSimulatedNative] = useState<TNativeScheme>('light')
@@ -62,14 +72,14 @@ export const LightDarkDemo = () => {
         {/* This is the only line doing any work: color-scheme here forces every light-dark()
             value below to resolve for this branch, regardless of the real OS preference. */}
         <div className={styles.window} style={{ colorScheme: simulatedNative }}>
-          <span className={styles.titlebar}>
+          <span className={styles.titlebar} style={TITLEBAR_STYLE}>
             {TRAFFIC_LIGHTS.map((color) => (
               <span key={color} className={styles.trafficLight} data-color={color} />
             ))}
           </span>
-          <span className={styles.page}>
-            <span className={styles.pageLine} />
-            <span className={styles.pageLineShort} />
+          <span className={styles.page} style={PAGE_STYLE}>
+            <span className={styles.pageLine} style={PAGE_LINE_STYLE} />
+            <span className={styles.pageLineShort} style={PAGE_LINE_STYLE} />
           </span>
         </div>
       </div>
