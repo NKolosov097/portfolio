@@ -106,9 +106,9 @@ git commit -m "feat: rename PatternGallery's dropdown label to segments"
 In `SwitchAnalogy.tsx`, find:
 
 ```tsx
-          <p className={styles.panelCaption}>
-            {t('articleContent.twoStatesAreEnough.switchAnalogyPanelACaption')}
-          </p>
+<p className={styles.panelCaption}>
+  {t('articleContent.twoStatesAreEnough.switchAnalogyPanelACaption')}
+</p>
 ```
 
 Replace with:
@@ -129,9 +129,9 @@ Replace with:
 Find:
 
 ```tsx
-          <p className={styles.panelCaption}>
-            {t('articleContent.twoStatesAreEnough.switchAnalogyPanelBCaption')}
-          </p>
+<p className={styles.panelCaption}>
+  {t('articleContent.twoStatesAreEnough.switchAnalogyPanelBCaption')}
+</p>
 ```
 
 Replace with:
@@ -259,33 +259,33 @@ const PAGE_LINE_STYLE = { background: 'light-dark(rgb(0 0 0 / 15%), rgb(255 255 
 Find:
 
 ```tsx
-        <div className={styles.window} style={{ colorScheme: simulatedNative }}>
-          <span className={styles.titlebar}>
-            {TRAFFIC_LIGHTS.map((color) => (
-              <span key={color} className={styles.trafficLight} data-color={color} />
-            ))}
-          </span>
-          <span className={styles.page}>
-            <span className={styles.pageLine} />
-            <span className={styles.pageLineShort} />
-          </span>
-        </div>
+<div className={styles.window} style={{ colorScheme: simulatedNative }}>
+  <span className={styles.titlebar}>
+    {TRAFFIC_LIGHTS.map((color) => (
+      <span key={color} className={styles.trafficLight} data-color={color} />
+    ))}
+  </span>
+  <span className={styles.page}>
+    <span className={styles.pageLine} />
+    <span className={styles.pageLineShort} />
+  </span>
+</div>
 ```
 
 Replace with:
 
 ```tsx
-        <div className={styles.window} style={{ colorScheme: simulatedNative }}>
-          <span className={styles.titlebar} style={TITLEBAR_STYLE}>
-            {TRAFFIC_LIGHTS.map((color) => (
-              <span key={color} className={styles.trafficLight} data-color={color} />
-            ))}
-          </span>
-          <span className={styles.page} style={PAGE_STYLE}>
-            <span className={styles.pageLine} style={PAGE_LINE_STYLE} />
-            <span className={styles.pageLineShort} style={PAGE_LINE_STYLE} />
-          </span>
-        </div>
+<div className={styles.window} style={{ colorScheme: simulatedNative }}>
+  <span className={styles.titlebar} style={TITLEBAR_STYLE}>
+    {TRAFFIC_LIGHTS.map((color) => (
+      <span key={color} className={styles.trafficLight} data-color={color} />
+    ))}
+  </span>
+  <span className={styles.page} style={PAGE_STYLE}>
+    <span className={styles.pageLine} style={PAGE_LINE_STYLE} />
+    <span className={styles.pageLineShort} style={PAGE_LINE_STYLE} />
+  </span>
+</div>
 ```
 
 - [ ] **Step 3: Remove the now-redundant `background` declarations from the CSS module**

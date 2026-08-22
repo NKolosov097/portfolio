@@ -7,7 +7,7 @@ User feedback after using the shipped interactivity revision (`2026-08-18-two-st
 1. `SwitchAnalogy`'s five buttons and slider already update local state (confirmed by reading the
    code), but nothing else in the block visibly reacts — clicking a button only re-styles that
    button, dragging the slider only moves its own thumb. From a reader's point of view that reads
-   as "nothing happens." The two panels are both about *brightness*; the fix is to make that
+   as "nothing happens." The two panels are both about _brightness_; the fix is to make that
    brightness actually visible.
 2. `LightDarkDemo`'s toggle button is a **real, reproduced bug**, not a perception problem.
    Verified by running the dev server and driving it with Playwright: the compiled CSS for
@@ -15,7 +15,7 @@ User feedback after using the shipped interactivity revision (`2026-08-18-two-st
    time to `background: var(--lightningcss-light, #fff) var(--lightningcss-dark, #1e1e1e)`. This is
    Lightning CSS's fallback for browsers without native `light-dark()` support, triggered because
    the shared `browserslist` (`@gravity-ui/browserslist-config`: `"last 3 years and fully supports
-   es6..."`, plus `Firefox ESR`) includes browsers old enough to lack it. Crucially, this fallback
+es6..."`, plus `Firefox ESR`) includes browsers old enough to lack it. Crucially, this fallback
    resolves `--lightningcss-light`/`--lightningcss-dark` from the OS-level `prefers-color-scheme`
    media query, **not** from the element's `color-scheme` property — so the button's
    `style={{ colorScheme: simulatedNative }}` has zero effect on the compiled output. Confirmed with
@@ -69,7 +69,11 @@ User feedback after using the shipped interactivity revision (`2026-08-18-two-st
 No new state. After the dial row in Panel A and after the range input in Panel B, add:
 
 ```tsx
-<div className={styles.swatch} aria-hidden="true" style={{ backgroundColor: `hsl(0 0% ${activeDialPercentage}%)` }} />
+<div
+  className={styles.swatch}
+  aria-hidden="true"
+  style={{ backgroundColor: `hsl(0 0% ${activeDialPercentage}%)` }}
+/>
 ```
 
 and the slider equivalent using `sliderValue`. New `.swatch` CSS rule: small rounded square (e.g.
