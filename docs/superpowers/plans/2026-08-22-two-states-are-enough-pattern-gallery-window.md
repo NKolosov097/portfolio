@@ -64,37 +64,33 @@ const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride,
 Find:
 
 ```tsx
-      <div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
-        <p className={styles.previewHeading}>
-          {t('articleContent.twoStatesAreEnough.demoPreviewHeading')}
-        </p>
-        <p className={styles.previewBody}>
-          {t('articleContent.twoStatesAreEnough.demoPreviewBody')}
-        </p>
-      </div>
+<div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
+  <p className={styles.previewHeading}>
+    {t('articleContent.twoStatesAreEnough.demoPreviewHeading')}
+  </p>
+  <p className={styles.previewBody}>{t('articleContent.twoStatesAreEnough.demoPreviewBody')}</p>
+</div>
 ```
 
 Replace with:
 
 ```tsx
-      <div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
-        <div className={styles.previewTitlebar}>
-          <span className={styles.previewTrafficLights}>
-            {TRAFFIC_LIGHTS.map((color) => (
-              <span key={color} className={styles.previewTrafficLight} data-color={color} />
-            ))}
-          </span>
-          <span className={styles.previewUrlBar}>yoursite.dev</span>
-        </div>
-        <div className={styles.previewPage}>
-          <p className={styles.previewHeading}>
-            {t('articleContent.twoStatesAreEnough.demoPreviewHeading')}
-          </p>
-          <p className={styles.previewBody}>
-            {t('articleContent.twoStatesAreEnough.demoPreviewBody')}
-          </p>
-        </div>
-      </div>
+<div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
+  <div className={styles.previewTitlebar}>
+    <span className={styles.previewTrafficLights}>
+      {TRAFFIC_LIGHTS.map((color) => (
+        <span key={color} className={styles.previewTrafficLight} data-color={color} />
+      ))}
+    </span>
+    <span className={styles.previewUrlBar}>yoursite.dev</span>
+  </div>
+  <div className={styles.previewPage}>
+    <p className={styles.previewHeading}>
+      {t('articleContent.twoStatesAreEnough.demoPreviewHeading')}
+    </p>
+    <p className={styles.previewBody}>{t('articleContent.twoStatesAreEnough.demoPreviewBody')}</p>
+  </div>
+</div>
 ```
 
 - [ ] **Step 3: Restructure `.preview` into a window container**
