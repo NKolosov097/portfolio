@@ -56,8 +56,8 @@ export const PatternGallery = () => {
 
   /** Stays neutral for one frame instead of guessing, until the client-only read above resolves. */
   const isMounted = osPrefersDark !== null
-  const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
-  const nativeChromeTheme: TResolvedTheme = simulatedNative ?? (osPrefersDark ? 'dark' : 'light')
+  const effectiveOsTheme: TResolvedTheme = simulatedNative ?? (osPrefersDark ? 'dark' : 'light')
+  const resolvedTheme: TResolvedTheme = override ?? effectiveOsTheme
 
   /** The Button pattern's 2-press cycle: press 1 overrides to the opposite shade, press 2 clears back to system. */
   const handleCycle = () => {
@@ -92,7 +92,7 @@ export const PatternGallery = () => {
   /** Simulates the native/OS theme independently of the site's own override — press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
   const handleSimulateNativeCycle = () => {
     if (simulatedNative === null) {
-      setSimulatedNative(nativeChromeTheme === 'dark' ? 'light' : 'dark')
+      setSimulatedNative(effectiveOsTheme === 'dark' ? 'light' : 'dark')
     } else {
       setSimulatedNative(null)
     }
@@ -101,7 +101,7 @@ export const PatternGallery = () => {
   const lightLabel = t('articleContent.twoStatesAreEnough.demoLight')
   const darkLabel = t('articleContent.twoStatesAreEnough.demoDark')
   const systemLabel = t('articleContent.twoStatesAreEnough.demoSystem')
-  const osLabel = osPrefersDark ? darkLabel : lightLabel
+  const osLabel = effectiveOsTheme === 'dark' ? darkLabel : lightLabel
   const resolvedLabel = resolvedTheme === 'dark' ? darkLabel : lightLabel
   const overrideLabel =
     override === null
@@ -114,7 +114,7 @@ export const PatternGallery = () => {
       ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
       : t('articleContent.twoStatesAreEnough.demoToggleToDark')
   const simulateCycleLabel =
-    nativeChromeTheme === 'dark'
+    effectiveOsTheme === 'dark'
       ? t('articleContent.twoStatesAreEnough.demoSimulateToggleToLight')
       : t('articleContent.twoStatesAreEnough.demoSimulateToggleToDark')
   const segmentedLabel = t('articleContent.twoStatesAreEnough.demoTabSegmentedLabel')
@@ -187,7 +187,7 @@ export const PatternGallery = () => {
             aria-label={simulateCycleLabel}
             title={simulateCycleLabel}
           >
-            <Icon data={nativeChromeTheme === 'dark' ? Sun : Moon} size={20} />
+            <Icon data={effectiveOsTheme === 'dark' ? Sun : Moon} size={20} />
           </button>
           <p className={styles.controlCaption}>
             {t('articleContent.twoStatesAreEnough.demoSimulateOsCaption')}
@@ -198,7 +198,7 @@ export const PatternGallery = () => {
       <div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
         <div
           className={styles.previewTitlebar}
-          data-native-theme={isMounted ? nativeChromeTheme : undefined}
+          data-native-theme={isMounted ? effectiveOsTheme : undefined}
         >
           <span className={styles.previewTrafficLights}>
             {TRAFFIC_LIGHTS.map((color) => (

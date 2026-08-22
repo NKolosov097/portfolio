@@ -136,7 +136,7 @@
       "demoOverrideNone": "None — following system",
       "demoCaption": "This state is real — a live matchMedia listener and an actual localStorage entry, not a simulation. Reload the page and your choice persists exactly like Lea Verou describes.",
       "demoSimulateOsLabel": "Simulate OS",
-      "demoSimulateOsCaption": "Changes only the window chrome below — not your real OS or the state below.",
+      "demoSimulateOsCaption": "Changes the window chrome below, and the site preview too whenever you're following System — never your real OS.",
       "demoSimulateToggleToDark": "Simulate dark OS",
       "demoSimulateToggleToLight": "Simulate light OS",
       "gridEyebrow": "All four combinations",
