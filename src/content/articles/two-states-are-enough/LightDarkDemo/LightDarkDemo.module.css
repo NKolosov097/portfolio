@@ -147,6 +147,7 @@
 }
 
 .demoCaption {
+  flex: 1 1 12rem;
   margin: 0;
   font-size: 0.75rem;
   color: rgb(255 255 255 / 55%);

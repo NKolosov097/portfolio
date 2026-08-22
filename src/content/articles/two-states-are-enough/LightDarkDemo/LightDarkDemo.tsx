@@ -82,11 +82,11 @@ export const LightDarkDemo = () => {
             </span>
           </div>
         </div>
-      </div>
 
-      <p className={styles.demoCaption}>
-        {t('articleContent.twoStatesAreEnough.lightDarkDemoCaption')}
-      </p>
+        <p className={styles.demoCaption}>
+          {t('articleContent.twoStatesAreEnough.lightDarkDemoCaption')}
+        </p>
+      </div>
     </div>
   )
 }
