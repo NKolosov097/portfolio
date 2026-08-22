@@ -74,7 +74,7 @@ Find:
 Replace with:
 
 ```tsx
-      <CombinationGrid />
+<CombinationGrid />
 ```
 
 (`<CombinationGrid />` is now the first component rendered after the two intro paragraphs —
