@@ -87,6 +87,7 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.5rem;
+  background: #e4e4e2;
 }
 
 .trafficLight {
@@ -112,6 +113,7 @@
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.7rem 0.55rem;
+  background: #fff;
 }
 
 .pageLine,
@@ -119,6 +121,7 @@
   display: block;
   height: 0.3rem;
   border-radius: 2px;
+  background: rgb(0 0 0 / 15%);
 }
 
 .pageLine {

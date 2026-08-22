@@ -23,12 +23,8 @@ type TNativeScheme = 'light' | 'dark'
 /** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
-/**
- * light-dark() values that must stay out of the CSS module: Lightning CSS rewrites light-dark() in
- * .module.css files into a prefers-color-scheme-driven fallback (this project's browserslist
- * includes browsers without native support), which ignores the color-scheme this demo sets and
- * breaks the toggle. Inline style strings bypass that build step entirely.
- */
+/** Kept inline, not the CSS module: Lightning CSS rewrites light-dark() there into a
+ * prefers-color-scheme fallback that ignores color-scheme; the module keeps light-branch fallbacks. */
 const TITLEBAR_STYLE = { background: 'light-dark(#e4e4e2, #2c2c2e)' }
 const PAGE_STYLE = { background: 'light-dark(#fff, #1e1e1e)' }
 const PAGE_LINE_STYLE = { background: 'light-dark(rgb(0 0 0 / 15%), rgb(255 255 255 / 20%))' }

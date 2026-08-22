@@ -146,14 +146,12 @@ export const PatternGallery = () => {
           <p className={styles.controlLabel}>
             {t('articleContent.twoStatesAreEnough.demoTabSwitchLabel')}
           </p>
-          <div className={styles.settingsRow}>
-            <Switch
-              checked={isMounted && resolvedTheme === 'light'}
-              onUpdate={handleSwitchChange}
-              disabled={!isMounted}
-              content={isMounted ? resolvedLabel : undefined}
-            />
-          </div>
+          <Switch
+            checked={isMounted && resolvedTheme === 'light'}
+            onUpdate={handleSwitchChange}
+            disabled={!isMounted}
+            content={isMounted ? resolvedLabel : undefined}
+          />
         </div>
       </div>
 
