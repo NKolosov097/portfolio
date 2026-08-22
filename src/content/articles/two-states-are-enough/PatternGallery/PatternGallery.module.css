@@ -43,6 +43,12 @@
   color: rgb(255 255 255 / 55%);
 }
 
+.controlCaption {
+  margin: 0;
+  font-size: 0.7rem;
+  color: rgb(255 255 255 / 45%);
+}
+
 .segmented {
   display: flex;
   overflow: hidden;
@@ -109,11 +115,11 @@
   transition: background-color 0.2s ease-out;
 }
 
-.preview[data-theme='light'] .previewTitlebar {
+.previewTitlebar[data-native-theme='light'] {
   background: #e4e4e2;
 }
 
-.preview[data-theme='dark'] .previewTitlebar {
+.previewTitlebar[data-native-theme='dark'] {
   background: #2c2c2e;
 }
 
@@ -153,12 +159,12 @@
     color 0.2s ease-out;
 }
 
-.preview[data-theme='light'] .previewUrlBar {
+.previewTitlebar[data-native-theme='light'] .previewUrlBar {
   color: rgb(26 26 25 / 65%);
   background: rgb(0 0 0 / 6%);
 }
 
-.preview[data-theme='dark'] .previewUrlBar {
+.previewTitlebar[data-native-theme='dark'] .previewUrlBar {
   color: rgb(255 255 255 / 60%);
   background: rgb(255 255 255 / 10%);
 }

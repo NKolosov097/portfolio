@@ -19,6 +19,9 @@ type TResolvedTheme = 'light' | 'dark'
 /** The segmented control's own value space — an explicit shade, or the literal `'system'` option. */
 type TSegmentValue = 'light' | 'dark' | 'system'
 
+/** The simulated native/OS shade shown in the chrome above, or `null` to follow the real OS preference. */
+type TNativeSimulation = 'light' | 'dark' | null
+
 /** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
 const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 
@@ -32,6 +35,7 @@ export const PatternGallery = () => {
   const { t } = useTranslation()
   const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
   const [override, setOverride] = useState<TThemeOverride>(null)
+  const [simulatedNative, setSimulatedNative] = useState<TNativeSimulation>(null)
 
   // matchMedia and localStorage don't exist during SSR; reading them only after mount
   // keeps the first client render identical to the server-rendered placeholder.
@@ -53,6 +57,7 @@ export const PatternGallery = () => {
   /** Stays neutral for one frame instead of guessing, until the client-only read above resolves. */
   const isMounted = osPrefersDark !== null
   const resolvedTheme: TResolvedTheme = override ?? (osPrefersDark ? 'dark' : 'light')
+  const nativeChromeTheme: TResolvedTheme = simulatedNative ?? (osPrefersDark ? 'dark' : 'light')
 
   /** The Button pattern's 2-press cycle: press 1 overrides to the opposite shade, press 2 clears back to system. */
   const handleCycle = () => {
@@ -84,6 +89,15 @@ export const PatternGallery = () => {
     }
   }
 
+  /** Simulates the native/OS theme independently of the site's own override — press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
+  const handleSimulateNativeCycle = () => {
+    if (simulatedNative === null) {
+      setSimulatedNative(nativeChromeTheme === 'dark' ? 'light' : 'dark')
+    } else {
+      setSimulatedNative(null)
+    }
+  }
+
   const lightLabel = t('articleContent.twoStatesAreEnough.demoLight')
   const darkLabel = t('articleContent.twoStatesAreEnough.demoDark')
   const systemLabel = t('articleContent.twoStatesAreEnough.demoSystem')
@@ -99,6 +113,10 @@ export const PatternGallery = () => {
     resolvedTheme === 'dark'
       ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
       : t('articleContent.twoStatesAreEnough.demoToggleToDark')
+  const simulateCycleLabel =
+    nativeChromeTheme === 'dark'
+      ? t('articleContent.twoStatesAreEnough.demoSimulateToggleToLight')
+      : t('articleContent.twoStatesAreEnough.demoSimulateToggleToDark')
   const segmentedLabel = t('articleContent.twoStatesAreEnough.demoTabSegmentedLabel')
   const activeSegment: TSegmentValue = isMounted ? (override ?? 'system') : 'system'
 
@@ -156,10 +174,32 @@ export const PatternGallery = () => {
             content={isMounted ? resolvedLabel : undefined}
           />
         </div>
+
+        <div className={styles.controlTile}>
+          <p className={styles.controlLabel}>
+            {t('articleContent.twoStatesAreEnough.demoSimulateOsLabel')}
+          </p>
+          <button
+            type="button"
+            className={styles.toggleButton}
+            onClick={handleSimulateNativeCycle}
+            disabled={!isMounted}
+            aria-label={simulateCycleLabel}
+            title={simulateCycleLabel}
+          >
+            <Icon data={nativeChromeTheme === 'dark' ? Sun : Moon} size={20} />
+          </button>
+          <p className={styles.controlCaption}>
+            {t('articleContent.twoStatesAreEnough.demoSimulateOsCaption')}
+          </p>
+        </div>
       </div>
 
       <div className={styles.preview} data-theme={isMounted ? resolvedTheme : undefined}>
-        <div className={styles.previewTitlebar}>
+        <div
+          className={styles.previewTitlebar}
+          data-native-theme={isMounted ? nativeChromeTheme : undefined}
+        >
           <span className={styles.previewTrafficLights}>
             {TRAFFIC_LIGHTS.map((color) => (
               <span key={color} className={styles.previewTrafficLight} data-color={color} />
