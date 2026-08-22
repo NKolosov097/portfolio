@@ -119,13 +119,6 @@
     "twoStatesAreEnough": {
       "intro1": "Open the settings of almost any modern app and you'll find the same three buttons: Light, Dark, System. Lea Verou argued in her August 2026 piece on dark mode toggles that the third one solves a problem almost nobody has — it's the data model leaking into the UI, not a decision users came looking for.",
       "intro2": "I agree, and I'll add an engineering reason of my own: two states aren't just simpler to read, they're harder to get wrong in code. The toggles below are real, not screenshots — play with them first.",
-      "switchAnalogyEyebrow": "Before we talk toggles",
-      "switchAnalogyPanelALabel": "Five labelled buttons",
-      "switchAnalogyPanelACaption": "Read every label, then pick the exact one you meant.",
-      "switchAnalogyPanelBLabel": "One slider",
-      "switchAnalogyPanelBCaption": "Drag toward brighter or dimmer — no reading required.",
-      "switchAnalogyTakeaway": "A tri-state control asks you to read. A two-state one just asks you to feel a direction.",
-      "switchAnalogySliderLabel": "Brightness slider",
       "demoEyebrow": "Try it",
       "demoPreviewHeading": "Your Site",
       "demoPreviewBody": "This card renders in a real light or dark theme — flip any of the controls above.",

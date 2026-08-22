@@ -8,7 +8,6 @@ import { CombinationGrid } from './CombinationGrid/CombinationGrid'
 import { LightDarkDemo } from './LightDarkDemo/LightDarkDemo'
 import { PatternGallery } from './PatternGallery/PatternGallery'
 import { PatternsInTheWild } from './PatternsInTheWild/PatternsInTheWild'
-import { SwitchAnalogy } from './SwitchAnalogy/SwitchAnalogy'
 
 /** This article's section headings, in document order, for the reading-progress rail. */
 export const HEADINGS: IArticleHeadingEntry[] = [
@@ -33,8 +32,6 @@ export const TwoStatesAreEnoughContent = () => {
     <>
       <p>{t('articleContent.twoStatesAreEnough.intro1')}</p>
       <p>{t('articleContent.twoStatesAreEnough.intro2')}</p>
-
-      <SwitchAnalogy />
 
       <CombinationGrid />
 
