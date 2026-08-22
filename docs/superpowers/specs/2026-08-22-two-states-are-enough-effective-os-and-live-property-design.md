@@ -13,7 +13,7 @@ User feedback after the "Simulate OS" revision:
    site) instead of one shared concept.
 2. `LightDarkDemo`'s mechanism is only explained in prose and a static, generic code sample above
    the interactive part — clicking the toggle repaints the mock window, but nothing on screen shows
-   *which* CSS value is actually driving that repaint at that moment. The user wants the literal
+   _which_ CSS value is actually driving that repaint at that moment. The user wants the literal
    `color-scheme` value visible and updating live, next to the window it controls.
 
 ## Decision
@@ -21,7 +21,7 @@ User feedback after the "Simulate OS" revision:
 ### `PatternGallery`
 
 - Replace `nativeChromeTheme` with a single `effectiveOsTheme: TResolvedTheme = simulatedNative ??
-  (osPrefersDark ? 'dark' : 'light')` — the one place "what does the OS currently say" is computed,
+(osPrefersDark ? 'dark' : 'light')` — the one place "what does the OS currently say" is computed,
   real-by-default, simulate-aware when the reader engages the Simulate OS control.
 - `resolvedTheme` changes from `override ?? (osPrefersDark ? 'dark' : 'light')` to
   `override ?? effectiveOsTheme`. This is the actual fix: when `override` is `null` ("System"),
@@ -43,7 +43,7 @@ User feedback after the "Simulate OS" revision:
   OS.
 - `demoCaption` (the closing "this state is real" caption) is unchanged — `override`/`localStorage`
   persistence and the real `matchMedia` read (`osPrefersDark` itself) are completely untouched by
-  this fix; only what downstream values are *derived from* changes.
+  this fix; only what downstream values are _derived from_ changes.
 
 ### `LightDarkDemo`
 
