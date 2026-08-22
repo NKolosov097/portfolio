@@ -39,6 +39,55 @@
   color: rgb(255 255 255 / 55%);
 }
 
+.segmented {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+}
+
+.segment {
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 55%);
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out;
+}
+
+.segment:hover:not(:disabled) {
+  color: rgb(255 255 255 / 80%);
+}
+
+.segment[data-active='true'] {
+  color: #111;
+  background: rgb(255 255 255 / 85%);
+}
+
+.segment:focus-visible {
+  outline: 2px solid var(--g-color-line-brand);
+  outline-offset: 2px;
+}
+
+.segment:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 0.9rem;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 0.75rem;
+}
+
 .preview {
   padding: 1.25rem 1.5rem;
   background: rgb(255 255 255 / 6%);

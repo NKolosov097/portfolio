@@ -7,9 +7,6 @@ import { Icon, Switch } from '@gravity-ui/uikit'
 import { Moon, Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
-import { ThemeDropdown } from './ThemeDropdown/ThemeDropdown'
-import type { TDropdownValue } from './ThemeDropdown/ThemeDropdown'
-
 /** This demo's own localStorage key — scoped to the demo only, unrelated to the site's own (dark-only) theme. */
 const STORAGE_KEY = 'demo-theme-override'
 
@@ -18,6 +15,12 @@ type TThemeOverride = 'light' | 'dark' | null
 
 /** What's actually rendered — always exactly one of these two. */
 type TResolvedTheme = 'light' | 'dark'
+
+/** The segmented control's own value space — an explicit shade, or the literal `'system'` option. */
+type TSegmentValue = 'light' | 'dark' | 'system'
+
+/** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
+const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
   value === 'light' || value === 'dark'
@@ -67,8 +70,8 @@ export const PatternGallery = () => {
     window.localStorage.setItem(STORAGE_KEY, next)
   }
 
-  /** The Dropdown pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
-  const handleSelectChange = (value: TDropdownValue) => {
+  /** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+  const handleSegmentChange = (value: TSegmentValue) => {
     if (value === 'system') {
       setOverride(null)
       window.localStorage.removeItem(STORAGE_KEY)
@@ -80,6 +83,7 @@ export const PatternGallery = () => {
 
   const lightLabel = t('articleContent.twoStatesAreEnough.demoLight')
   const darkLabel = t('articleContent.twoStatesAreEnough.demoDark')
+  const systemLabel = t('articleContent.twoStatesAreEnough.demoSystem')
   const osLabel = osPrefersDark ? darkLabel : lightLabel
   const resolvedLabel = resolvedTheme === 'dark' ? darkLabel : lightLabel
   const overrideLabel =
@@ -92,6 +96,11 @@ export const PatternGallery = () => {
     resolvedTheme === 'dark'
       ? t('articleContent.twoStatesAreEnough.demoToggleToLight')
       : t('articleContent.twoStatesAreEnough.demoToggleToDark')
+  const segmentedLabel = t('articleContent.twoStatesAreEnough.demoTabSegmentedLabel')
+  const activeSegment: TSegmentValue = isMounted ? (override ?? 'system') : 'system'
+
+  const segmentLabel = (option: TSegmentValue): string =>
+    option === 'light' ? lightLabel : option === 'dark' ? darkLabel : systemLabel
 
   return (
     <div className={styles.card} data-testid="pattern-gallery">
@@ -115,26 +124,36 @@ export const PatternGallery = () => {
         </div>
 
         <div className={styles.controlTile}>
-          <p className={styles.controlLabel}>
-            {t('articleContent.twoStatesAreEnough.demoTabSwitchLabel')}
-          </p>
-          <Switch
-            checked={isMounted && resolvedTheme === 'light'}
-            onUpdate={handleSwitchChange}
-            disabled={!isMounted}
-            content={isMounted ? resolvedLabel : undefined}
-          />
+          <p className={styles.controlLabel}>{segmentedLabel}</p>
+          <div className={styles.segmented} role="group" aria-label={segmentedLabel}>
+            {SEGMENT_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={styles.segment}
+                data-active={option === activeSegment}
+                aria-pressed={option === activeSegment}
+                disabled={!isMounted}
+                onClick={() => handleSegmentChange(option)}
+              >
+                {segmentLabel(option)}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className={styles.controlTile}>
           <p className={styles.controlLabel}>
-            {t('articleContent.twoStatesAreEnough.demoTabDropdownLabel')}
+            {t('articleContent.twoStatesAreEnough.demoTabSwitchLabel')}
           </p>
-          <ThemeDropdown
-            value={isMounted ? (override ?? 'system') : 'system'}
-            onChange={handleSelectChange}
-            disabled={!isMounted}
-          />
+          <div className={styles.settingsRow}>
+            <Switch
+              checked={isMounted && resolvedTheme === 'light'}
+              onUpdate={handleSwitchChange}
+              disabled={!isMounted}
+              content={isMounted ? resolvedLabel : undefined}
+            />
+          </div>
         </div>
       </div>
 
