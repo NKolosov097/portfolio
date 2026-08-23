@@ -1,5 +1,7 @@
 'use client'
 
+import styles from './Content.module.css'
+
 import { useTranslation } from 'react-i18next'
 
 import type { IArticleHeadingEntry } from '@/content/articles/registry'
@@ -30,7 +32,18 @@ export const TwoStatesAreEnoughContent = () => {
 
   return (
     <>
-      <p>{t('articleContent.twoStatesAreEnough.intro1')}</p>
+      <p>
+        {t('articleContent.twoStatesAreEnough.intro1Before')}
+        <a
+          href="https://lea.verou.me/blog/2026/dark-mode-toggles/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.sourceLink}
+        >
+          {t('articleContent.twoStatesAreEnough.intro1LinkText')}
+        </a>
+        {t('articleContent.twoStatesAreEnough.intro1After')}
+      </p>
       <p>{t('articleContent.twoStatesAreEnough.intro2')}</p>
 
       <CombinationGrid />
