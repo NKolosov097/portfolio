@@ -10,17 +10,18 @@ import { useTranslation } from 'react-i18next'
 /** This demo's own localStorage key — scoped to the demo only, unrelated to the site's own (dark-only) theme. */
 const STORAGE_KEY = 'demo-theme-override'
 
-/** The user's explicit choice, or `null` when following the OS preference. */
-type TThemeOverride = 'light' | 'dark' | null
+/** The base shade value — always exactly one of these two. */
+type TShade = 'light' | 'dark'
 
-/** What's actually rendered — always exactly one of these two. */
-type TResolvedTheme = 'light' | 'dark'
+/** What's actually rendered. */
+type TResolvedTheme = TShade
+
+/** An explicit shade choice, or `null` when following the underlying default — the user's site
+ * override, or the simulated native/OS shade, depending on where it's used. */
+type TShadeOverride = TShade | null
 
 /** The segmented control's own value space — an explicit shade, or the literal `'system'` option. */
-type TSegmentValue = 'light' | 'dark' | 'system'
-
-/** The simulated native/OS shade shown in the chrome above, or `null` to follow the real OS preference. */
-type TNativeSimulation = 'light' | 'dark' | null
+type TSegmentValue = TShade | 'system'
 
 /** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
 const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
@@ -28,14 +29,14 @@ const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 /** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
-const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
+const isThemeOverride = (value: string | null): value is TShade =>
   value === 'light' || value === 'dark'
 
 export const PatternGallery = () => {
   const { t } = useTranslation()
   const [osPrefersDark, setOsPrefersDark] = useState<boolean | null>(null)
-  const [override, setOverride] = useState<TThemeOverride>(null)
-  const [simulatedNative, setSimulatedNative] = useState<TNativeSimulation>(null)
+  const [override, setOverride] = useState<TShadeOverride>(null)
+  const [simulatedNative, setSimulatedNative] = useState<TShadeOverride>(null)
 
   // matchMedia and localStorage don't exist during SSR; reading them only after mount
   // keeps the first client render identical to the server-rendered placeholder.
