@@ -175,11 +175,11 @@ export const PatternGallery = () => {
           />
         </div>
 
-        <div className={styles.controlTile}>
-          <p className={styles.controlLabel}>
-            {t('articleContent.twoStatesAreEnough.demoSimulateOsLabel')}
-          </p>
-          <div className={styles.simulateRow}>
+        <div className={`${styles.controlTile} ${styles.simulateTile}`}>
+          <div className={styles.simulateControls}>
+            <p className={styles.controlLabel}>
+              {t('articleContent.twoStatesAreEnough.demoSimulateOsLabel')}
+            </p>
             <button
               type="button"
               className={styles.toggleButton}
@@ -190,10 +190,10 @@ export const PatternGallery = () => {
             >
               <Icon data={effectiveOsTheme === 'dark' ? Sun : Moon} size={20} />
             </button>
-            <p className={styles.controlCaption}>
-              {t('articleContent.twoStatesAreEnough.demoSimulateOsCaption')}
-            </p>
           </div>
+          <p className={styles.controlCaption}>
+            {t('articleContent.twoStatesAreEnough.demoSimulateOsCaption')}
+          </p>
         </div>
       </div>
 
