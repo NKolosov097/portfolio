@@ -146,7 +146,7 @@
       "gridSiteLabel": "Site shows",
       "gridYouBadge": "This is you",
       "gridExplanationMatches": "No override - OS and site match: {{shade}}.",
-      "gridExplanationOverride": "Explicit override - OS: {{native}}, site: {{site}}.",
+      "gridExplanationOverride": "Explicit override - OS: {{native}} | site: {{site}}.",
       "gridCaption": "Simulated - pick any tile. The real toggle is further down the page, backed by your actual OS setting and localStorage.",
       "patternsInTheWildEyebrow": "A shape you've seen before",
       "patternsInTheWildSettingsLabel": "Appearance",

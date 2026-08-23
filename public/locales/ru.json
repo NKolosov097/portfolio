@@ -146,7 +146,7 @@
       "gridSiteLabel": "Сайт показывает",
       "gridYouBadge": "Это ты",
       "gridExplanationMatches": "Override не нужен - ОС и сайт совпадают: {{shade}}.",
-      "gridExplanationOverride": "Явный override - ОС: {{native}}, сайт: {{site}}.",
+      "gridExplanationOverride": "Явный override - ОС: {{native}} | сайт: {{site}}.",
       "gridCaption": "Симуляция - выбери любую плитку. Настоящий тоггл - чуть ниже по странице, завязан на твою реальную настройку ОС и localStorage.",
       "patternsInTheWildEyebrow": "Форма, которую ты уже видел",
       "patternsInTheWildSettingsLabel": "Внешний вид",
