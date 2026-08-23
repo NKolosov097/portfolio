@@ -1,0 +1,280 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+  margin: 2rem 0;
+  background: #111;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 50%);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.controlTile {
+  display: flex;
+  flex: 1 1 8rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 0.75rem;
+}
+
+.controlLabel {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 55%);
+  text-wrap: nowrap;
+}
+
+.controlCaption {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.7rem;
+  color: rgb(255 255 255 / 45%);
+}
+
+.simulateTile {
+  flex: 1 1 100%;
+  flex-direction: row;
+  align-items: center;
+}
+
+.simulateControls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.segmented {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+}
+
+.segment {
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 55%);
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out;
+}
+
+.segment:hover:not(:disabled) {
+  color: rgb(255 255 255 / 80%);
+}
+
+.segment[data-active='true'] {
+  color: #111;
+  background: rgb(255 255 255 / 85%);
+}
+
+/* --g-color-line-brand fails WCAG AA (~1.15:1) against this active segment's near-white
+   background; this darker, same-hue orange clears it at ~5:1. */
+.segment[data-active='true']:hover:not(:disabled) {
+  color: #814f03;
+}
+
+.segment:focus-visible {
+  outline: 2px solid var(--g-color-line-brand);
+  outline-offset: 2px;
+}
+
+.segment:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.preview {
+  overflow: hidden;
+  background: rgb(255 255 255 / 6%);
+  border-radius: 0.75rem;
+  transition:
+    background-color 0.2s ease-out,
+    color 0.2s ease-out;
+}
+
+.preview[data-theme='light'] {
+  background: #f5f5f4;
+}
+
+.preview[data-theme='dark'] {
+  background: #1a1a19;
+}
+
+.previewTitlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: rgb(255 255 255 / 8%);
+  transition: background-color 0.2s ease-out;
+}
+
+.previewTitlebar[data-native-theme='light'] {
+  background: #e4e4e2;
+}
+
+.previewTitlebar[data-native-theme='dark'] {
+  background: #2c2c2e;
+}
+
+.previewTrafficLights {
+  display: flex;
+  flex: none;
+  gap: 0.35rem;
+}
+
+.previewTrafficLight {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.previewTrafficLight[data-color='red'] {
+  background: #ff5f57;
+}
+
+.previewTrafficLight[data-color='yellow'] {
+  background: #febc2e;
+}
+
+.previewTrafficLight[data-color='green'] {
+  background: #28c840;
+}
+
+.previewUrlBar {
+  flex: 1 1 auto;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 60%);
+  background: rgb(255 255 255 / 10%);
+  border-radius: 999px;
+  transition:
+    background-color 0.2s ease-out,
+    color 0.2s ease-out;
+}
+
+.previewTitlebar[data-native-theme='light'] .previewUrlBar {
+  color: rgb(26 26 25 / 65%);
+  background: rgb(0 0 0 / 6%);
+}
+
+.previewTitlebar[data-native-theme='dark'] .previewUrlBar {
+  color: rgb(255 255 255 / 60%);
+  background: rgb(255 255 255 / 10%);
+}
+
+.previewPage {
+  padding: 1.25rem 1.5rem;
+}
+
+.previewHeading {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.preview[data-theme='light'] .previewHeading {
+  color: #1a1a19;
+}
+
+.previewBody {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 75%);
+}
+
+.preview[data-theme='light'] .previewBody {
+  color: rgb(26 26 25 / 75%);
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  color: #fff;
+  cursor: pointer;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  transition: background-color 0.15s ease-out;
+}
+
+.toggleButton:hover:not(:disabled) {
+  background: rgb(255 255 255 / 16%);
+}
+
+.toggleButton:focus-visible {
+  outline: 2px solid var(--g-color-line-brand);
+  outline-offset: 2px;
+}
+
+.toggleButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.stateRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stateLabel {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 55%);
+}
+
+.stateValue {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.caption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 45%);
+}
