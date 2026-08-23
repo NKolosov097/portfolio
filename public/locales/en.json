@@ -158,6 +158,8 @@
       "lightDarkCaption": "Two arguments, no more - the function is binary by construction, not by convention.",
       "lightDarkMechanism": "color-scheme is what actually decides: set it to light or dark on any element and every light-dark() value inside inherits that choice - no media query, no JavaScript computing colors.",
       "lightDarkDemoCaption": "This window's colors are set entirely by light-dark() - clicking only changes color-scheme; the browser repaints the rest.",
+      "lightDarkWindowHeading": "Same markup, two colors",
+      "lightDarkWindowBody": "This heading and this text are colored with light-dark() too - only color-scheme above ever changes.",
       "hardPartsHeading": "Where Two-State Actually Gets Hard",
       "hardPartsLead": "None of this is free to build correctly - four places teams get it wrong:",
       "hardPartsBullet1": "Resolve the theme in a synchronous inline script before the first paint, not in a React effect - otherwise every hard refresh flashes the wrong theme for a frame.",

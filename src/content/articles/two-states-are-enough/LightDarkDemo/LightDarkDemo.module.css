@@ -45,6 +45,15 @@
 
 .demo {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.demoContent {
+  display: grid;
+  flex: 1 1 20rem;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 1rem;
 }
@@ -52,7 +61,7 @@
 .windowStack {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0.4rem;
 }
 
@@ -90,6 +99,7 @@
 
 .window {
   display: block;
+  width: 100%;
   overflow: hidden;
   border: 1px solid rgb(0 0 0 / 40%);
   border-radius: 0.5rem;
@@ -99,14 +109,14 @@
 .titlebar {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0.5rem;
+  gap: 0.35rem;
+  padding: 0.55rem 0.7rem;
   background: #e4e4e2;
 }
 
 .trafficLight {
-  width: 0.45rem;
-  height: 0.45rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
 }
 
@@ -125,29 +135,27 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.7rem 0.55rem;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.75rem 1.1rem;
   background: #fff;
 }
 
-.pageLine,
-.pageLineShort {
+.pageHeading {
   display: block;
-  height: 0.3rem;
-  border-radius: 2px;
-  background: rgb(0 0 0 / 15%);
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
-.pageLine {
-  width: 6rem;
-}
-
-.pageLineShort {
-  width: 3.5rem;
+.pageBody {
+  display: block;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 .demoCaption {
-  flex: 1 1 12rem;
   margin: 0;
   font-size: 0.75rem;
   color: rgb(255 255 255 / 55%);

@@ -27,7 +27,10 @@ const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
  * prefers-color-scheme fallback that ignores color-scheme; the module keeps light-branch fallbacks. */
 const TITLEBAR_STYLE = { background: 'light-dark(#e4e4e2, #2c2c2e)' }
 const PAGE_STYLE = { background: 'light-dark(#fff, #1e1e1e)' }
-const PAGE_LINE_STYLE = { background: 'light-dark(rgb(0 0 0 / 15%), rgb(255 255 255 / 20%))' }
+const PAGE_HEADING_STYLE = { color: 'light-dark(#1a1a19, #fff)' }
+const PAGE_BODY_STYLE = {
+  color: 'light-dark(rgb(26 26 25 / 75%), rgb(255 255 255 / 75%))',
+}
 
 export const LightDarkDemo = () => {
   const { t } = useTranslation()
@@ -65,27 +68,33 @@ export const LightDarkDemo = () => {
           <Icon data={simulatedNative === 'dark' ? Sun : Moon} size={20} />
         </button>
 
-        <div className={styles.windowStack}>
-          <code className={styles.liveProperty}>{`color-scheme: ${simulatedNative};`}</code>
+        <div className={styles.demoContent}>
+          <div className={styles.windowStack}>
+            <code className={styles.liveProperty}>{`color-scheme: ${simulatedNative};`}</code>
 
-          {/* This is the only line doing any work: color-scheme here forces every light-dark()
-              value below to resolve for this branch, regardless of the real OS preference. */}
-          <div className={styles.window} style={{ colorScheme: simulatedNative }}>
-            <span className={styles.titlebar} style={TITLEBAR_STYLE}>
-              {TRAFFIC_LIGHTS.map((color) => (
-                <span key={color} className={styles.trafficLight} data-color={color} />
-              ))}
-            </span>
-            <span className={styles.page} style={PAGE_STYLE}>
-              <span className={styles.pageLine} style={PAGE_LINE_STYLE} />
-              <span className={styles.pageLineShort} style={PAGE_LINE_STYLE} />
-            </span>
+            {/* This is the only line doing any work: color-scheme here forces every light-dark()
+                value below to resolve for this branch, regardless of the real OS preference. */}
+            <div className={styles.window} style={{ colorScheme: simulatedNative }}>
+              <span className={styles.titlebar} style={TITLEBAR_STYLE}>
+                {TRAFFIC_LIGHTS.map((color) => (
+                  <span key={color} className={styles.trafficLight} data-color={color} />
+                ))}
+              </span>
+              <span className={styles.page} style={PAGE_STYLE}>
+                <span className={styles.pageHeading} style={PAGE_HEADING_STYLE}>
+                  {t('articleContent.twoStatesAreEnough.lightDarkWindowHeading')}
+                </span>
+                <span className={styles.pageBody} style={PAGE_BODY_STYLE}>
+                  {t('articleContent.twoStatesAreEnough.lightDarkWindowBody')}
+                </span>
+              </span>
+            </div>
           </div>
-        </div>
 
-        <p className={styles.demoCaption}>
-          {t('articleContent.twoStatesAreEnough.lightDarkDemoCaption')}
-        </p>
+          <p className={styles.demoCaption}>
+            {t('articleContent.twoStatesAreEnough.lightDarkDemoCaption')}
+          </p>
+        </div>
       </div>
     </div>
   )
