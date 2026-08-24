@@ -2,7 +2,7 @@
 
 A production-grade personal portfolio built on the **Next.js App Router** with **React 19** and **TypeScript** (strict): a single-page home experience plus a small set of statically generated article pages. It ships a fully internationalised (English / Russian) UI, a database-backed contact form with transactional email, and an accessibility- and performance-conscious layout shell.
 
-> Live metadata targets `https://nkolosov.com`.
+**[View the live portfolio →](https://nkolosov.com)**
 
 ---
 
