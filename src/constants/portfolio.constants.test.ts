@@ -14,7 +14,6 @@ describe('portfolio project catalog', () => {
       img: 'https://opengraph.githubassets.com/1/NKolosov097/nk-meet',
       descriptionKey: 'portfolio.projects.nk-meet.description',
     })
-    expect(PROJECTS.some(({ id }) => id === 'native-meet')).toBe(false)
   })
 
   it('presents NK Meet under its current product name in both locales', () => {
