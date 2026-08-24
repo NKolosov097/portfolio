@@ -2,15 +2,15 @@ import { IProject } from '@/home-sections/Portfolio/types/portfolio.type'
 
 export const PROJECTS: IProject[] = [
   {
-    id: 'native-meet',
-    img: 'https://opengraph.githubassets.com/1/NKolosov097/native-meet',
-    href: 'https://github.com/NKolosov097/native-meet',
-    descriptionKey: 'portfolio.projects.native-meet.description',
+    id: 'nk-meet',
+    img: 'https://opengraph.githubassets.com/1/NKolosov097/nk-meet',
+    href: 'https://github.com/NKolosov097/nk-meet',
+    descriptionKey: 'portfolio.projects.nk-meet.description',
     tags: [
-      { id: 'native-meet-react-native', title: 'React Native' },
-      { id: 'native-meet-expo', title: 'Expo' },
-      { id: 'native-meet-typescript', title: 'TypeScript' },
-      { id: 'native-meet-livekit', title: 'LiveKit' },
+      { id: 'nk-meet-react-native', title: 'React Native' },
+      { id: 'nk-meet-expo-router', title: 'Expo Router' },
+      { id: 'nk-meet-typescript', title: 'TypeScript' },
+      { id: 'nk-meet-livekit', title: 'LiveKit' },
     ],
   },
   {

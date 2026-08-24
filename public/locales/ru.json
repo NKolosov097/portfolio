@@ -54,13 +54,13 @@
         "title": "Protein Web",
         "description": "Интерактивная игра про drug discovery: направляйте молекулы в реальные белки-мишени рака с живой 3D-визуализацией и физической оценкой связывания."
       },
-      "native-meet": {
-        "title": "Native Meet",
-        "description": "Кроссплатформенное приложение видеозвонков на React Native и LiveKit: real-time аудио/видео, управление камерой и микрофоном, полная типизация."
+      "nk-meet": {
+        "title": "NK Meet",
+        "description": "Кроссплатформенное приложение для видеовстреч на React Native, Expo Router и LiveKit: создание комнат, ссылки-приглашения, недавние встречи и управление аудио/видео в реальном времени."
       },
       "auth-service": {
         "title": "Auth Service",
-        "description": "Продакшн-микросервис аутентификации на Go: ротация refresh-токенов JWT, OAuth через Google и Telegram, rate-limiting и усиленная безопасность."
+        "description": "Микросервис аутентификации BLOB на Go: вход по паролю и через соцсети, ротация JWT-сессий, восстановление аккаунта, rate-limiting и усиленная HTTP-безопасность."
       },
       "golang-todo-app": {
         "title": "Golang Todo App",

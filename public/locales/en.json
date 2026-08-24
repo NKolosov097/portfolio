@@ -54,13 +54,13 @@
         "title": "Protein Web",
         "description": "Interactive drug-discovery game: guide molecules into real cancer-target proteins with live 3D visualization and physics-based binding scoring."
       },
-      "native-meet": {
-        "title": "Native Meet",
-        "description": "Cross-platform video-calling app built on React Native and LiveKit: real-time audio/video, camera and mic controls, fully typed."
+      "nk-meet": {
+        "title": "NK Meet",
+        "description": "Cross-platform meeting app built with React Native, Expo Router, and LiveKit: create or join rooms, shareable room links, recent meetings, and real-time audio/video controls."
       },
       "auth-service": {
         "title": "Auth Service",
-        "description": "Production-grade authentication microservice in Go: rotating JWT refresh tokens, Google and Telegram OAuth, rate limiting, and hardened security."
+        "description": "Go authentication microservice for BLOB: email/password and social sign-in, rotating JWT sessions, account recovery, rate limiting, and hardened HTTP security."
       },
       "golang-todo-app": {
         "title": "Golang Todo App",
