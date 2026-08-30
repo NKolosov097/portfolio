@@ -1,6 +1,8 @@
 import { MutableRefObject } from 'react'
 import { animateScroll } from './animateScroll'
 
+export { getElementPosition } from './animateScroll'
+
 /**
  * Scrolls to the element matching the current URL fragment, normalising the raw hash first -
  * a stale client-side transition can leave a duplicated fragment behind (e.g. "#writing#writing")
@@ -19,7 +21,11 @@ export const scrollToLocationHash = (expectedId?: string): void => {
   }
 
   if (rawHash !== cleanHash) {
-    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${cleanHash}`)
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${window.location.search}#${cleanHash}`,
+    )
   }
 
   document.getElementById(cleanHash)?.scrollIntoView()
@@ -34,8 +40,6 @@ interface IScrollToProps<T> {
 
 const logError = () =>
   console.error(`Invalid element, are you sure you've provided element id or react ref?`)
-
-export const getElementPosition = (element: HTMLElement) => element.offsetTop
 
 export const scrollTo = <T extends HTMLElement>({
   id,
@@ -57,7 +61,7 @@ export const scrollTo = <T extends HTMLElement>({
   }
 
   animateScroll({
-    targetPosition: getElementPosition(element),
+    element,
     initialPosition,
     duration,
     paddingFromTop,

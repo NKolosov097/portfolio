@@ -191,6 +191,7 @@ Copy `.env.example` to `.env.local` and provide:
 | `pnpm check-types`        | TypeScript check (`tsc --pretty --noEmit`).                                |
 | `pnpm check-lint`         | ESLint check only, no auto-fix - a standalone alternative to `lint:js`.    |
 | `pnpm check-format`       | Prettier check only, no write, over the whole repo.                        |
+| `pnpm check-styles`       | Stylelint CSS check only, no auto-fix - used in CI.                        |
 | `pnpm lint`               | `lint:js && lint:styles && lint:prettier` - ESLint + Stylelint + Prettier. |
 | `pnpm lint:js`            | ESLint check, no auto-fix (part of `pnpm lint`).                           |
 | `pnpm lint:styles`        | Stylelint CSS with auto-fix.                                               |

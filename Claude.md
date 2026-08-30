@@ -13,6 +13,7 @@ Claude may assist with planning, prototyping, tests, and documentation. Treat al
 - Reuse existing patterns, helpers, and utilities before adding new abstractions.
 - Prefer destructuring - function params, callback args, object fields - over repeated dotted access.
 - Use a short hyphen (`-`) instead of an em dash (`—`) for parenthetical breaks and asides.
+- Never silence a linter with a disable comment (`stylelint-disable`, `eslint-disable`, etc.). Fix the underlying code, or if the rule itself is wrong for a legitimate case, change the shared rule configuration instead.
 
 ## Documentation
 
