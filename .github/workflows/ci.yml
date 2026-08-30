@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Type check, lint, and unit tests
@@ -37,5 +41,44 @@ jobs:
       - name: Lint
         run: pnpm check-lint
 
+      - name: Check format
+        run: pnpm check-format
+
+      - name: Check styles
+        run: pnpm check-styles
+
       - name: Run unit tests
         run: pnpm test
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    env:
+      # Not a live database: the E2E suite under test today never touches persistence,
+      # only next build/start needing a syntactically valid connection string.
+      DATABASE_URL: postgresql://user:password@localhost:5432/portfolio
+      NEXT_PUBLIC_LOCALHOST_API: http://localhost:3000
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.21.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Run E2E tests
+        run: pnpm test:e2e

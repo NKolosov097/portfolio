@@ -97,7 +97,10 @@ export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
     return null
   }
 
-  const activeIndex = Math.max(0, headings.findIndex(({ id }) => id === activeId))
+  const activeIndex = Math.max(
+    0,
+    headings.findIndex(({ id }) => id === activeId),
+  )
 
   return (
     <div className={styles.navSlot}>

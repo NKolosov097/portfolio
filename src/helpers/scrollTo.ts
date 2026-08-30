@@ -19,7 +19,11 @@ export const scrollToLocationHash = (expectedId?: string): void => {
   }
 
   if (rawHash !== cleanHash) {
-    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${cleanHash}`)
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${window.location.search}#${cleanHash}`,
+    )
   }
 
   document.getElementById(cleanHash)?.scrollIntoView()
