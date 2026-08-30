@@ -17,8 +17,8 @@ export interface DoomEngineOptions {
 }
 
 interface DoomWasmExports extends WebAssembly.Exports {
-  main: () => void
-  doom_loop_step: () => void
+  main: VoidFunction
+  doom_loop_step: VoidFunction
   add_browser_event: (eventType: number, keyCode: number) => void
 }
 
