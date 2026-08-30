@@ -50,4 +50,7 @@ export const twoStatesAreEnoughArticle: IArticleMeta = {
 }
 
 /** Every self-hosted article, in reverse-chronological display order. */
-export const ARTICLES: IArticleMeta[] = [twoStatesAreEnoughArticle, aiBoilerplateSeniorEngineersArticle]
+export const ARTICLES: IArticleMeta[] = [
+  twoStatesAreEnoughArticle,
+  aiBoilerplateSeniorEngineersArticle,
+]

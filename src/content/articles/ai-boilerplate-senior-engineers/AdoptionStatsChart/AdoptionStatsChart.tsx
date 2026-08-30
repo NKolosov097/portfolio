@@ -56,7 +56,9 @@ export const AdoptionStatsChart = () => {
 
   return (
     <div className={styles.card} data-testid="adoption-stats-chart">
-      <p className={styles.eyebrow}>{t('articleContent.aiBoilerplateSeniorEngineers.chartEyebrow')}</p>
+      <p className={styles.eyebrow}>
+        {t('articleContent.aiBoilerplateSeniorEngineers.chartEyebrow')}
+      </p>
 
       <div className={styles.hero}>
         <span className={styles.heroValue}>
@@ -86,10 +88,7 @@ export const AdoptionStatsChart = () => {
           return (
             <li key={bar.id} className={styles.barRow}>
               <span className={styles.track}>
-                <span
-                  className={styles.valueLabel}
-                  style={{ bottom: `calc(${bar.value}% + 4px)` }}
-                >
+                <span className={styles.valueLabel} style={{ bottom: `calc(${bar.value}% + 4px)` }}>
                   {bar.value}%
                 </span>
 
@@ -134,7 +133,9 @@ export const AdoptionStatsChart = () => {
         })}
       </ul>
 
-      <p className={styles.source}>{t('articleContent.aiBoilerplateSeniorEngineers.chartSource')}</p>
+      <p className={styles.source}>
+        {t('articleContent.aiBoilerplateSeniorEngineers.chartSource')}
+      </p>
     </div>
   )
 }
