@@ -195,9 +195,7 @@ main {
 main > header > .g-tabs {
   flex-wrap: nowrap;
   overflow-x: auto;
-  padding-right: var(
-    --_--item-gap
-  ); /* stylelint-disable-line custom-property-pattern -- Gravity UI internal variable */
+  padding-right: var(--_--item-gap);
 }
 
 .section {
