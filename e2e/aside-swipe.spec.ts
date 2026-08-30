@@ -5,7 +5,7 @@ import { revealAside } from './helpers/aside'
 /**
  * Whether this browser can construct synthetic touch events at all. WebKit exposes a `Touch`
  * global (so `typeof window.Touch` alone is not a reliable check), but throws "Illegal
- * constructor" when it's actually called with `new` — only Chromium and Firefox support that.
+ * constructor" when it's actually called with `new` - only Chromium and Firefox support that.
  */
 const hasSyntheticTouchSupport = (locator: Locator) =>
   locator.evaluate((node) => {

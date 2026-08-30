@@ -25,7 +25,7 @@ export const AUTHOR_TWITTER_HANDLE = '@NKolosov097'
 /** Absolute URL of the owner's avatar photo, used as the structured-data `Person.image`. */
 export const AUTHOR_IMAGE_URL = `${SITE_URL}/assets/img/avatar/avatar.webp`
 
-/** Technologies the owner works with — feeds both meta keywords and structured-data `knowsAbout`. */
+/** Technologies the owner works with - feeds both meta keywords and structured-data `knowsAbout`. */
 export const AUTHOR_SKILLS = [
   'React',
   'Next.js',

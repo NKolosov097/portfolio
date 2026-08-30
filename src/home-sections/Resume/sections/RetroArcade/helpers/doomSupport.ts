@@ -4,7 +4,7 @@ export const isCoarsePointerDevice = (): boolean =>
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(pointer: coarse)').matches
 
-/** Detects Fullscreen API support — notably absent for arbitrary elements on iOS Safari. */
+/** Detects Fullscreen API support - notably absent for arbitrary elements on iOS Safari. */
 export const supportsFullscreen = (): boolean =>
   typeof document !== 'undefined' &&
   typeof document.documentElement.requestFullscreen === 'function'

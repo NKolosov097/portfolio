@@ -12,7 +12,7 @@ export const size = {
 export const contentType = 'image/png'
 
 /** Accessible description of the banner, exposed as the `og:image:alt` value. */
-export const alt = `${AUTHOR_NAME} — ${AUTHOR_JOB_TITLE}`
+export const alt = `${AUTHOR_NAME} - ${AUTHOR_JOB_TITLE}`
 
 export default function OpengraphImage(): ImageResponse {
   const initials = AUTHOR_NAME.split(' ')

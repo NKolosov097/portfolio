@@ -23,9 +23,9 @@ Every task's requirements implicitly include this section.
 - **Every new component lives in its own directory** with separate component and style files.
 - **No new user-facing strings.** The field is decorative and `aria-hidden`; `public/locales/en.json` and `public/locales/ru.json` must not change.
 - **QA selectors** use `id` / `data-testid` / `data-key` with characters limited to `a-z`, `0-9`, `-`, `_`, `/`.
-- **Run test and lint binaries directly, never through `pnpm <script>`** — `pnpm` triggers a deps-status reinstall that aborts in a non-TTY shell. Use `node_modules/.bin/vitest`, `node_modules/.bin/tsc`, `node_modules/.bin/eslint`, `node_modules/.bin/prettier`, `node_modules/.bin/stylelint`, `node_modules/.bin/playwright`.
+- **Run test and lint binaries directly, never through `pnpm <script>`** - `pnpm` triggers a deps-status reinstall that aborts in a non-TTY shell. Use `node_modules/.bin/vitest`, `node_modules/.bin/tsc`, `node_modules/.bin/eslint`, `node_modules/.bin/prettier`, `node_modules/.bin/stylelint`, `node_modules/.bin/playwright`.
 - **Vitest routing:** `src/**/*.test.ts` runs in the `node` environment; only `src/**/*.dom.test.ts` runs in `jsdom`. Pure modules must be plain `.test.ts`.
-- **`tsconfig.json` `lib` is `["dom", "dom.iterable", "esnext"]` — no `webworker`.** The worker file must not reference `DedicatedWorkerGlobalScope`, `self` typed as a worker scope, or any webworker-only global. Bare `addEventListener` / `postMessage` / `requestAnimationFrame` / `OffscreenCanvas` all type-check against the DOM lib and work at runtime inside a worker.
+- **`tsconfig.json` `lib` is `["dom", "dom.iterable", "esnext"]` - no `webworker`.** The worker file must not reference `DedicatedWorkerGlobalScope`, `self` typed as a worker scope, or any webworker-only global. Bare `addEventListener` / `postMessage` / `requestAnimationFrame` / `OffscreenCanvas` all type-check against the DOM lib and work at runtime inside a worker.
 - **Playwright runs against a production build** (`next build` + `next start`) across six projects: chromium, mobile-chrome, firefox, mobile-firefox, safari, mobile-safari. Reduced motion must be set with `await page.emulateMedia({ reducedMotion: 'reduce' })`, never `test.use()`.
 - **`e2e/smoke.spec.ts` asserts zero console errors on load.** No code path in this feature may `console.error`, including worker fallback.
 - **Validation gate for every task:** `node_modules/.bin/tsc --pretty --noEmit`, `node_modules/.bin/eslint .`, `node_modules/.bin/prettier --check .`, and `node_modules/.bin/vitest run`.
@@ -35,7 +35,7 @@ Every task's requirements implicitly include this section.
 
 Two deliberate deviations from `docs/superpowers/specs/2026-08-08-home-sparkle-field-design.md`, both narrowing rather than widening scope:
 
-1. **`helpers/sparkleController.ts` is added.** The spec's file list stops at the loop. Extracting the "own the surface, react to viewport and tier changes" wiring into a controller is what lets the main-thread path and the worker path share everything except message transport — which is the spec's own stated goal in §9.
+1. **`helpers/sparkleController.ts` is added.** The spec's file list stops at the loop. Extracting the "own the surface, react to viewport and tier changes" wiring into a controller is what lets the main-thread path and the worker path share everything except message transport - which is the spec's own stated goal in §9.
 2. **The fade-in's target opacity is not a separate constant.** The spec's §15 lists "fade-in duration and target opacity"; the implementation fades the layer `0 → 1` and expresses subtlety through `minOpacity` / `maxOpacity` in the field config, keeping one source of truth for how bright a sparkle is.
 
 ## File Structure
@@ -73,7 +73,7 @@ Two deliberate deviations from `docs/superpowers/specs/2026-08-08-home-sparkle-f
 
 - [ ] **Step 1: Write the failing test**
 
-Create `src/constants/home.constants.test.ts`. These assertions guard the tier table against a careless future edit — the governor's downgrade path is only meaningful if each step is genuinely cheaper.
+Create `src/constants/home.constants.test.ts`. These assertions guard the tier table against a careless future edit - the governor's downgrade path is only meaningful if each step is genuinely cheaper.
 
 ```ts
 import { describe, expect, it } from 'vitest'
@@ -153,7 +153,7 @@ describe('sparkle constants', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/constants/home.constants.test.ts`
-Expected: FAIL — `Failed to resolve import "@/constants/home.constants"`.
+Expected: FAIL - `Failed to resolve import "@/constants/home.constants"`.
 
 - [ ] **Step 3: Create the types module**
 
@@ -475,7 +475,7 @@ export const SPARKLE_GOVERNOR_THRESHOLDS: ISparkleGovernorThresholds = {
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/constants/home.constants.test.ts`
-Expected: PASS — 7 tests.
+Expected: PASS - 7 tests.
 
 - [ ] **Step 6: Point the existing Sparkle icon at the shared glyph**
 
@@ -946,7 +946,7 @@ describe('readSparkleInfluence', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleField.test.ts`
-Expected: FAIL — `Failed to resolve import "@/home-sections/Home/helpers/sparkleField"`.
+Expected: FAIL - `Failed to resolve import "@/home-sections/Home/helpers/sparkleField"`.
 
 - [ ] **Step 3: Write the implementation**
 
@@ -1183,7 +1183,7 @@ export const readSparkleInfluence = (
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleField.test.ts`
-Expected: PASS — 24 tests.
+Expected: PASS - 24 tests.
 
 - [ ] **Step 5: Validate and commit**
 
@@ -1454,7 +1454,7 @@ describe('recordSparkleFrame', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleGovernor.test.ts`
-Expected: FAIL — `Failed to resolve import "@/home-sections/Home/helpers/sparkleGovernor"`.
+Expected: FAIL - `Failed to resolve import "@/home-sections/Home/helpers/sparkleGovernor"`.
 
 - [ ] **Step 3: Write the implementation**
 
@@ -1545,7 +1545,7 @@ export const createSparkleGovernorState = (tier: ESparkleTier): ISparkleGovernor
  * Windows are non-overlapping: a decision consumes a full window and leaves the
  * next one empty, whatever the outcome. A sliding window would let a handful of
  * fresh frames flip a percentile still dominated by a superseded regime's
- * samples — at the lowest animated tier that could trip the irreversible drop to
+ * samples - at the lowest animated tier that could trip the irreversible drop to
  * the still frame off frames that were actually healthy. Emptying the window
  * also keeps the sort to once per window instead of once per frame, so the
  * measurement stays out of the budget it is measuring.
@@ -1605,7 +1605,7 @@ export const recordSparkleFrame = (
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleGovernor.test.ts`
-Expected: PASS — 21 tests.
+Expected: PASS - 21 tests.
 
 - [ ] **Step 5: Validate and commit**
 
@@ -1635,7 +1635,7 @@ git commit -m "feat: added adaptive sparkle quality governor"
   - `resolveSpriteBucketIndex(size: number, bucketSizes: number[]): number`
   - `resolveRotationIndex(rotation: number, steps: number): number`
   - `buildSparkleAtlas(createSurface: TSpriteSurfaceFactory, options: ISparkleAtlasOptions): ISparkleSpriteAtlas | null`
-  - `ISparkleAtlasOptions` — `{ devicePixelRatio: number; color: string; hasGlow: boolean }`
+  - `ISparkleAtlasOptions` - `{ devicePixelRatio: number; color: string; hasGlow: boolean }`
   - `renderSparkleField<TImage>(context: ISparkleDrawContext<TImage>, atlas: ISparkleSpriteAtlas<TImage>, particles: ISparkleParticle[], pointer: ISparklePointer, view: ISparkleViewport, config: ISparkleFieldConfig, influence: ISparkleInfluence): void`
 
 `buildSparkleAtlas` is browser-only and is exercised by the e2e suite, not by unit tests; the two pure resolvers it depends on are unit-tested here.
@@ -1707,7 +1707,7 @@ describe('resolveRotationIndex', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleSprites.test.ts`
-Expected: FAIL — `Failed to resolve import "@/home-sections/Home/helpers/sparkleSprites"`.
+Expected: FAIL - `Failed to resolve import "@/home-sections/Home/helpers/sparkleSprites"`.
 
 - [ ] **Step 3: Write the sprite module**
 
@@ -1833,11 +1833,11 @@ export const buildSparkleAtlas = (
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleSprites.test.ts`
-Expected: PASS — 10 tests.
+Expected: PASS - 10 tests.
 
 - [ ] **Step 5: Write the failing renderer test**
 
-Create `src/home-sections/Home/helpers/sparkleRenderer.test.ts`. The renderer is generic over the frame image type, so the whole draw path can be exercised with plain strings — no canvas, no jsdom.
+Create `src/home-sections/Home/helpers/sparkleRenderer.test.ts`. The renderer is generic over the frame image type, so the whole draw path can be exercised with plain strings - no canvas, no jsdom.
 
 ```ts
 import { describe, expect, it } from 'vitest'
@@ -2146,7 +2146,7 @@ describe('renderSparkleField', () => {
 - [ ] **Step 6: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleRenderer.test.ts`
-Expected: FAIL — `Failed to resolve import "@/home-sections/Home/helpers/sparkleRenderer"`.
+Expected: FAIL - `Failed to resolve import "@/home-sections/Home/helpers/sparkleRenderer"`.
 
 - [ ] **Step 7: Write the renderer**
 
@@ -2239,7 +2239,7 @@ export const renderSparkleField = <TImage>(
 - [ ] **Step 8: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleRenderer.test.ts`
-Expected: PASS — 10 tests.
+Expected: PASS - 10 tests.
 
 - [ ] **Step 9: Validate and commit**
 
@@ -2265,11 +2265,11 @@ git commit -m "feat: added sparkle sprite atlas and frame renderer"
 
 - Consumes: everything from Tasks 1–4.
 - Produces:
-  - `ISparkleEngineOptions<TImage = CanvasImageSource>` — `{ context: ISparkleDrawContext<TImage>; atlas: ISparkleSpriteAtlas<TImage>; particles: ISparkleParticle[]; view: ISparkleViewport; config: ISparkleFieldConfig; governor: ISparkleGovernorState; thresholds: ISparkleGovernorThresholds; requestFrame: (callback: (timestamp: number) => void) => number; cancelFrame: (handle: number) => void; onTierChange: (tier: ESparkleTier) => void }`
-  - `ISparkleEngine<TImage = CanvasImageSource>` — `{ start(): void; stop(): void; renderOnce(): void; setPointerTarget(target: IPointerPosition | null): void; setAtlas(atlas: ISparkleSpriteAtlas<TImage>): void; readonly isRunning: boolean }`
+  - `ISparkleEngineOptions<TImage = CanvasImageSource>` - `{ context: ISparkleDrawContext<TImage>; atlas: ISparkleSpriteAtlas<TImage>; particles: ISparkleParticle[]; view: ISparkleViewport; config: ISparkleFieldConfig; governor: ISparkleGovernorState; thresholds: ISparkleGovernorThresholds; requestFrame: (callback: (timestamp: number) => void) => number; cancelFrame: (handle: number) => void; onTierChange: (tier: ESparkleTier) => void }`
+  - `ISparkleEngine<TImage = CanvasImageSource>` - `{ start(): void; stop(): void; renderOnce(): void; setPointerTarget(target: IPointerPosition | null): void; setAtlas(atlas: ISparkleSpriteAtlas<TImage>): void; readonly isRunning: boolean }`
   - `createSparkleEngine<TImage = CanvasImageSource>(options: ISparkleEngineOptions<TImage>): ISparkleEngine<TImage>`
 
-The engine measures frame duration from consecutive `requestFrame` timestamps — that is the true frame time, and it costs nothing extra. Deltas above `config.maxFrameDelta` are simulated as a clamped step but excluded from the governor's sample, so returning from a background tab can never trigger a downgrade.
+The engine measures frame duration from consecutive `requestFrame` timestamps - that is the true frame time, and it costs nothing extra. Deltas above `config.maxFrameDelta` are simulated as a clamped step but excluded from the governor's sample, so returning from a background tab can never trigger a downgrade.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2538,7 +2538,7 @@ describe('createSparkleEngine', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleEngine.test.ts`
-Expected: FAIL — `Failed to resolve import "@/home-sections/Home/helpers/sparkleEngine"`.
+Expected: FAIL - `Failed to resolve import "@/home-sections/Home/helpers/sparkleEngine"`.
 
 - [ ] **Step 3: Write the engine**
 
@@ -2713,7 +2713,7 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleEngine.test.ts`
-Expected: PASS — 12 tests.
+Expected: PASS - 12 tests.
 
 - [ ] **Step 5: Validate and commit**
 
@@ -2738,8 +2738,8 @@ git commit -m "feat: added sparkle frame loop engine"
 
 - Consumes: everything from Tasks 1–5.
 - Produces:
-  - `ISparkleControllerOptions<TImage>` — `{ context: ISparkleDrawContext<TImage>; buildAtlas: (tier: ISparkleTierConfig, devicePixelRatio: number) => ISparkleSpriteAtlas<TImage> | null; resizeSurface: (widthPx: number, heightPx: number) => void; requestFrame: (callback: (timestamp: number) => void) => number; cancelFrame: (handle: number) => void; initialTier: ESparkleTier; onTierChange?: (tier: ESparkleTier) => void; random?: () => number }`
-  - `ISparkleController` — `{ readonly tier: ESparkleTier; readonly isRunning: boolean; setViewport(width: number, height: number, devicePixelRatio: number): void; setPointerTarget(target: IPointerPosition | null): void; start(): void; stop(): void; destroy(): void }`
+  - `ISparkleControllerOptions<TImage>` - `{ context: ISparkleDrawContext<TImage>; buildAtlas: (tier: ISparkleTierConfig, devicePixelRatio: number) => ISparkleSpriteAtlas<TImage> | null; resizeSurface: (widthPx: number, heightPx: number) => void; requestFrame: (callback: (timestamp: number) => void) => number; cancelFrame: (handle: number) => void; initialTier: ESparkleTier; onTierChange?: (tier: ESparkleTier) => void; random?: () => number }`
+  - `ISparkleController` - `{ readonly tier: ESparkleTier; readonly isRunning: boolean; setViewport(width: number, height: number, devicePixelRatio: number): void; setPointerTarget(target: IPointerPosition | null): void; start(): void; stop(): void; destroy(): void }`
   - `createSparkleController<TImage>(options: ISparkleControllerOptions<TImage>): ISparkleController`
 
 The controller is the piece both transports share: it owns viewport changes, particle refits, atlas rebuilds, and the tier-change reaction. `start()` on the still tier paints one frame instead of running a loop.
@@ -2762,7 +2762,7 @@ import {
 
 /**
  * Hand-driven frame scheduler. Each callback re-registers itself, so the pending
- * set is drained into a snapshot before it is invoked — iterating the live list
+ * set is drained into a snapshot before it is invoked - iterating the live list
  * would never terminate.
  */
 const createManualScheduler = () => {
@@ -2997,7 +2997,7 @@ describe('createSparkleController', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleController.test.ts`
-Expected: FAIL — `Failed to resolve import "@/home-sections/Home/helpers/sparkleController"`.
+Expected: FAIL - `Failed to resolve import "@/home-sections/Home/helpers/sparkleController"`.
 
 - [ ] **Step 3: Write the controller**
 
@@ -3247,7 +3247,7 @@ export const createSparkleController = <TImage = CanvasImageSource>(
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleController.test.ts`
-Expected: PASS — 13 tests.
+Expected: PASS - 13 tests.
 
 - [ ] **Step 5: Validate and commit**
 
@@ -3282,7 +3282,7 @@ git commit -m "feat: added sparkle surface controller"
 
 - [ ] **Step 1: Write the failing idle-callback test**
 
-Create `src/helpers/idleCallback.dom.test.ts`. The `.dom.test.ts` suffix routes it to the jsdom project — jsdom has no `requestIdleCallback`, which is exactly the fallback path worth covering.
+Create `src/helpers/idleCallback.dom.test.ts`. The `.dom.test.ts` suffix routes it to the jsdom project - jsdom has no `requestIdleCallback`, which is exactly the fallback path worth covering.
 
 ```ts
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -3338,7 +3338,7 @@ describe('requestIdle', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/helpers/idleCallback.dom.test.ts`
-Expected: FAIL — `Failed to resolve import "@/helpers/idleCallback"`.
+Expected: FAIL - `Failed to resolve import "@/helpers/idleCallback"`.
 
 - [ ] **Step 3: Write the idle-callback helper**
 
@@ -3405,7 +3405,7 @@ export const cancelIdle = (handle: number): void => {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/helpers/idleCallback.dom.test.ts`
-Expected: PASS — 3 tests.
+Expected: PASS - 3 tests.
 
 - [ ] **Step 5: Write the component styles**
 
@@ -3689,7 +3689,7 @@ export default SparkleField
 
 - [ ] **Step 7: Mount the field in the hero**
 
-Modify `src/home-sections/Home/Home.tsx` — add the dynamic import, the idle gate, and the field itself:
+Modify `src/home-sections/Home/Home.tsx` - add the dynamic import, the idle gate, and the field itself:
 
 ```tsx
 'use client'
@@ -3764,7 +3764,7 @@ export default Home
 
 - [ ] **Step 8: Give the section its own stacking context**
 
-Modify the `.section` rule at the top of `src/home-sections/Home/Home.module.css`. `isolation: isolate` is what lets the field sit at `z-index: -1` behind the text without falling behind the page itself — and it means no existing child rule has to change.
+Modify the `.section` rule at the top of `src/home-sections/Home/Home.module.css`. `isolation: isolate` is what lets the field sit at `z-index: -1` behind the text without falling behind the page itself - and it means no existing child rule has to change.
 
 ```css
 .section {
@@ -3858,7 +3858,7 @@ Expected: PASS across all six projects. The field must reach `data-ready="true"`
 - [ ] **Step 11: Confirm nothing regressed**
 
 Run: `node_modules/.bin/playwright test`
-Expected: PASS — in particular `smoke.spec.ts`'s "loads without uncaught errors", which fails if any code path logs an error.
+Expected: PASS - in particular `smoke.spec.ts`'s "loads without uncaught errors", which fails if any code path logs an error.
 
 - [ ] **Step 12: Update the README**
 
@@ -3867,13 +3867,13 @@ Modify `README.md` with these two exact edits.
 First, extend the section-based SPA bullet. Replace:
 
 ```markdown
-- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home`, `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) — behind a persistent layout shell rendered inside a `<Suspense>` boundary.
+- **Single route, section-based SPA.** The home page (`/`) composes independent sections - `Home`, `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) - behind a persistent layout shell rendered inside a `<Suspense>` boundary.
 ```
 
 with:
 
 ```markdown
-- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) — behind a persistent layout shell rendered inside a `<Suspense>` boundary.
+- **Single route, section-based SPA.** The home page (`/`) composes independent sections - `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) - behind a persistent layout shell rendered inside a `<Suspense>` boundary.
 ```
 
 Second, record the Home-local helpers directory in the tree. Replace:
@@ -3932,7 +3932,7 @@ Note: `stylelint` reports three pre-existing errors in `src/styles/globals.css`.
   - `canUseSparkleWorker(scope: { hasWorker: boolean; hasOffscreenCanvas: boolean; isReducedMotion: boolean }): boolean`
   - `isSparkleWorkerMessage(value: unknown): value is TSparkleWorkerOutbound`
 
-The worker buys jank isolation, not throughput: the field keeps animating while the main thread is busy hydrating and mounting the lazily-loaded sections below. It is strictly additive — every path in Task 7 remains the fallback.
+The worker buys jank isolation, not throughput: the field keeps animating while the main thread is busy hydrating and mounting the lazily-loaded sections below. It is strictly additive - every path in Task 7 remains the fallback.
 
 - [ ] **Step 1: Add the message contract to the types module**
 
@@ -4060,7 +4060,7 @@ describe('isSparkleWorkerMessage', () => {
 - [ ] **Step 3: Run test to verify it fails**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleTransport.test.ts`
-Expected: FAIL — `Failed to resolve import "@/home-sections/Home/helpers/sparkleTransport"`.
+Expected: FAIL - `Failed to resolve import "@/home-sections/Home/helpers/sparkleTransport"`.
 
 - [ ] **Step 4: Write the transport helpers**
 
@@ -4122,11 +4122,11 @@ export const isSparkleWorkerMessage = (value: unknown): value is TSparkleWorkerO
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `node_modules/.bin/vitest run src/home-sections/Home/helpers/sparkleTransport.test.ts`
-Expected: PASS — 8 tests.
+Expected: PASS - 8 tests.
 
 - [ ] **Step 6: Write the worker**
 
-Create `src/home-sections/Home/workers/sparkleField.worker.ts`. It uses only globals that exist in both the DOM and worker lib definitions — the project's `tsconfig.json` has no `webworker` lib, and adding one conflicts with `dom`.
+Create `src/home-sections/Home/workers/sparkleField.worker.ts`. It uses only globals that exist in both the DOM and worker lib definitions - the project's `tsconfig.json` has no `webworker` lib, and adding one conflicts with `dom`.
 
 ```ts
 import {
@@ -4219,7 +4219,7 @@ postMessage({ type: 'ready' })
 
 - [ ] **Step 7: Wire the transport into the component**
 
-Modify `src/home-sections/Home/components/SparkleField/SparkleField.tsx`. The main-thread branch from Task 7 stays exactly as written and becomes the fallback. Add the worker branch around it, following this order strictly — the canvas is only transferred after the worker proves it booted, because `transferControlToOffscreen` cannot be undone:
+Modify `src/home-sections/Home/components/SparkleField/SparkleField.tsx`. The main-thread branch from Task 7 stays exactly as written and becomes the fallback. Add the worker branch around it, following this order strictly - the canvas is only transferred after the worker proves it booted, because `transferControlToOffscreen` cannot be undone:
 
 1. Add a `canvasKey` piece of state, initialised to `0`, and pass it as `key={canvasKey}` on the `<canvas>`. Incrementing it discards a detached element and remounts a fresh one.
 2. Inside the main effect, before creating the main-thread controller, evaluate:
@@ -4318,7 +4318,7 @@ Note: `onWorkerError` calls `event.preventDefault()` because an unhandled worker
 - [ ] **Step 8: Verify both transports behave identically**
 
 Run: `node_modules/.bin/next build && node_modules/.bin/playwright test`
-Expected: PASS across all six projects. Chromium and Firefox exercise the worker path; older Safari device profiles exercise the fallback. The assertions from Task 7 are unchanged, which is the point — the transport must be invisible from the outside.
+Expected: PASS across all six projects. Chromium and Firefox exercise the worker path; older Safari device profiles exercise the fallback. The assertions from Task 7 are unchanged, which is the point - the transport must be invisible from the outside.
 
 - [ ] **Step 9: Confirm the fallback really recovers**
 
@@ -4326,7 +4326,7 @@ Temporarily add `throw new Error('forced')` as the first statement of `src/home-
 
 `node_modules/.bin/next build && node_modules/.bin/playwright test home-sparkle-field --project=chromium`
 
-Expected: PASS — the field still reaches `data-ready="true"` through the main-thread fallback, and no console error escapes. Remove the thrown error afterwards and re-run to confirm the normal path is restored.
+Expected: PASS - the field still reaches `data-ready="true"` through the main-thread fallback, and no console error escapes. Remove the thrown error afterwards and re-run to confirm the normal path is restored.
 
 - [ ] **Step 10: Update the README**
 
@@ -4335,7 +4335,7 @@ Two exact edits, both extending what Task 7 wrote.
 First, replace the sparkle-field clause added in Task 7:
 
 ```markdown
-- **Single route, section-based SPA.** The home page (`/`) composes independent sections — `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D), `Portfolio`, ...
+- **Single route, section-based SPA.** The home page (`/`) composes independent sections - `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D), `Portfolio`, ...
 ```
 
 with the same bullet whose parenthetical reads:

@@ -4,7 +4,7 @@
 
 **Goal:** Give `/articles/[slug]` its own not-found page (article-specific copy, link back to `/articles`) instead of falling back to the global not-found page.
 
-**Architecture:** Extract the existing global not-found markup into a reusable presentational component (`NotFoundView`), refactor the global `not-found.tsx` to use it, then add a second `not-found.tsx` for the `articles/[slug]` route segment that uses the same component with article-specific copy and link target. Next.js automatically renders a segment's `not-found.tsx` when `notFound()` is called from a `page.tsx` in that segment — `src/app/articles/[slug]/page.tsx` already calls `notFound()`, so no change is needed there.
+**Architecture:** Extract the existing global not-found markup into a reusable presentational component (`NotFoundView`), refactor the global `not-found.tsx` to use it, then add a second `not-found.tsx` for the `articles/[slug]` route segment that uses the same component with article-specific copy and link target. Next.js automatically renders a segment's `not-found.tsx` when `notFound()` is called from a `page.tsx` in that segment - `src/app/articles/[slug]/page.tsx` already calls `notFound()`, so no change is needed there.
 
 **Tech Stack:** Next.js App Router, React, react-i18next, CSS Modules, vitest.
 
@@ -14,9 +14,9 @@
 - JSDoc on interface/type fields and component props.
 - Comments only where the why is non-obvious; 1-2 lines max.
 - Each component lives in its own directory with separate component and style files.
-- Use stable `data-testid` selectors for QA — no randomly generated ones.
+- Use stable `data-testid` selectors for QA - no randomly generated ones.
 - `pnpm check-types && pnpm lint` must pass before considering any task done.
-- Commits are authored by the repo owner only — do not add a `Co-Authored-By` trailer.
+- Commits are authored by the repo owner only - do not add a `Co-Authored-By` trailer.
 
 ---
 
@@ -214,7 +214,7 @@ Insert at the same position:
 - [ ] **Step 3: Run the locale parity test**
 
 Run: `pnpm test src/configs/i18n/locales.test.ts`
-Expected: PASS — confirms both files stay in key-parity and neither has blank values.
+Expected: PASS - confirms both files stay in key-parity and neither has blank values.
 
 - [ ] **Step 4: Commit**
 
@@ -289,7 +289,7 @@ Expected: all pass.
 
 - [ ] **Step 2: README check**
 
-Per `CLAUDE.md`, check whether `README.md` needs updating after a code-structure change. This change adds one new component directory under the existing `src/components/` tree and one new route-convention file under an existing route — no new top-level `src/*` directory, no new route path, no new script. Expected: no `README.md` update needed; confirm by re-reading its Architecture/Project structure sections if unsure.
+Per `CLAUDE.md`, check whether `README.md` needs updating after a code-structure change. This change adds one new component directory under the existing `src/components/` tree and one new route-convention file under an existing route - no new top-level `src/*` directory, no new route path, no new script. Expected: no `README.md` update needed; confirm by re-reading its Architecture/Project structure sections if unsure.
 
 - [ ] **Step 3: Confirm both not-found pages one more time in the browser**
 

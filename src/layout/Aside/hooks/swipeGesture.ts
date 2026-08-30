@@ -34,7 +34,7 @@ export interface IShouldCloseOnSwipeEndParams {
   dx: number
   /** Wall-clock duration of the gesture, in ms. */
   durationMs: number
-  /** Width of the dragged panel, in px — the distance threshold scales off this. */
+  /** Width of the dragged panel, in px - the distance threshold scales off this. */
   panelWidthPx: number
 }
 
@@ -67,7 +67,7 @@ export const VEIL_FADE_EASE_EXPONENT = 2
 export interface IResolveVeilOpacityParams {
   /** Horizontal drag offset already clamped to the resting side, in px (<= 0). */
   clampedDx: number
-  /** Width of the dragged panel, in px — a full-width drag fully fades the veil. */
+  /** Width of the dragged panel, in px - a full-width drag fully fades the veil. */
   panelWidthPx: number
 }
 

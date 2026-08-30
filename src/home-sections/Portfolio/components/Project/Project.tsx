@@ -27,7 +27,7 @@ export const Project = ({ id, img, href, descriptionKey, tags }: IProject) => {
     if (!card) return
 
     const rect = card.getBoundingClientRect()
-    // Card not laid out yet — nothing meaningful to compute.
+    // Card not laid out yet - nothing meaningful to compute.
     if (rect.width === 0 || rect.height === 0) return
 
     const relativeX = (event.clientX - rect.left) / rect.width
@@ -65,7 +65,7 @@ export const Project = ({ id, img, href, descriptionKey, tags }: IProject) => {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`${title} — ${t('aside.opensInNewTab')}`}
+        aria-label={`${title} - ${t('aside.opensInNewTab')}`}
         data-testid={`project-card-${id}`}
         className={styles.card}
         onPointerMove={handlePointerMove}

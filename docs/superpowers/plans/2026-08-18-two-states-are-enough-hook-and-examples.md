@@ -1,24 +1,24 @@
-# Two States Are Enough — Hook, Real-World Grounding, light-dark() Implementation Plan
+# Two States Are Enough - Hook, Real-World Grounding, light-dark() Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add three static, unbranded illustrations to `/articles/two-states-are-enough` — an opening hook analogy, a "patterns you'll recognize" grounding section, and a `light-dark()` CSS snippet — matching improvements the user identified by re-reading Lea Verou's source article side by side with ours.
+**Goal:** Add three static, unbranded illustrations to `/articles/two-states-are-enough` - an opening hook analogy, a "patterns you'll recognize" grounding section, and a `light-dark()` CSS snippet - matching improvements the user identified by re-reading Lea Verou's source article side by side with ours.
 
-**Architecture:** Follows the exact pattern already established by `CombinationGrid`/`PatternGallery` in this article: each new visual is a self-contained component in its own directory (`.tsx` + `.module.css`), rendered from `Content.tsx`, copy sourced from `public/locales/{en,ru}.json`. Unlike the two existing demos, all three new components are purely presentational — no `useState`/`useEffect`, no browser APIs, no `localStorage` — so no new ESLint override is needed anywhere.
+**Architecture:** Follows the exact pattern already established by `CombinationGrid`/`PatternGallery` in this article: each new visual is a self-contained component in its own directory (`.tsx` + `.module.css`), rendered from `Content.tsx`, copy sourced from `public/locales/{en,ru}.json`. Unlike the two existing demos, all three new components are purely presentational - no `useState`/`useEffect`, no browser APIs, no `localStorage` - so no new ESLint override is needed anywhere.
 
 **Tech Stack:** Next.js App Router, React 19, TypeScript (strict), react-i18next, CSS Modules, Vitest.
 
 ## Global Constraints
 
 - Strict TypeScript: no `any`, no type assertions (`as`); use type guards/discriminated unions instead. Boolean identifiers prefixed `is`/`has`.
-- JSDoc on interface/type fields, component props, and non-`useState` variables — one line, states the non-obvious reason only.
+- JSDoc on interface/type fields, component props, and non-`useState` variables - one line, states the non-obvious reason only.
 - Comments elsewhere: 1-2 lines max, state the _why_, not the _what_.
 - True module-level constants in `UPPER_SNAKE_CASE`.
 - Each component in its own directory with a separate `.module.css` file.
 - Stable `data-testid` (no random selectors).
 - Destructure function params/callback args/object fields over repeated dotted access.
-- No real screenshots or branded mockups anywhere — new illustrations are generic/unbranded; real product names appear only as plain caption text, never copied visual branding.
-- No new syntax-highlighting dependency — the one CSS snippet is a plain styled `<pre><code>`, matching this codebase's existing convention of hand-built div+CSS illustrations with no code-block component.
+- No real screenshots or branded mockups anywhere - new illustrations are generic/unbranded; real product names appear only as plain caption text, never copied visual branding.
+- No new syntax-highlighting dependency - the one CSS snippet is a plain styled `<pre><code>`, matching this codebase's existing convention of hand-built div+CSS illustrations with no code-block component.
 - Commits must not include a `Co-Authored-By` trailer (repo owner authors all commits).
 - Run `pnpm check-types && pnpm lint` before considering the change complete.
 
@@ -30,16 +30,16 @@
 
 - Modify: `public/locales/en.json`
 - Modify: `public/locales/ru.json`
-- Test: `src/configs/i18n/locales.test.ts` (already generic — no edits, just re-run)
+- Test: `src/configs/i18n/locales.test.ts` (already generic - no edits, just re-run)
 
 **Interfaces:**
 
 - Produces: every key under `articleContent.twoStatesAreEnough.switchAnalogy*`,
   `articleContent.twoStatesAreEnough.patternsInTheWild*`, and
-  `articleContent.twoStatesAreEnough.lightDark*` — consumed by Task 2 (`SwitchAnalogy`), Task 3
+  `articleContent.twoStatesAreEnough.lightDark*` - consumed by Task 2 (`SwitchAnalogy`), Task 3
   (`PatternsInTheWild`), Task 4 (`LightDarkSnippet`), and Task 5 (`Content.tsx`) via
   `t('articleContent.twoStatesAreEnough.<key>')`. Also reuses the existing
-  `articleContent.twoStatesAreEnough.demoLight` / `demoDark` / `demoSystem` keys — no new keys
+  `articleContent.twoStatesAreEnough.demoLight` / `demoDark` / `demoSystem` keys - no new keys
   needed for those three labels.
 
 - [ ] **Step 1: Edit `intro2` and add the `switchAnalogy*` keys in `en.json`**
@@ -47,18 +47,18 @@
 In `public/locales/en.json`, find this line inside the `"twoStatesAreEnough"` object:
 
 ```json
-      "intro2": "I agree, and I'll add an engineering reason of my own: two states aren't just simpler to read, they're harder to get wrong in code. Everything below is real, not screenshots — play with it first.",
+      "intro2": "I agree, and I'll add an engineering reason of my own: two states aren't just simpler to read, they're harder to get wrong in code. Everything below is real, not screenshots - play with it first.",
 ```
 
 Replace it with (tightened wording plus six new keys immediately after):
 
 ```json
-      "intro2": "I agree, and I'll add an engineering reason of my own: two states aren't just simpler to read, they're harder to get wrong in code. The toggles below are real, not screenshots — play with it first.",
+      "intro2": "I agree, and I'll add an engineering reason of my own: two states aren't just simpler to read, they're harder to get wrong in code. The toggles below are real, not screenshots - play with it first.",
       "switchAnalogyEyebrow": "Before we talk toggles",
       "switchAnalogyPanelALabel": "Five labelled buttons",
       "switchAnalogyPanelACaption": "Read every label, then pick the exact one you meant.",
       "switchAnalogyPanelBLabel": "One slider",
-      "switchAnalogyPanelBCaption": "Drag toward warmer or cooler — no reading required.",
+      "switchAnalogyPanelBCaption": "Drag toward warmer or cooler - no reading required.",
       "switchAnalogyTakeaway": "A tri-state control asks you to read. A two-state one just asks you to feel a direction.",
 ```
 
@@ -67,18 +67,18 @@ Replace it with (tightened wording plus six new keys immediately after):
 Find this line (still inside `"twoStatesAreEnough"`):
 
 ```json
-      "gridCaption": "Simulated — pick any tile. The toggle below is the real one, backed by your actual OS setting and localStorage.",
+      "gridCaption": "Simulated - pick any tile. The toggle below is the real one, backed by your actual OS setting and localStorage.",
       "implementationDrivenHeading": "The Tri-State Toggle Is Implementation-Driven UI",
 ```
 
 Replace it with:
 
 ```json
-      "gridCaption": "Simulated — pick any tile. The toggle below is the real one, backed by your actual OS setting and localStorage.",
+      "gridCaption": "Simulated - pick any tile. The toggle below is the real one, backed by your actual OS setting and localStorage.",
       "patternsInTheWildEyebrow": "A shape you've seen before",
       "patternsInTheWildSettingsLabel": "Appearance",
       "patternsInTheWildTile1Caption": "This exact Light / Dark / System segment shows up in Tailwind's own docs, Ant Design, and Radix Themes.",
-      "patternsInTheWildTile2Caption": "A single icon button that flips on click — VitePress and Material Design both ship this shape.",
+      "patternsInTheWildTile2Caption": "A single icon button that flips on click - VitePress and Material Design both ship this shape.",
       "patternsInTheWildTile3Caption": "Bluesky and Google Calendar bury the same three options inside a settings screen instead of a toolbar toggle.",
       "implementationDrivenHeading": "The Tri-State Toggle Is Implementation-Driven UI",
 ```
@@ -88,16 +88,16 @@ Replace it with:
 Find this line (still inside `"twoStatesAreEnough"`):
 
 ```json
-      "implementationDriven": "A theme resolves to exactly one of two values on screen — light or dark; there's no third rendering. The three-state control exists because the value can come from three different sources — an explicit choice or a fallback to the OS — not because the page can look three different ways. Users don't open a toggle to plan ahead; they open it because the screen is too bright right now. A third option for a problem nobody has yet optimizes for the model, not the moment.",
+      "implementationDriven": "A theme resolves to exactly one of two values on screen - light or dark; there's no third rendering. The three-state control exists because the value can come from three different sources - an explicit choice or a fallback to the OS - not because the page can look three different ways. Users don't open a toggle to plan ahead; they open it because the screen is too bright right now. A third option for a problem nobody has yet optimizes for the model, not the moment.",
       "hardPartsHeading": "Where Two-State Actually Gets Hard",
 ```
 
 Replace it with:
 
 ```json
-      "implementationDriven": "A theme resolves to exactly one of two values on screen — light or dark; there's no third rendering. The three-state control exists because the value can come from three different sources — an explicit choice or a fallback to the OS — not because the page can look three different ways. Users don't open a toggle to plan ahead; they open it because the screen is too bright right now. A third option for a problem nobody has yet optimizes for the model, not the moment.",
-      "lightDarkIntro": "CSS agrees with the two-value model too: light-dark() takes exactly two colors — there's no third argument for a system fallback.",
-      "lightDarkCaption": "Two arguments, no more — the function is binary by construction, not by convention.",
+      "implementationDriven": "A theme resolves to exactly one of two values on screen - light or dark; there's no third rendering. The three-state control exists because the value can come from three different sources - an explicit choice or a fallback to the OS - not because the page can look three different ways. Users don't open a toggle to plan ahead; they open it because the screen is too bright right now. A third option for a problem nobody has yet optimizes for the model, not the moment.",
+      "lightDarkIntro": "CSS agrees with the two-value model too: light-dark() takes exactly two colors - there's no third argument for a system fallback.",
+      "lightDarkCaption": "Two arguments, no more - the function is binary by construction, not by convention.",
       "hardPartsHeading": "Where Two-State Actually Gets Hard",
 ```
 
@@ -106,60 +106,60 @@ Replace it with:
 In `public/locales/ru.json`, find:
 
 ```json
-      "intro2": "Я согласен и добавлю свою инженерную причину: два состояния не только проще читателю — их и сложнее сломать в коде. Всё ниже настоящее, не скриншоты — сначала поиграйся с этим.",
+      "intro2": "Я согласен и добавлю свою инженерную причину: два состояния не только проще читателю - их и сложнее сломать в коде. Всё ниже настоящее, не скриншоты - сначала поиграйся с этим.",
 ```
 
 Replace with:
 
 ```json
-      "intro2": "Я согласен и добавлю свою инженерную причину: два состояния не только проще читателю — их и сложнее сломать в коде. Тогглы ниже настоящие, не скриншоты — сначала поиграйся с ними.",
+      "intro2": "Я согласен и добавлю свою инженерную причину: два состояния не только проще читателю - их и сложнее сломать в коде. Тогглы ниже настоящие, не скриншоты - сначала поиграйся с ними.",
       "switchAnalogyEyebrow": "Прежде чем говорить о тогглах",
       "switchAnalogyPanelALabel": "Пять подписанных кнопок",
       "switchAnalogyPanelACaption": "Прочитай каждую подпись и выбери именно то значение, которое имел в виду.",
       "switchAnalogyPanelBLabel": "Один слайдер",
-      "switchAnalogyPanelBCaption": "Потяни в сторону теплее или холоднее — читать ничего не нужно.",
-      "switchAnalogyTakeaway": "Трёхпозиционный контрол просит тебя прочитать. Двухпозиционный — просто почувствовать направление.",
+      "switchAnalogyPanelBCaption": "Потяни в сторону теплее или холоднее - читать ничего не нужно.",
+      "switchAnalogyTakeaway": "Трёхпозиционный контрол просит тебя прочитать. Двухпозиционный - просто почувствовать направление.",
 ```
 
 Find:
 
 ```json
-      "gridCaption": "Симуляция — выбери любую плитку. Тоггл ниже настоящий, завязан на твою реальную настройку ОС и localStorage.",
-      "implementationDrivenHeading": "Трёхпозиционный переключатель — это UI, продиктованный реализацией",
+      "gridCaption": "Симуляция - выбери любую плитку. Тоггл ниже настоящий, завязан на твою реальную настройку ОС и localStorage.",
+      "implementationDrivenHeading": "Трёхпозиционный переключатель - это UI, продиктованный реализацией",
 ```
 
 Replace with:
 
 ```json
-      "gridCaption": "Симуляция — выбери любую плитку. Тоггл ниже настоящий, завязан на твою реальную настройку ОС и localStorage.",
+      "gridCaption": "Симуляция - выбери любую плитку. Тоггл ниже настоящий, завязан на твою реальную настройку ОС и localStorage.",
       "patternsInTheWildEyebrow": "Форма, которую ты уже видел",
       "patternsInTheWildSettingsLabel": "Внешний вид",
-      "patternsInTheWildTile1Caption": "Именно такой сегмент Light / Dark / System — в доках самого Tailwind, в Ant Design и в Radix Themes.",
-      "patternsInTheWildTile2Caption": "Одна иконка-кнопка, переключающаяся по клику, — так делают и VitePress, и Material Design.",
+      "patternsInTheWildTile1Caption": "Именно такой сегмент Light / Dark / System - в доках самого Tailwind, в Ant Design и в Radix Themes.",
+      "patternsInTheWildTile2Caption": "Одна иконка-кнопка, переключающаяся по клику, - так делают и VitePress, и Material Design.",
       "patternsInTheWildTile3Caption": "Bluesky и Google Calendar прячут те же три опции внутри экрана настроек вместо тоггла в тулбаре.",
-      "implementationDrivenHeading": "Трёхпозиционный переключатель — это UI, продиктованный реализацией",
+      "implementationDrivenHeading": "Трёхпозиционный переключатель - это UI, продиктованный реализацией",
 ```
 
 Find:
 
 ```json
-      "implementationDriven": "Тема на экране всегда разрешается ровно в одно из двух значений — light или dark, третьего рендера не существует. Трёхпозиционный контрол существует потому, что значение может прийти из трёх разных источников — явный выбор или fallback на ОС, — а не потому, что страница может выглядеть тремя разными способами. Пользователь не открывает переключатель, чтобы спланировать будущее — он открывает его, потому что экран прямо сейчас слишком яркий. Третья опция под проблему, которой ещё ни у кого нет, оптимизирована под модель данных, а не под момент.",
+      "implementationDriven": "Тема на экране всегда разрешается ровно в одно из двух значений - light или dark, третьего рендера не существует. Трёхпозиционный контрол существует потому, что значение может прийти из трёх разных источников - явный выбор или fallback на ОС, - а не потому, что страница может выглядеть тремя разными способами. Пользователь не открывает переключатель, чтобы спланировать будущее - он открывает его, потому что экран прямо сейчас слишком яркий. Третья опция под проблему, которой ещё ни у кого нет, оптимизирована под модель данных, а не под момент.",
       "hardPartsHeading": "Где два состояния реально усложняют реализацию",
 ```
 
 Replace with:
 
 ```json
-      "implementationDriven": "Тема на экране всегда разрешается ровно в одно из двух значений — light или dark, третьего рендера не существует. Трёхпозиционный контрол существует потому, что значение может прийти из трёх разных источников — явный выбор или fallback на ОС, — а не потому, что страница может выглядеть тремя разными способами. Пользователь не открывает переключатель, чтобы спланировать будущее — он открывает его, потому что экран прямо сейчас слишком яркий. Третья опция под проблему, которой ещё ни у кого нет, оптимизирована под модель данных, а не под момент.",
-      "lightDarkIntro": "CSS тоже согласен с моделью из двух значений: light-dark() принимает ровно два цвета — третьего аргумента под системный fallback в нём нет.",
-      "lightDarkCaption": "Ровно два аргумента — функция бинарна по конструкции, а не по договорённости.",
+      "implementationDriven": "Тема на экране всегда разрешается ровно в одно из двух значений - light или dark, третьего рендера не существует. Трёхпозиционный контрол существует потому, что значение может прийти из трёх разных источников - явный выбор или fallback на ОС, - а не потому, что страница может выглядеть тремя разными способами. Пользователь не открывает переключатель, чтобы спланировать будущее - он открывает его, потому что экран прямо сейчас слишком яркий. Третья опция под проблему, которой ещё ни у кого нет, оптимизирована под модель данных, а не под момент.",
+      "lightDarkIntro": "CSS тоже согласен с моделью из двух значений: light-dark() принимает ровно два цвета - третьего аргумента под системный fallback в нём нет.",
+      "lightDarkCaption": "Ровно два аргумента - функция бинарна по конструкции, а не по договорённости.",
       "hardPartsHeading": "Где два состояния реально усложняют реализацию",
 ```
 
 - [ ] **Step 5: Validate JSON and run the locale parity test**
 
 Run: `pnpm test -- locales`
-Expected: PASS — every new key added to `en.json` has a Russian counterpart and vice versa, no blank values, no non-string leaves, no duplicate paths.
+Expected: PASS - every new key added to `en.json` has a Russian counterpart and vice versa, no blank values, no non-string leaves, no duplicate paths.
 
 - [ ] **Step 6: Commit**
 
@@ -181,7 +181,7 @@ git commit -m "feat: add copy for the hook, real-world grounding, and light-dark
 
 - Consumes: locale keys from Task 1 (`articleContent.twoStatesAreEnough.switchAnalogy*`).
 - Produces: `SwitchAnalogy` (default + named export), a static `'use client'` component with no
-  props — consumed by Task 5's `Content.tsx` as `<SwitchAnalogy />`.
+  props - consumed by Task 5's `Content.tsx` as `<SwitchAnalogy />`.
 
 - [ ] **Step 1: Write the component**
 
@@ -197,7 +197,7 @@ import { useTranslation } from 'react-i18next'
 /** The five labelled dial positions shown in the "read every label" panel. */
 const DIAL_PERCENTAGES: number[] = [10, 30, 50, 70, 100]
 
-/** Which dial position renders as pressed — purely decorative, not driven by any interaction. */
+/** Which dial position renders as pressed - purely decorative, not driven by any interaction. */
 const ACTIVE_DIAL_PERCENTAGE = 50
 
 export const SwitchAnalogy = () => {
@@ -380,11 +380,11 @@ git commit -m "feat: add the SwitchAnalogy opening hook for the Two States Are E
 
 - Consumes: locale keys from Task 1 (`articleContent.twoStatesAreEnough.patternsInTheWild*`), plus
   the already-shipped `articleContent.twoStatesAreEnough.demoLight` / `demoDark` / `demoSystem`
-  keys. Also consumes `Icon` from `@gravity-ui/uikit` and `Sun` from `@gravity-ui/icons` — both
+  keys. Also consumes `Icon` from `@gravity-ui/uikit` and `Sun` from `@gravity-ui/icons` - both
   already a project dependency, already imported the same way in
   `src/content/articles/two-states-are-enough/PatternGallery/PatternGallery.tsx`.
 - Produces: `PatternsInTheWild` (default + named export), a static `'use client'` component with
-  no props — consumed by Task 5's `Content.tsx` as `<PatternsInTheWild />`.
+  no props - consumed by Task 5's `Content.tsx` as `<PatternsInTheWild />`.
 
 - [ ] **Step 1: Write the component**
 
@@ -399,14 +399,14 @@ import { Icon } from '@gravity-ui/uikit'
 import { Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
-/** The three generic segment labels for the "segmented control" tile, in display order — reuses the existing Light/Dark/System copy instead of adding new keys for the same three words. */
+/** The three generic segment labels for the "segmented control" tile, in display order - reuses the existing Light/Dark/System copy instead of adding new keys for the same three words. */
 const SEGMENT_LABEL_KEYS: string[] = [
   'articleContent.twoStatesAreEnough.demoLight',
   'articleContent.twoStatesAreEnough.demoDark',
   'articleContent.twoStatesAreEnough.demoSystem',
 ]
 
-/** Which segment renders as pressed — purely decorative, matches the middle "Dark" option. */
+/** Which segment renders as pressed - purely decorative, matches the middle "Dark" option. */
 const ACTIVE_SEGMENT_INDEX = 1
 
 export const PatternsInTheWild = () => {
@@ -608,7 +608,7 @@ git commit -m "feat: add the PatternsInTheWild grounding section for the Two Sta
   `lightDarkIntro` key is rendered as a plain `<p>` directly in `Content.tsx` in Task 5, not inside
   this component.)
 - Produces: `LightDarkSnippet` (default + named export), a static `'use client'` component with no
-  props — consumed by Task 5's `Content.tsx` as `<LightDarkSnippet />`.
+  props - consumed by Task 5's `Content.tsx` as `<LightDarkSnippet />`.
 
 - [ ] **Step 1: Write the component**
 
@@ -621,7 +621,7 @@ import styles from './LightDarkSnippet.module.css'
 
 import { useTranslation } from 'react-i18next'
 
-/** Verbatim CSS — code samples aren't localized elsewhere in this project either. */
+/** Verbatim CSS - code samples aren't localized elsewhere in this project either. */
 const LIGHT_DARK_CSS = `:root {
   color-scheme: light dark;
 }
@@ -706,7 +706,7 @@ git commit -m "feat: add the LightDarkSnippet component for the Two States Are E
 
 - Consumes: `SwitchAnalogy` (Task 2), `PatternsInTheWild` (Task 3), `LightDarkSnippet` (Task 4),
   locale keys from Task 1 (`intro2` already updated, `lightDarkIntro`).
-- Produces: the article's final rendered document order — no exports change (`HEADINGS` and the
+- Produces: the article's final rendered document order - no exports change (`HEADINGS` and the
   default export stay as they are; the three existing heading `id`s are untouched).
 
 - [ ] **Step 1: Update the imports**
@@ -790,7 +790,7 @@ Visit `http://localhost:3000/articles/two-states-are-enough` and confirm:
   positioned near the right end, with a one-line takeaway underneath.
 - `CombinationGrid` still renders and behaves exactly as before, immediately after `SwitchAnalogy`.
 - `PatternsInTheWild` renders next: a segmented Light/Dark/System pill (Dark pressed), a round
-  sun-icon button, and a mock settings row with a label and switch — each with its caption
+  sun-icon button, and a mock settings row with a label and switch - each with its caption
   underneath.
 - The "implementation-driven" paragraph is followed by the `lightDarkIntro` sentence and then the
   `LightDarkSnippet` card showing the 4-line CSS block and its caption.

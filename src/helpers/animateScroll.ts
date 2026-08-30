@@ -21,7 +21,7 @@ function easeOutQuart(x: number) {
 /** Absolute position of an element's top edge relative to the document. */
 export const getElementPosition = (element: HTMLElement) => element.offsetTop
 
-/** rAF handle of the in-flight scroll animation, if any — only one can own the scrollbar at a time. */
+/** rAF handle of the in-flight scroll animation, if any - only one can own the scrollbar at a time. */
 let activeAnimationFrame: number | null = null
 
 export function animateScroll({
@@ -31,7 +31,7 @@ export function animateScroll({
   paddingFromTop = 0,
 }: IAnimateScrollProps) {
   // A second scrollTo before the first finishes (fast tab switching) must not fight it for
-  // the scrollbar — cancel whatever's still running before taking over.
+  // the scrollbar - cancel whatever's still running before taking over.
   if (activeAnimationFrame !== null) {
     window.cancelAnimationFrame(activeAnimationFrame)
     activeAnimationFrame = null

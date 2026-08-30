@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { ELanguage } from '@/constants/header.constants'
 import { ARTICLES } from '@/constants/articles.constants'
 
-/** Lower-case, hyphen-separated words — matches "ai-boilerplate", not "AI_Boilerplate" or a trailing/leading "-". */
+/** Lower-case, hyphen-separated words - matches "ai-boilerplate", not "AI_Boilerplate" or a trailing/leading "-". */
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
 describe('articles registry', () => {

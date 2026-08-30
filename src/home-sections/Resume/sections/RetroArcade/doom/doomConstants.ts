@@ -1,11 +1,11 @@
-/** Native framebuffer size of the compiled DOOM WASM module — it always renders at this resolution. */
+/** Native framebuffer size of the compiled DOOM WASM module - it always renders at this resolution. */
 export const DOOM_SCREEN_WIDTH = 640
 export const DOOM_SCREEN_HEIGHT = 400
 
 /** Static asset path to the self-hosted WASM build, avoiding a runtime dependency on a third-party CDN. */
 export const DOOM_WASM_URL = '/wasm/doom.wasm'
 
-/** DOOM's own DOS-era key codes, distinct from `KeyboardEvent.keyCode` — used for both keyboard and touch input. */
+/** DOOM's own DOS-era key codes, distinct from `KeyboardEvent.keyCode` - used for both keyboard and touch input. */
 export const DOOM_KEY_UP_ARROW = 0xad
 export const DOOM_KEY_DOWN_ARROW = 0xaf
 export const DOOM_KEY_LEFT_ARROW = 0xac

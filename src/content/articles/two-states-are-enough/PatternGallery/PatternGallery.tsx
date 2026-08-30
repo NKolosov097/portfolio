@@ -7,26 +7,26 @@ import { Icon, Switch } from '@gravity-ui/uikit'
 import { Moon, Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
-/** This demo's own localStorage key — scoped to the demo only, unrelated to the site's own (dark-only) theme. */
+/** This demo's own localStorage key - scoped to the demo only, unrelated to the site's own (dark-only) theme. */
 const STORAGE_KEY = 'demo-theme-override'
 
-/** The base shade value — always exactly one of these two. */
+/** The base shade value - always exactly one of these two. */
 type TShade = 'light' | 'dark'
 
 /** What's actually rendered. */
 type TResolvedTheme = TShade
 
-/** An explicit shade choice, or `null` when following the underlying default — the user's site
+/** An explicit shade choice, or `null` when following the underlying default - the user's site
  * override, or the simulated native/OS shade, depending on where it's used. */
 type TShadeOverride = TShade | null
 
-/** The segmented control's own value space — an explicit shade, or the literal `'system'` option. */
+/** The segmented control's own value space - an explicit shade, or the literal `'system'` option. */
 type TSegmentValue = TShade | 'system'
 
-/** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
+/** The three segments, in display order - same trio `PatternsInTheWild` illustrates as a static mockup. */
 const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 
-/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+/** The three macOS traffic-light colors, in their fixed left-to-right order - never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
 const isThemeOverride = (value: string | null): value is TShade =>
@@ -72,14 +72,14 @@ export const PatternGallery = () => {
     }
   }
 
-  /** A real switch has only two positions, so — unlike Button — it always sets an explicit override; it can't hand you back to "system". Checked (on) means light, mirroring a physical light switch. */
+  /** A real switch has only two positions, so - unlike Button - it always sets an explicit override; it can't hand you back to "system". Checked (on) means light, mirroring a physical light switch. */
   const handleSwitchChange = (checked: boolean) => {
     const next: TResolvedTheme = checked ? 'light' : 'dark'
     setOverride(next)
     window.localStorage.setItem(STORAGE_KEY, next)
   }
 
-  /** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+  /** The segmented pattern sets state directly instead of cycling - that's the whole tradeoff it's here to show. */
   const handleSegmentChange = (value: TSegmentValue) => {
     if (value === 'system') {
       setOverride(null)
@@ -90,7 +90,7 @@ export const PatternGallery = () => {
     }
   }
 
-  /** Simulates the native/OS theme independently of the site's own override — press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
+  /** Simulates the native/OS theme independently of the site's own override - press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
   const handleSimulateNativeCycle = () => {
     if (simulatedNative === null) {
       setSimulatedNative(effectiveOsTheme === 'dark' ? 'light' : 'dark')
@@ -225,19 +225,19 @@ export const PatternGallery = () => {
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoOsPreferenceLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? osLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? osLabel : '-'}</dd>
         </div>
         <div className={styles.stateRow}>
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoOverrideLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? overrideLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? overrideLabel : '-'}</dd>
         </div>
         <div className={styles.stateRow}>
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoResolvedLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? resolvedLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? resolvedLabel : '-'}</dd>
         </div>
       </dl>
 

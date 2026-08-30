@@ -22,7 +22,7 @@ interface DoomWasmExports extends WebAssembly.Exports {
   add_browser_event: (eventType: number, keyCode: number) => void
 }
 
-/** Narrows the untyped WASM export record without asserting — every field is checked to actually be callable. */
+/** Narrows the untyped WASM export record without asserting - every field is checked to actually be callable. */
 const isDoomWasmExports = (wasmExports: WebAssembly.Exports): wasmExports is DoomWasmExports =>
   typeof wasmExports.main === 'function' &&
   typeof wasmExports.doom_loop_step === 'function' &&

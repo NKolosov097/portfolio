@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-/** Styles for the article Open Graph image — inline-only, since `next/og`'s Satori renderer doesn't support CSS Modules. */
+/** Styles for the article Open Graph image - inline-only, since `next/og`'s Satori renderer doesn't support CSS Modules. */
 export const container: CSSProperties = {
   height: '100%',
   width: '100%',

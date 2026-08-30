@@ -81,7 +81,7 @@ export const AsideContent = () => {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`${id} — ${t('aside.opensInNewTab')}`}
+                  aria-label={`${id} - ${t('aside.opensInNewTab')}`}
                   data-testid={testId}
                 >
                   {Icon}

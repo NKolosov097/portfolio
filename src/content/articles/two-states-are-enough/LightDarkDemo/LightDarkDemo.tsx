@@ -7,7 +7,7 @@ import { Icon } from '@gravity-ui/uikit'
 import { Moon, Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
-/** Verbatim CSS — code samples aren't localized elsewhere in this project either. */
+/** Verbatim CSS - code samples aren't localized elsewhere in this project either. */
 const LIGHT_DARK_CSS = `:root {
   color-scheme: light dark;
 }
@@ -17,10 +17,10 @@ body {
   color: light-dark(#111, #fff);
 }`
 
-/** Either branch light-dark() can resolve to in the demo below — always exactly one of these two. */
+/** Either branch light-dark() can resolve to in the demo below - always exactly one of these two. */
 type TNativeScheme = 'light' | 'dark'
 
-/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+/** The three macOS traffic-light colors, in their fixed left-to-right order - never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
 /** Kept inline, not the CSS module: Lightning CSS rewrites light-dark() there into a

@@ -25,7 +25,7 @@ export interface ITouchControlsProps {
 export const TouchControls = ({ onKey }: ITouchControlsProps) => {
   const { t } = useTranslation()
 
-  /** Presses and releases only fire while the same pointer stays on the button — no drag-off double fire. */
+  /** Presses and releases only fire while the same pointer stays on the button - no drag-off double fire. */
   const bindKey = (keyCode: number) => ({
     onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => {
       event.preventDefault()

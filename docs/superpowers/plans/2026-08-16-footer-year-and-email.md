@@ -4,19 +4,19 @@
 
 **Goal:** Make the site footer show a current (non-stale) copyright year and a clickable contact email link.
 
-**Architecture:** Single-file edit to `src/layout/Footer/Footer.tsx` — compute the copyright string with the current year and pass a `menuItems` entry (already supported by `@gravity-ui/navigation`'s `Footer`) with a `mailto:` link using the existing `EMAIL` constant.
+**Architecture:** Single-file edit to `src/layout/Footer/Footer.tsx` - compute the copyright string with the current year and pass a `menuItems` entry (already supported by `@gravity-ui/navigation`'s `Footer`) with a `mailto:` link using the existing `EMAIL` constant.
 
 **Tech Stack:** Next.js App Router, React, `@gravity-ui/navigation` Footer component.
 
 ## Global Constraints
 
 - Strict TypeScript: no `any`, no type assertions; boolean identifiers prefixed `is`/`has`.
-- JSDoc on interface/type fields and component props (n/a here — no new props/types introduced).
+- JSDoc on interface/type fields and component props (n/a here - no new props/types introduced).
 - Comments only where the why is non-obvious; 1-2 lines max.
-- Use stable selectors for QA — no randomly generated ones. Here that's Gravity UI's `qa` prop (renders as `data-qa`): `MenuItemProps.extraProps` has no `data-*` index signature in this project's `@types/react`, so a `data-testid` there fails `tsc`'s object-literal excess-property check.
+- Use stable selectors for QA - no randomly generated ones. Here that's Gravity UI's `qa` prop (renders as `data-qa`): `MenuItemProps.extraProps` has no `data-*` index signature in this project's `@types/react`, so a `data-testid` there fails `tsc`'s object-literal excess-property check.
 - `pnpm check-types && pnpm lint` must pass before considering the task done.
-- Commits are authored by the repo owner only — do not add a `Co-Authored-By` trailer.
-- No new translation keys — neither the copyright string nor the email address is localized elsewhere in the project.
+- Commits are authored by the repo owner only - do not add a `Co-Authored-By` trailer.
+- No new translation keys - neither the copyright string nor the email address is localized elsewhere in the project.
 
 ---
 
@@ -28,7 +28,7 @@
 
 **Interfaces:**
 
-- Consumes: `EMAIL` from `@/constants/constants` (already exported, already used the same way — untranslated, raw string — in `src/home-sections/AboutMe/AboutMe.tsx:90`).
+- Consumes: `EMAIL` from `@/constants/constants` (already exported, already used the same way - untranslated, raw string - in `src/home-sections/AboutMe/AboutMe.tsx:90`).
 
 - [ ] **Step 1: Update `src/layout/Footer/Footer.tsx`**
 
@@ -65,11 +65,11 @@ Expected: both pass with no errors.
 - [ ] **Step 3: Manual check**
 
 Run: `pnpm dev`, open `http://localhost:3000/` in a browser (or drive it with Playwright, as
-used earlier in this project for the not-found pages — `curl` won't show client-rendered text).
+used earlier in this project for the not-found pages - `curl` won't show client-rendered text).
 Expected: the footer shows the current year followed by "NKolosov097", and a link with the
 email address (`data-qa="footer-email-link"`) whose `href` is `mailto:<the EMAIL constant's
 value>`. Clicking it should trigger the OS/browser mail-client handler (or at least resolve to
-the right `href` — Playwright's `getAttribute('href')` is enough to confirm this without
+the right `href` - Playwright's `getAttribute('href')` is enough to confirm this without
 actually launching a mail client).
 
 - [ ] **Step 4: Commit**
@@ -93,5 +93,5 @@ Expected: all pass.
 - [ ] **Step 2: README check**
 
 Per `CLAUDE.md`, check whether `README.md` needs updating after a code-structure change. This
-change only edits props passed to an existing component — no new file, no new directory, no new
+change only edits props passed to an existing component - no new file, no new directory, no new
 route. Expected: no `README.md` update needed.

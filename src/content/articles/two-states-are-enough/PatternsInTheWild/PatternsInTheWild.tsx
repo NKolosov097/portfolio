@@ -6,14 +6,14 @@ import { Icon } from '@gravity-ui/uikit'
 import { Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
-/** The three generic segment labels for the "segmented control" tile, in display order — reuses the existing Light/Dark/System copy instead of adding new keys for the same three words. */
+/** The three generic segment labels for the "segmented control" tile, in display order - reuses the existing Light/Dark/System copy instead of adding new keys for the same three words. */
 const SEGMENT_LABEL_KEYS: string[] = [
   'articleContent.twoStatesAreEnough.demoLight',
   'articleContent.twoStatesAreEnough.demoDark',
   'articleContent.twoStatesAreEnough.demoSystem',
 ]
 
-/** Which segment renders as pressed — purely decorative, matches the middle "Dark" option. */
+/** Which segment renders as pressed - purely decorative, matches the middle "Dark" option. */
 const ACTIVE_SEGMENT_INDEX = 1
 
 export const PatternsInTheWild = () => {

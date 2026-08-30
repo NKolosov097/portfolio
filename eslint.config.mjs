@@ -78,8 +78,8 @@ export default defineConfig([
     },
   },
   {
-    // PatternGallery and CombinationGrid read matchMedia/localStorage — client-only
-    // APIs — in a mount effect and must setState with what they find; the initial
+    // PatternGallery and CombinationGrid read matchMedia/localStorage - client-only
+    // APIs - in a mount effect and must setState with what they find; the initial
     // render has to match the server's placeholder, so this can't be computed
     // during render instead.
     files: [

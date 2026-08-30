@@ -12,7 +12,7 @@ const RESOURCES: Resource = {
   [ELanguage.ru]: { translation: ru },
 }
 
-/** Fresh instance per call — never share/mutate one across requests, or one visitor's language leaks into another's concurrent response. */
+/** Fresh instance per call - never share/mutate one across requests, or one visitor's language leaks into another's concurrent response. */
 export function createI18nInstance(language: ELanguage) {
   const instance = i18next.createInstance()
 

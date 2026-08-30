@@ -85,7 +85,7 @@
 
   "articleContent": {
     "aiBoilerplateSeniorEngineers": {
-      "intro1": "Ninety percent of developers now use an AI coding assistant. Copilot, Cursor, Claude Code — pick one, and it writes a working component in seconds. A form with validation. A CRUD screen. A data table with sorting. Code that compiles, passes the linter, and looks like a human wrote it.",
+      "intro1": "Ninety percent of developers now use an AI coding assistant. Copilot, Cursor, Claude Code - pick one, and it writes a working component in seconds. A form with validation. A CRUD screen. A data table with sorting. Code that compiles, passes the linter, and looks like a human wrote it.",
       "intro2": "None of that means it's ready to ship.",
       "intro3": "There's a gap between “the code runs” and “the product survives production.” In 2026, that gap is where a senior engineer's job lives. AI closed the distance on typing code. It didn't close the distance on owning it.",
       "chartEyebrow": "By the numbers",
@@ -99,21 +99,21 @@
       "chartSeniorTooltip": "of senior-level workers see AI as threatening their jobs",
       "chartSource": "Source: CNBC/SurveyMonkey Quarterly AI and Jobs Survey, Q2 2026",
       "closesWellHeading": "What AI Actually Closes Well",
-      "closesWell1": "AI is good at boilerplate — pretending otherwise wastes everyone's time. Scaffolding a new route, wiring a form to a schema, generating a test skeleton, translating a Figma layout into markup: pattern-matching tasks, and pattern-matching is what large models do best. A task solved the same way a thousand times on GitHub gets solved by AI in seconds, and it should.",
+      "closesWell1": "AI is good at boilerplate - pretending otherwise wastes everyone's time. Scaffolding a new route, wiring a form to a schema, generating a test skeleton, translating a Figma layout into markup: pattern-matching tasks, and pattern-matching is what large models do best. A task solved the same way a thousand times on GitHub gets solved by AI in seconds, and it should.",
       "closesWell2": "The failure mode isn't using AI for this. It's treating everything else as if it worked the same way.",
       "decisionsHeading": "Three Decisions AI Won't Make for You",
       "decision1Lead": "1. Rendering strategy, not just rendering code.",
-      "decision1Before": "On a real-time product I worked on — video and audio streaming in the browser — the question was never “can you render this component.” It was ",
+      "decision1Before": "On a real-time product I worked on - video and audio streaming in the browser - the question was never “can you render this component.” It was ",
       "decision1Em": "when",
       "decision1After": ": does this piece hydrate before the media connection opens, or after? Get it backwards and you either block the user on JavaScript that doesn't matter yet, or you let them click “join” before the stream is ready to receive input. An AI assistant will generate a component that renders correctly in isolation. It has no opinion on where that component sits in your connection lifecycle, because that opinion depends on your architecture, not your syntax.",
       "decision2Lead": "2. Where the weight goes.",
-      "decision2Body": "Bundle-splitting and offloading work to a Web Worker both “work” almost anywhere you put them — that's what makes them dangerous to delegate. AI will suggest a lazy-loaded chunk boundary that's syntactically fine and practically wrong: split too late and it still blocks first paint; move too much to a worker and the postMessage cost erases the benefit. Judging that trade-off means knowing your traffic shape, device targets, and performance budget — context that lives in your team's dashboards, not in the prompt.",
+      "decision2Body": "Bundle-splitting and offloading work to a Web Worker both “work” almost anywhere you put them - that's what makes them dangerous to delegate. AI will suggest a lazy-loaded chunk boundary that's syntactically fine and practically wrong: split too late and it still blocks first paint; move too much to a worker and the postMessage cost erases the benefit. Judging that trade-off means knowing your traffic shape, device targets, and performance budget - context that lives in your team's dashboards, not in the prompt.",
       "decision3Lead": "3. What deserves a test, and what a passing test actually proves.",
-      "decision3Body": "Ask an AI assistant to write tests for a component and it will write tests — for the happy path, matching whatever the component currently does. That's the trap: it tests the implementation, not the requirement. On the same real-time product, the tests that mattered weren't “does the button render” — they were “does the UI recover correctly when the connection drops mid-call” and “does the reconnect logic race against a user who already closed the tab.” Nobody generates that test by pattern-matching the codebase, because the failure case isn't in the codebase yet. Deciding what should break the build is a judgment call about risk, and judgment calls are the one thing you can't outsource to autocomplete.",
+      "decision3Body": "Ask an AI assistant to write tests for a component and it will write tests - for the happy path, matching whatever the component currently does. That's the trap: it tests the implementation, not the requirement. On the same real-time product, the tests that mattered weren't “does the button render” - they were “does the UI recover correctly when the connection drops mid-call” and “does the reconnect logic race against a user who already closed the tab.” Nobody generates that test by pattern-matching the codebase, because the failure case isn't in the codebase yet. Deciding what should break the build is a judgment call about risk, and judgment calls are the one thing you can't outsource to autocomplete.",
       "skillGapHeading": "The Real Skill Gap Is Direction, Not Typing",
-      "skillGap1": "Line up these three and one thing stands out: none of them are about writing code faster. They're about deciding what the code is for before a single line exists. AI collapses the distance between “I know what I want” and “it's written” — it does nothing to help you figure out what you want in the first place. In a system with real-time constraints, real users, and real failure modes, that's most of the job.",
-      "skillGap2": "This is also the cleanest way to tell candidates apart in an interview. Anyone can now produce a working component on request — that stopped being a signal the moment AI assistants got good. What still separates a senior hire from a junior one is whether they can look at generated code and say why it's wrong for this system, or whether they ship whatever came back from the prompt because it passed CI. One of those people is directing a tool. The other is hoping it's right.",
-      "skillGap3": "If you're hiring for “AI-native” engineers, that's the question worth asking in the interview — not “do you use Copilot,” but “show me a time an AI suggestion was reasonable and still wrong.” The answer tells you whether you're looking at ownership or autocomplete with a job title.",
+      "skillGap1": "Line up these three and one thing stands out: none of them are about writing code faster. They're about deciding what the code is for before a single line exists. AI collapses the distance between “I know what I want” and “it's written” - it does nothing to help you figure out what you want in the first place. In a system with real-time constraints, real users, and real failure modes, that's most of the job.",
+      "skillGap2": "This is also the cleanest way to tell candidates apart in an interview. Anyone can now produce a working component on request - that stopped being a signal the moment AI assistants got good. What still separates a senior hire from a junior one is whether they can look at generated code and say why it's wrong for this system, or whether they ship whatever came back from the prompt because it passed CI. One of those people is directing a tool. The other is hoping it's right.",
+      "skillGap3": "If you're hiring for “AI-native” engineers, that's the question worth asking in the interview - not “do you use Copilot,” but “show me a time an AI suggestion was reasonable and still wrong.” The answer tells you whether you're looking at ownership or autocomplete with a job title.",
       "closing": "AI didn't make senior engineers less necessary. It just made the necessary part more visible."
     },
     "twoStatesAreEnough": {
@@ -183,19 +183,19 @@
     "advantageAccessibility": "WCAG 2.1 AA accessibility I build and test to",
 
     "descriptionFirst": "Web developer with <accent>5+ years</accent> of experience in <accent>high-load applications</accent> and <accent>distributed systems</accent>.",
-    "descriptionSecond": "I take on complex products: <accent>performance profiling</accent>, <accent>architecture</accent>, and <accent>unit and E2E tests</accent> — with attention to <accent>detail</accent> and <accent>accessibility (a11y)</accent>."
+    "descriptionSecond": "I take on complex products: <accent>performance profiling</accent>, <accent>architecture</accent>, and <accent>unit and E2E tests</accent> - with attention to <accent>detail</accent> and <accent>accessibility (a11y)</accent>."
   },
 
   "resume": {
     "header": "Education and practical experience",
-    "description": "From a Computer Science degree to production-grade products — I build <accent>full-stack applications</accent> with <accent>React, Next.js and Node.js</accent>, from <accent>real-time video (WebRTC)</accent> to <accent>AI agents</accent>. Below is a snapshot of my <accent>education</accent>, <accent>work experience</accent> and the <accent>tools</accent> I reach for every day.",
+    "description": "From a Computer Science degree to production-grade products - I build <accent>full-stack applications</accent> with <accent>React, Next.js and Node.js</accent>, from <accent>real-time video (WebRTC)</accent> to <accent>AI agents</accent>. Below is a snapshot of my <accent>education</accent>, <accent>work experience</accent> and the <accent>tools</accent> I reach for every day.",
     "educationHeader": "My education",
     "workExperienceHeader": "Work experience",
     "favoriteToolsHeader": "My favorite tools",
     "downloadCv": "Download CV",
 
     "retroArcadeHeader": "When I'm not writing code…",
-    "retroArcadeDescription": "A fully playable DOOM, compiled straight to WebAssembly — no DOS emulator, just the original 1993 engine running at native speed in your browser.",
+    "retroArcadeDescription": "A fully playable DOOM, compiled straight to WebAssembly - no DOS emulator, just the original 1993 engine running at native speed in your browser.",
     "retroArcadePlay": "Kill a few demons",
     "retroArcadeLoading": "Booting up hell…",
     "retroArcadeError": "The old machine refused to boot. Try again?",
@@ -225,7 +225,7 @@
 
     "YandexPracticum": "Yandex Practicum",
     "YandexPracticumSubtitle": "Frontend Developer",
-    "YandexPracticumDescription": "Covered the full frontend cycle: built several SPAs on React, Redux Toolkit and client-side routing — from markup and animations to secure auth, WebSocket and deployment. Configured Webpack builds and linters; every project passed mentor code review."
+    "YandexPracticumDescription": "Covered the full frontend cycle: built several SPAs on React, Redux Toolkit and client-side routing - from markup and animations to secure auth, WebSocket and deployment. Configured Webpack builds and linters; every project passed mentor code review."
   },
 
   "workExperience": {
@@ -243,7 +243,7 @@
 
     "everypixelBullet1": "AI-native creative platform for video and image generation, leading the frontend architecture end-to-end.",
     "everypixelBullet2": "Aggregated 10+ third-party AI models (Kling, Runway, Veo, Wan, Seedance) into a single editing workflow with real-time progress.",
-    "everypixelBullet3": "Owned the FE↔BE contract — REST schemas and WebSocket protocols — removing ad-hoc endpoints.",
+    "everypixelBullet3": "Owned the FE↔BE contract - REST schemas and WebSocket protocols - removing ad-hoc endpoints.",
     "everypixelBullet4": "Built a virtualized media library with @tanstack/react-virtual for thousands of assets without layout thrashing.",
     "everypixelBullet5": "Delivered race-condition-free uploads with react-dropzone and async-mutex and an accessible (WAI-ARIA) design system on Radix UI.",
     "everypixelBullet6": "Integrated Sentry across the React Router 7 app and enforced consistency via an ESLint / Prettier / Stylelint / Husky pipeline.",

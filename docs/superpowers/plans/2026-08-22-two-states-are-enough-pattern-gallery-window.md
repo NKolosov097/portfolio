@@ -1,4 +1,4 @@
-# Two States Are Enough — PatternGallery Browser-Window Preview Implementation Plan
+# Two States Are Enough - PatternGallery Browser-Window Preview Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -11,16 +11,16 @@
 ## Global Constraints
 
 - True module-level constants in `UPPER_SNAKE_CASE`.
-- JSDoc on non-`useState` module-level variables — one line, states the non-obvious reason only.
-- No new locale keys — the URL-bar text is decorative placeholder, not localized content.
-- `PatternGallery`'s state model (`osPrefersDark`, `override`, `handleCycle`, `handleSwitchChange`, `handleSegmentChange`) must not change — this is a markup/CSS-only change inside `.preview`.
-- The preview continues to use the existing `data-theme={resolvedTheme}` attribute mechanism — no `light-dark()` CSS function, no `browserslist`/Lightning CSS risk.
+- JSDoc on non-`useState` module-level variables - one line, states the non-obvious reason only.
+- No new locale keys - the URL-bar text is decorative placeholder, not localized content.
+- `PatternGallery`'s state model (`osPrefersDark`, `override`, `handleCycle`, `handleSwitchChange`, `handleSegmentChange`) must not change - this is a markup/CSS-only change inside `.preview`.
+- The preview continues to use the existing `data-theme={resolvedTheme}` attribute mechanism - no `light-dark()` CSS function, no `browserslist`/Lightning CSS risk.
 - Commits must not include a `Co-Authored-By` trailer.
 - Run `pnpm check-types && pnpm lint` before considering the change complete.
 
 ---
 
-### Task 1: `PatternGallery` — browser-window preview
+### Task 1: `PatternGallery` - browser-window preview
 
 **Files:**
 
@@ -29,7 +29,7 @@
 
 **Interfaces:**
 
-- Consumes: only already-shipped locale keys (`demoPreviewHeading`, `demoPreviewBody`) — no new
+- Consumes: only already-shipped locale keys (`demoPreviewHeading`, `demoPreviewBody`) - no new
   keys.
 - Produces: `PatternGallery` (default + named export, unchanged signature), consumed by
   `Content.tsx` exactly as before (no import change).
@@ -39,7 +39,7 @@
 In `PatternGallery.tsx`, find:
 
 ```tsx
-/** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
+/** The three segments, in display order - same trio `PatternsInTheWild` illustrates as a static mockup. */
 const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
@@ -49,10 +49,10 @@ const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride,
 Replace with:
 
 ```tsx
-/** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
+/** The three segments, in display order - same trio `PatternsInTheWild` illustrates as a static mockup. */
 const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 
-/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+/** The three macOS traffic-light colors, in their fixed left-to-right order - never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
@@ -244,7 +244,7 @@ Replace with:
 }
 ```
 
-(`.previewTitlebar`'s and `.previewUrlBar`'s base — non-`data-theme` — rules are the pre-hydration
+(`.previewTitlebar`'s and `.previewUrlBar`'s base - non-`data-theme` - rules are the pre-hydration
 neutral default, matching the card's own dark-first aesthetic, exactly like `.preview`'s own base
 `background: rgb(255 255 255 / 6%)` before `isMounted` resolves.)
 
@@ -257,14 +257,14 @@ Expected: both PASS.
 
 Run: `pnpm dev`
 Drive the page with a real browser engine (e.g. Playwright + the Chromium build already on this
-machine) — not `curl`, not static HTML parsing — and confirm on
+machine) - not `curl`, not static HTML parsing - and confirm on
 `http://localhost:3000/articles/two-states-are-enough`:
 
 - `[data-testid="pattern-gallery"] .preview` now shows a titlebar with three traffic-light dots and
   a rounded URL-bar pill reading `yoursite.dev`, above the existing "Твой сайт" / "Your Site"
   heading and body text.
 - Clicking the icon button, a segment, or toggling the switch repaints the titlebar background, the
-  URL-bar's background/text color, and the page-content background/text together — read the
+  URL-bar's background/text color, and the page-content background/text together - read the
   computed `background-color` of `.previewTitlebar` and `.previewUrlBar` before and after a click
   and confirm both changed, alongside the existing heading/body color change.
 - The state `<dl>` readout and closing caption below the preview are unaffected.

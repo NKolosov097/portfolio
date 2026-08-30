@@ -20,13 +20,13 @@ export const aiBoilerplateSeniorEngineersArticle: IArticleMeta = {
     [ELanguage.en]:
       "Compiling Isn't Shipping: What AI Boilerplate Still Leaves for Senior Engineers",
     [ELanguage.ru]:
-      'Компилируется — не значит готово: что ИИ-boilerplate оставляет senior-инженеру',
+      'Компилируется - не значит готово: что ИИ-boilerplate оставляет senior-инженеру',
   },
   description: {
     [ELanguage.en]:
-      'AI closes the distance on typing code. It never closed the distance on owning it — here is what still requires a senior engineer in 2026.',
+      'AI closes the distance on typing code. It never closed the distance on owning it - here is what still requires a senior engineer in 2026.',
     [ELanguage.ru]:
-      'ИИ сократил путь от идеи до кода, но не путь до владения этим кодом — что в 2026 году по-прежнему требует senior-инженера.',
+      'ИИ сократил путь от идеи до кода, но не путь до владения этим кодом - что в 2026 году по-прежнему требует senior-инженера.',
   },
   publishedDate: '2026-08-13',
   readingTimeMinutes: 5,
@@ -41,9 +41,9 @@ export const twoStatesAreEnoughArticle: IArticleMeta = {
   },
   description: {
     [ELanguage.en]:
-      "A response to Lea Verou's case against tri-state dark mode toggles — and why two states plus a smart localStorage default aren't just simpler UX, they're the version that's actually easier to implement correctly.",
+      "A response to Lea Verou's case against tri-state dark mode toggles - and why two states plus a smart localStorage default aren't just simpler UX, they're the version that's actually easier to implement correctly.",
     [ELanguage.ru]:
-      'Отклик на статью Леи Веру против трёхпозиционных переключателей темы — и почему связка «два состояния + localStorage по умолчанию» не только удобнее пользователю, но и проще реализовать без ошибок.',
+      'Отклик на статью Леи Веру против трёхпозиционных переключателей темы - и почему связка «два состояния + localStorage по умолчанию» не только удобнее пользователю, но и проще реализовать без ошибок.',
   },
   publishedDate: '2026-08-17',
   readingTimeMinutes: 4,

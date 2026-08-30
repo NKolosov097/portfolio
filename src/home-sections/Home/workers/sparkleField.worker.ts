@@ -13,7 +13,7 @@ import {
 
 /**
  * Gap between self-driven frames, matching a 60 Hz display. A dedicated worker has no
- * `requestAnimationFrame` — it is a `Window` method — so the loop is timer-driven instead.
+ * `requestAnimationFrame` - it is a `Window` method - so the loop is timer-driven instead.
  */
 const WORKER_FRAME_INTERVAL_MS = 16
 
