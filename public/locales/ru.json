@@ -192,7 +192,23 @@
     "educationHeader": "Мое образование",
     "workExperienceHeader": "Опыт работы",
     "favoriteToolsHeader": "Мои любимые инструменты",
-    "downloadCv": "Скачать резюме"
+    "downloadCv": "Скачать резюме",
+
+    "retroArcadeHeader": "Когда не пишу код…",
+    "retroArcadeDescription": "Полноценный DOOM, скомпилированный прямо в WebAssembly — без DOS-эмуляции, оригинальный движок 1993 года на нативной скорости прямо в браузере.",
+    "retroArcadePlay": "Убить пару демонов",
+    "retroArcadeLoading": "Загружаю ад…",
+    "retroArcadeError": "Старая машина отказалась загружаться. Повторить?",
+    "retroArcadeRetry": "Повторить",
+    "retroArcadeStop": "Стоп",
+    "retroArcadeFullscreen": "На весь экран",
+    "retroArcadeControlsHint": "Стрелки — движение · Ctrl — стрельба · Пробел — открыть дверь",
+    "retroArcadeMoveUp": "Вверх",
+    "retroArcadeMoveDown": "Вниз",
+    "retroArcadeMoveLeft": "Влево",
+    "retroArcadeMoveRight": "Вправо",
+    "retroArcadeUse": "Открыть",
+    "retroArcadeFire": "Огонь"
   },
 
   "educationTable": {

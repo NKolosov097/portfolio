@@ -253,6 +253,9 @@ What is covered today:
 - **Locale hydration** (`e2e/locale-hydration.spec.ts`) — with a Russian language cookie set,
   both `/` and an article page render in that language with no console or page error, guarding
   against the server/client language mismatch fixed on this branch.
+- **DOOM easter egg** (`e2e/doom-easter-egg.spec.ts`) — the machine in the Resume section boots
+  the WASM build on click, shows the game canvas, and returns to its idle state when stopped,
+  with no page errors along the way.
 
 Tests reuse the app's own sources of truth rather than restating them: section anchors come from
 `ETabID`, tab labels and contact error messages from `public/locales/en.json`, and profile links
