@@ -6,7 +6,6 @@ import { useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
-import { ETabID } from '@/constants/header.constants'
 import { IArticleMeta } from '@/constants/articles.constants'
 import { ArticleContent } from '@/components/ArticleContent/ArticleContent'
 import { ReadingProgressNav } from '@/components/ReadingProgressNav/ReadingProgressNav'
@@ -45,7 +44,7 @@ export const ArticlePageContent = ({ article }: IArticlePageContentProps) => {
   return (
     <article className={styles.article}>
       <nav className={styles.breadcrumb} aria-label={t('articles.backToList')}>
-        <Link href={`/#${ETabID.writing}`}>{t('aside.backToHome')}</Link>
+        <Link href="/">{t('aside.backToHome')}</Link>
         <span aria-hidden="true"> / </span>
         <Link href="/articles">{t('articles.backToList')}</Link>
       </nav>
