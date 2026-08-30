@@ -27,7 +27,11 @@ export const NotFoundView = ({
 
     <p className={styles.description}>{description}</p>
 
-    <Link href={linkHref} data-testid={testId} className={`g-link g-link_view_normal ${styles.link}`}>
+    <Link
+      href={linkHref}
+      data-testid={testId}
+      className={`g-link g-link_view_normal ${styles.link}`}
+    >
       {linkLabel}
     </Link>
   </section>
