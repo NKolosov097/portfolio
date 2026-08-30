@@ -10,6 +10,7 @@ import { Tag } from '@/components/Tag/Tag'
 import { Education } from './sections/Education/Education'
 import { WorkExperience } from './sections/WorkExperience/WorkExperience'
 import { FavoriteTools } from './sections/FavoriteTools/FavoriteTools'
+import { RetroArcade } from './sections/RetroArcade/RetroArcade'
 import { DownloadCv } from './components/DownloadCv/DownloadCv'
 
 export const Resume = () => {
@@ -35,6 +36,7 @@ export const Resume = () => {
       <Education />
       <WorkExperience />
       <FavoriteTools />
+      <RetroArcade />
     </section>
   )
 }

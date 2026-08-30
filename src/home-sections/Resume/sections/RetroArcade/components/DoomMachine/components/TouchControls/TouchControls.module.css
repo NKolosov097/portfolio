@@ -1,0 +1,91 @@
+.touchControls {
+  position: absolute;
+  inset: auto 0.75rem 0.75rem;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.dPad {
+  position: relative;
+  width: 8.25rem;
+  height: 8.25rem;
+  pointer-events: none;
+}
+
+.dPad > button {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: rgb(255 255 255 / 85%);
+  touch-action: none;
+  background: rgb(20 20 20 / 65%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 0.6rem;
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.dPad > button:active {
+  color: var(--root-bg-color);
+  background: var(--g-color-line-brand);
+}
+
+.dPadUp {
+  top: 0;
+  left: 2.75rem;
+}
+
+.dPadLeft {
+  top: 2.75rem;
+  left: 0;
+}
+
+.dPadRight {
+  top: 2.75rem;
+  right: 0;
+}
+
+.dPadDown {
+  top: 5.5rem;
+  left: 2.75rem;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.actionButton,
+.actionButtonFire {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  color: rgb(255 255 255 / 85%);
+  touch-action: none;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 50%;
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.actionButton {
+  background: rgb(20 20 20 / 65%);
+}
+
+.actionButtonFire {
+  color: var(--root-bg-color);
+  background: var(--g-color-line-brand);
+}
+
+.actionButton:active,
+.actionButtonFire:active {
+  transform: scale(0.92);
+}

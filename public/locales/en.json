@@ -192,7 +192,23 @@
     "educationHeader": "My education",
     "workExperienceHeader": "Work experience",
     "favoriteToolsHeader": "My favorite tools",
-    "downloadCv": "Download CV"
+    "downloadCv": "Download CV",
+
+    "retroArcadeHeader": "When I'm not writing code…",
+    "retroArcadeDescription": "A fully playable DOOM, compiled straight to WebAssembly — no DOS emulator, just the original 1993 engine running at native speed in your browser.",
+    "retroArcadePlay": "Kill a few demons",
+    "retroArcadeLoading": "Booting up hell…",
+    "retroArcadeError": "The old machine refused to boot. Try again?",
+    "retroArcadeRetry": "Retry",
+    "retroArcadeStop": "Stop",
+    "retroArcadeFullscreen": "Fullscreen",
+    "retroArcadeControlsHint": "Arrows to move · Ctrl to shoot · Space to open doors",
+    "retroArcadeMoveUp": "Move up",
+    "retroArcadeMoveDown": "Move down",
+    "retroArcadeMoveLeft": "Move left",
+    "retroArcadeMoveRight": "Move right",
+    "retroArcadeUse": "Use",
+    "retroArcadeFire": "Fire"
   },
 
   "educationTable": {
