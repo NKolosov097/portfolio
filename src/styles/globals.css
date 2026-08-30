@@ -57,6 +57,13 @@ body {
   color: var(--root-text-color);
 }
 
+@supports (height: 100svh) {
+  html,
+  body {
+    --min-height-section: calc(100svh - var(--header-height) - 2 * var(--body-padding));
+  }
+}
+
 .g-root {
   background-color: var(--root-bg-color);
 }
@@ -186,6 +193,7 @@ main {
   left: calc(var(--aside-width) + 4 * var(--body-padding) + 1px + 1px);
   max-width: calc(var(--max-width) - var(--aside-width) - 4 * var(--body-padding));
   min-height: calc(100vh - var(--min-height-footer));
+  min-height: calc(100svh - var(--min-height-footer));
   height: max-content;
   grid-area: main;
   margin: 0 auto;
@@ -207,6 +215,7 @@ main > header > .g-tabs {
   );
   min-height: calc(var(--aside-max-height) - var(--header-height));
   margin-bottom: calc(100vh - var(--aside-max-height));
+  margin-bottom: calc(100svh - var(--aside-max-height));
   text-align: start;
 }
 
@@ -310,6 +319,25 @@ footer,
     font-size: 3.5rem;
     line-height: 3.5rem;
     text-align: center;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  @media screen and (width <= 1024px) {
+    /* -webkit-touch-callout only exists on iOS WebKit, which floats a rounded bottom URL bar that square footer corners clash with. */
+    footer,
+    .gn-footer {
+      border-radius: 8px;
+    }
+  }
+}
+
+@supports (height: 100svh) {
+  @media screen and (width <= 1024px) {
+    html,
+    body {
+      --aside-max-height: 100svh;
+    }
   }
 }
 
