@@ -16,7 +16,7 @@ export interface IWorkExperience {
   startYear: string
   /** Year the role ended; omitted while the role is ongoing (renders a localized "present"). */
   endYear?: string
-  /** Company name — a proper noun kept identical across locales. */
+  /** Company name - a proper noun kept identical across locales. */
   company: string
   /** i18n key resolving to the localized job title. */
   roleKey: string

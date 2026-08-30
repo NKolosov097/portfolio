@@ -2,7 +2,7 @@ import { MutableRefObject } from 'react'
 import { animateScroll } from './animateScroll'
 
 /**
- * Scrolls to the element matching the current URL fragment, normalising the raw hash first —
+ * Scrolls to the element matching the current URL fragment, normalising the raw hash first -
  * a stale client-side transition can leave a duplicated fragment behind (e.g. "#writing#writing")
  * in dev, so this strips anything after the first stray "#" and replaces the history entry.
  * Pass `expectedId` to only act when the fragment matches a specific id (e.g. a section's own id).

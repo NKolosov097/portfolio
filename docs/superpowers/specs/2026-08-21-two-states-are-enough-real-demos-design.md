@@ -5,7 +5,7 @@
 User feedback after using the shipped interactivity revision (`2026-08-18-two-states-are-enough-interactivity-design.md`):
 
 1. `SwitchAnalogy`'s five buttons and slider already update local state (confirmed by reading the
-   code), but nothing else in the block visibly reacts — clicking a button only re-styles that
+   code), but nothing else in the block visibly reacts - clicking a button only re-styles that
    button, dragging the slider only moves its own thumb. From a reader's point of view that reads
    as "nothing happens." The two panels are both about _brightness_; the fix is to make that
    brightness actually visible.
@@ -17,12 +17,12 @@ User feedback after using the shipped interactivity revision (`2026-08-18-two-st
    the shared `browserslist` (`@gravity-ui/browserslist-config`: `"last 3 years and fully supports
 es6..."`, plus `Firefox ESR`) includes browsers old enough to lack it. Crucially, this fallback
    resolves `--lightningcss-light`/`--lightningcss-dark` from the OS-level `prefers-color-scheme`
-   media query, **not** from the element's `color-scheme` property — so the button's
+   media query, **not** from the element's `color-scheme` property - so the button's
    `style={{ colorScheme: simulatedNative }}` has zero effect on the compiled output. Confirmed with
    computed-style dumps: `.window`'s `color-scheme` correctly flips `light`↔`dark` on click, but the
    child `.page`'s `background-color` stays fixed regardless. No `@supports` progressive-enhancement
    block is emitted either, so this is broken for every visitor, not just old browsers.
-3. Per user's confirmed answer, "Форма, которую ты уже видел" (`PatternsInTheWild` — static
+3. Per user's confirmed answer, "Форма, которую ты уже видел" (`PatternsInTheWild` - static
    Tailwind-docs/VitePress/Bluesky-style mockups) is correct and stays static by design. The actual
    ask is that `PatternGallery`'s ("Попробуй сам") three controls should visually **look like**
    those same real-world patterns instead of a generic Button/Switch/Dropdown-plus-debug-table
@@ -31,15 +31,15 @@ es6..."`, plus `Firefox ESR`) includes browsers old enough to lack it. Crucially
 ## Decisions made with the user
 
 - `SwitchAnalogy`: add one small "brightness swatch" per panel, driven directly by existing state
-  (`activeDialPercentage` / `sliderValue`) — no new state, no new handlers. Panel A's swatch snaps
+  (`activeDialPercentage` / `sliderValue`) - no new state, no new handlers. Panel A's swatch snaps
   between the five fixed values (inherent to only five buttons existing); Panel B's swatch tracks
   the slider continuously. Grayscale lightness (`hsl(0 0% {value}%)`) reads literally as "brightness."
   Purely decorative (`aria-hidden`), since the driving controls already expose their value
   accessibly (buttons' own text, the range input's native value).
 - `LightDarkDemo`: move only the `light-dark()`-dependent declarations (titlebar background, page
   background, page-line background) from the CSS module into inline `style` objects computed in the
-  TSX. Inline `style` attributes are plain runtime strings — Next.js/Lightning CSS never processes
-  them — so the browser's own CSS engine evaluates `light-dark()` natively, restoring the
+  TSX. Inline `style` attributes are plain runtime strings - Next.js/Lightning CSS never processes
+  them - so the browser's own CSS engine evaluates `light-dark()` natively, restoring the
   `color-scheme`-driven behavior the demo is supposed to show. No change to the site-wide
   `browserslist` target (too broad a blast radius for one demo).
 - `PatternGallery`: keep all existing state/handlers (`handleCycle`, `handleSwitchChange`,
@@ -55,12 +55,12 @@ es6..."`, plus `Firefox ESR`) includes browsers old enough to lack it. Crucially
     `Switch` (it has no "system" state, so it can't become the segmented pill), but its tile is
     restyled as a settings-row (label left, dot-style accent, control right) matching
     `PatternsInTheWild`'s settings-panel tile.
-  - The shared preview box and the state `<dl>` readout are unchanged — not part of the user's
+  - The shared preview box and the state `<dl>` readout are unchanged - not part of the user's
     complaint.
 - `demoTabDropdownLabel` copy is renamed in meaning (still describes "which control kind"): since
   the control is no longer a dropdown, the key is renamed to `demoTabSegmentedLabel` with copy
   "Сегменты" / "Segments". `demoTabButtonLabel` and `demoTabSwitchLabel` keep their existing keys
-  and copy — both still literally a button and a switch.
+  and copy - both still literally a button and a switch.
 
 ## `SwitchAnalogy` (modified)
 
@@ -87,9 +87,9 @@ expose accessibly).
 
 `src/content/articles/two-states-are-enough/LightDarkDemo/LightDarkDemo.tsx` (+ `.module.css`).
 
-Root cause fix only — no behavioral or copy changes. In `LightDarkDemo.module.css`, remove the
+Root cause fix only - no behavioral or copy changes. In `LightDarkDemo.module.css`, remove the
 `background` declarations from `.titlebar`, `.page`, and the shared `.pageLine, .pageLineShort`
-rule (keep all their other properties — layout, sizing — in the CSS module). In `LightDarkDemo.tsx`,
+rule (keep all their other properties - layout, sizing - in the CSS module). In `LightDarkDemo.tsx`,
 compute three small style objects from `simulatedNative` and pass them as the `style` prop on the
 corresponding elements, e.g.:
 
@@ -99,13 +99,13 @@ const pageStyle = { background: 'light-dark(#fff, #1e1e1e)' }
 const pageLineStyle = { background: 'light-dark(rgb(0 0 0 / 15%), rgb(255 255 255 / 20%))' }
 ```
 
-These are static objects (colors don't depend on `simulatedNative` — only `.window`'s
+These are static objects (colors don't depend on `simulatedNative` - only `.window`'s
 `color-scheme` does), so they can be module-level constants, not memoized per render. Applied via
 `style={pageStyle}` alongside the existing `className`. This keeps the pedagogical point intact
 (colors are still resolved by the browser from `light-dark()` + `color-scheme`, now for real)
 without touching the project-wide `browserslist` target.
 
-## `PatternGallery` (modified) — restyled to match `PatternsInTheWild`
+## `PatternGallery` (modified) - restyled to match `PatternsInTheWild`
 
 `src/content/articles/two-states-are-enough/PatternGallery/PatternGallery.tsx` (+ `.module.css`).
 `ThemeDropdown/` directory deleted (only consumer).
@@ -113,11 +113,11 @@ without touching the project-wide `browserslist` target.
 **Unchanged:** `STORAGE_KEY`, `TThemeOverride`, `TResolvedTheme`, `isThemeOverride`, the
 `osPrefersDark`/`override` state and mount effect, `isMounted`, `resolvedTheme`, `handleCycle`,
 `handleSwitchChange`, `handleSelectChange` (now takes the override value directly instead of a
-`TDropdownValue` import — same three-branch logic, no import from the deleted `ThemeDropdown`), all
+`TDropdownValue` import - same three-branch logic, no import from the deleted `ThemeDropdown`), all
 label derivations.
 
 **Control 1 (icon button, `handleCycle`):** unchanged markup/logic; minor visual pass so its sizing
-matches `PatternsInTheWild`'s `.iconButton` (already close — both circular, translucent background).
+matches `PatternsInTheWild`'s `.iconButton` (already close - both circular, translucent background).
 
 **Control 2 (segmented pill, replaces `ThemeDropdown`, `handleSelectChange`):** three real
 `<button type="button">`s inside a `.segmented` pill container (styles duplicated from
@@ -125,7 +125,7 @@ matches `PatternsInTheWild`'s `.iconButton` (already close — both circular, tr
 codebase's per-file CSS Modules convention), labelled with the existing `demoLight`/`demoDark`/
 `demoSystem` keys. `data-active` is `true` for whichever of `'light' | 'dark' | 'system'` matches
 `isMounted ? (override ?? 'system') : 'system'`. Clicking a segment calls `handleSelectChange` with
-`'light' | 'dark'` directly, or clears the override for the `'system'` segment — identical branching
+`'light' | 'dark'` directly, or clears the override for the `'system'` segment - identical branching
 to the old `handleSelectChange`, just invoked from three buttons instead of a select menu. Each
 button gets `disabled={!isMounted}` and `aria-pressed`.
 
@@ -136,12 +136,12 @@ consistent with `PatternsInTheWild`'s settings-panel tile (styles duplicated sim
 dot indicator since a real `Switch` already shows its own on/off state).
 
 **Rendering order and everything below the controls row** (shared preview, state `<dl>`, closing
-caption) — unchanged.
+caption) - unchanged.
 
 ## Content changes (`en.json` and `ru.json`)
 
 - Rename `demoTabDropdownLabel` → `demoTabSegmentedLabel`. New copy: en `"Segments"`, ru
-  `"Сегменты"` (was `"Dropdown"` in both locales — describes the control kind, which changed).
+  `"Сегменты"` (was `"Dropdown"` in both locales - describes the control kind, which changed).
 - No other key changes. `demoTabButtonLabel`, `demoTabSwitchLabel`, `demoLight`, `demoDark`,
   `demoSystem` are reused as-is. `SwitchAnalogy`'s swatches and `LightDarkDemo`'s fix need no new
   copy.
@@ -170,7 +170,7 @@ any heading `id`.
 ## Testing / validation
 
 `pnpm check-types && pnpm lint`, full `pnpm test` (locale-parity test picks up the renamed key
-automatically — both locale files must define it or the test fails). Manual browser verification in
+automatically - both locale files must define it or the test fails). Manual browser verification in
 an isolated worktree: `SwitchAnalogy` swatches visibly change shade on button click and slider drag;
 `LightDarkDemo`'s mock window visibly repaints between light/dark on click (re-check the compiled
 CSS for that module to confirm no `--lightningcss-*` variable remains for the moved declarations);

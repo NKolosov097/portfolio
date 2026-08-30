@@ -4,13 +4,13 @@
 
 **Goal:** Let mobile visitors close the aside profile `Drawer` by swiping left, with the panel following the finger and snapping closed or back to rest depending on distance/speed.
 
-**Architecture:** A pure helper module (`swipeGesture.ts`) decides swipe axis and close/no-close outcomes from plain numbers — fully unit-testable with Vitest, no DOM. A `useSwipeToClose` hook wires `touchstart`/`touchmove`/`touchend`/`touchcancel` listeners onto a ref and writes `element.style.transform` imperatively (no React state per frame). `MobileAside` attaches the hook to its existing `#aside-card` div. Playwright covers the real browser behavior end to end.
+**Architecture:** A pure helper module (`swipeGesture.ts`) decides swipe axis and close/no-close outcomes from plain numbers - fully unit-testable with Vitest, no DOM. A `useSwipeToClose` hook wires `touchstart`/`touchmove`/`touchend`/`touchcancel` listeners onto a ref and writes `element.style.transform` imperatively (no React state per frame). `MobileAside` attaches the hook to its existing `#aside-card` div. Playwright covers the real browser behavior end to end.
 
 **Tech Stack:** React 19, TypeScript (strict), Gravity UI `Drawer`, Vitest 4 (node project), Playwright 1.62.
 
 ## Global Constraints
 
-- No new npm dependencies — implement the gesture with native touch events only (per spec's Goals/Non-goals).
+- No new npm dependencies - implement the gesture with native touch events only (per spec's Goals/Non-goals).
 - Only a leftward swipe closes the panel; rightward drag is clamped to the resting position and never closes it (per spec Architecture/Gesture logic).
 - Desktop `Aside` (`src/layout/Aside/Aside.tsx`) and the `Drawer`'s `placement`/veil behavior are unchanged (per spec Non-goals).
 - Respect `prefers-reduced-motion`: the snap-back-to-rest animation is skipped (instant) when the user prefers reduced motion (per spec Gesture logic / Edge cases).
@@ -110,7 +110,7 @@ describe('clampSwipeTranslateX', () => {
 - [ ] **Step 2: Run the tests to verify they fail**
 
 Run: `pnpm vitest run src/layout/Aside/hooks/swipeGesture.test.ts`
-Expected: FAIL — `swipeGesture.ts` does not exist yet (module not found).
+Expected: FAIL - `swipeGesture.ts` does not exist yet (module not found).
 
 - [ ] **Step 3: Implement the helpers**
 
@@ -153,7 +153,7 @@ export interface IShouldCloseOnSwipeEndParams {
   dx: number
   /** Wall-clock duration of the gesture, in ms. */
   durationMs: number
-  /** Width of the dragged panel, in px — the distance threshold scales off this. */
+  /** Width of the dragged panel, in px - the distance threshold scales off this. */
   panelWidthPx: number
 }
 
@@ -198,12 +198,12 @@ git commit -m "feat: add pure swipe-gesture decision helpers for the aside drawe
 
 **Interfaces:**
 
-- Consumes (from Task 1): `resolveSwipeAxis`, `shouldCloseOnSwipeEnd`, `clampSwipeTranslateX`, `type TSwipeAxis` — exact signatures above.
+- Consumes (from Task 1): `resolveSwipeAxis`, `shouldCloseOnSwipeEnd`, `clampSwipeTranslateX`, `type TSwipeAxis` - exact signatures above.
 - Produces (consumed by Task 3):
   - `interface IUseSwipeToCloseParams { ref: RefObject<HTMLElement | null>; onClose: () => void; isEnabled: boolean }`
   - `useSwipeToClose(params: IUseSwipeToCloseParams): void`
 
-There is no automated test for this task in isolation (it's DOM/effect wiring over already-tested pure logic); Task 4's Playwright suite is the test cycle for this hook's actual behavior in a browser. This mirrors the project's existing split — Vitest for pure logic, Playwright for rendered/DOM behavior (see `README.md` § Testing).
+There is no automated test for this task in isolation (it's DOM/effect wiring over already-tested pure logic); Task 4's Playwright suite is the test cycle for this hook's actual behavior in a browser. This mirrors the project's existing split - Vitest for pure logic, Playwright for rendered/DOM behavior (see `README.md` § Testing).
 
 - [ ] **Step 1: Implement the hook**
 
@@ -339,7 +339,7 @@ export const useSwipeToClose = ({ ref, onClose, isEnabled }: IUseSwipeToClosePar
 ```
 
 Note the deliberate absence of a style reset in the cleanup function: when the gesture itself
-calls `onClose()`, `isEnabled` flips to `false` and this effect tears down immediately — resetting
+calls `onClose()`, `isEnabled` flips to `false` and this effect tears down immediately - resetting
 `transform` there would snap the dragged content back to `0` for one frame right before the
 `Drawer`'s own exit animation starts, which reads as a visible jump. Leaving the inline `transform`
 in place lets it exit together with the `Drawer`. The reset at the top of the effect guarantees the
@@ -620,13 +620,13 @@ test.describe('mobile aside swipe-to-close', () => {
 - [ ] **Step 2: Run the tests to verify the first one fails**
 
 Run: `pnpm exec playwright test e2e/aside-swipe.spec.ts --project=mobile-chrome`
-Expected: FAIL on `closes when swiping left past the distance threshold` — `useSwipeToClose` is
+Expected: FAIL on `closes when swiping left past the distance threshold` - `useSwipeToClose` is
 already implemented by this point in the plan, so if this fails, re-check Task 3's wiring before
 proceeding (there is no separate "before" state to compare against, since this task runs after
-the feature is built — the point of this step is to confirm the test actually exercises the
+the feature is built - the point of this step is to confirm the test actually exercises the
 gesture rather than trivially passing).
 
-If it does NOT fail (i.e. it already passes), skip to Step 4 — Task 3 already made this pass.
+If it does NOT fail (i.e. it already passes), skip to Step 4 - Task 3 already made this pass.
 
 - [ ] **Step 3: Fix any wiring issues found**
 
@@ -643,7 +643,7 @@ constructor.
 - [ ] **Step 5: Run the existing mobile-drawer and aside-ghost specs for regressions**
 
 Run: `pnpm exec playwright test e2e/mobile-drawer.spec.ts e2e/aside-ghost.spec.ts`
-Expected: PASS — confirms the new `touch-action` CSS and ref wiring didn't break the existing
+Expected: PASS - confirms the new `touch-action` CSS and ref wiring didn't break the existing
 open/close-by-button and ghost-animation coverage.
 
 - [ ] **Step 6: Commit**
@@ -657,9 +657,9 @@ git commit -m "test: cover swipe-to-close for the mobile aside drawer"
 
 ## Final Validation
 
-- [ ] Run `pnpm check-types && pnpm lint` — must be clean before considering this plan done (per
+- [ ] Run `pnpm check-types && pnpm lint` - must be clean before considering this plan done (per
       CLAUDE.md's Validation section).
-- [ ] Run `pnpm test` (Vitest) — confirms Task 1's helpers still pass alongside the rest of the
+- [ ] Run `pnpm test` (Vitest) - confirms Task 1's helpers still pass alongside the rest of the
       suite.
-- [ ] Run `pnpm test:e2e` — confirms the full Playwright suite (all six projects) passes, not just
+- [ ] Run `pnpm test:e2e` - confirms the full Playwright suite (all six projects) passes, not just
       the new spec.

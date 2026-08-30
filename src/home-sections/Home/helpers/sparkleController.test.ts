@@ -11,7 +11,7 @@ import {
 
 /**
  * Hand-driven frame scheduler. Each callback re-registers itself, so the pending
- * set is drained into a snapshot before it is invoked — iterating the live list
+ * set is drained into a snapshot before it is invoked - iterating the live list
  * would never terminate.
  */
 const createManualScheduler = () => {

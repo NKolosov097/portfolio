@@ -5,7 +5,7 @@ import styles from './CombinationGrid.module.css'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-/** Either half of a combination — always exactly one of these two. */
+/** Either half of a combination - always exactly one of these two. */
 type TShade = 'light' | 'dark'
 
 /** One tile's meaning: what the reader's OS is pretending to be, and what the site shows for it. */
@@ -16,14 +16,14 @@ interface ICombination {
 
 const SHADES: TShade[] = ['light', 'dark']
 
-/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+/** The three macOS traffic-light colors, in their fixed left-to-right order - never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
 export const CombinationGrid = () => {
   const { t } = useTranslation()
-  /** Real matchMedia, read-only — used only to badge the one tile that matches the reader's actual OS setting. */
+  /** Real matchMedia, read-only - used only to badge the one tile that matches the reader's actual OS setting. */
   const [actualOsPrefersDark, setActualOsPrefersDark] = useState<boolean | null>(null)
-  /** Purely local UI state for this illustration — no localStorage, decoupled from PatternGallery's real toggle. */
+  /** Purely local UI state for this illustration - no localStorage, decoupled from PatternGallery's real toggle. */
   const [selected, setSelected] = useState<ICombination | null>(null)
 
   // matchMedia doesn't exist during SSR; reading it only after mount keeps the first
@@ -53,7 +53,7 @@ export const CombinationGrid = () => {
     <div className={styles.card} data-testid="combination-grid">
       <p className={styles.eyebrow}>{t('articleContent.twoStatesAreEnough.gridEyebrow')}</p>
 
-      {/* Every tile's native/site pairing is fixed by its own row/column — never derived from the
+      {/* Every tile's native/site pairing is fixed by its own row/column - never derived from the
           reader's real OS, so all four states always render distinctly regardless of environment. */}
       <div className={styles.grid}>
         {SHADES.map((native) =>

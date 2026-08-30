@@ -6,17 +6,17 @@
 
 **Architecture:** A typed article registry (`src/constants/articles.constants.ts`) is the single source of truth for metadata, consumed by the list page, the detail page's static generation/metadata, the per-article OG image, the sitemap, and the existing homepage "Writing" card. Article bodies are plain TSX components (one per language) picked at render time by the active `i18next` language, avoiding any new Markdown/MDX dependency. Both routes are fully static via `generateStaticParams`.
 
-**Tech Stack:** Next.js 16 App Router, React 19, TypeScript (strict), react-i18next, CSS Modules, Vitest, Playwright — all already in the project; no new dependencies.
+**Tech Stack:** Next.js 16 App Router, React 19, TypeScript (strict), react-i18next, CSS Modules, Vitest, Playwright - all already in the project; no new dependencies.
 
 ## Global Constraints
 
 - Follow `docs/superpowers/specs/2026-08-13-self-hosted-articles-design.md` exactly; if an implementation detail below seems to conflict with it, the spec wins.
-- No Markdown/MDX pipeline — article bodies are hand-written TSX per the spec's rationale.
-- This repo has no React component-testing library (no `@testing-library/react`) and no existing component unit tests — do not add one. Cover component/page behavior with Playwright e2e, following `e2e/smoke.spec.ts` and `e2e/aside-ghost.spec.ts` conventions. Use Vitest only for pure-logic/data assertions (registry invariants, heading-id parity), following `src/constants/home.constants.test.ts` and `src/configs/i18n/locales.test.ts` conventions.
+- No Markdown/MDX pipeline - article bodies are hand-written TSX per the spec's rationale.
+- This repo has no React component-testing library (no `@testing-library/react`) and no existing component unit tests - do not add one. Cover component/page behavior with Playwright e2e, following `e2e/smoke.spec.ts` and `e2e/aside-ghost.spec.ts` conventions. Use Vitest only for pure-logic/data assertions (registry invariants, heading-id parity), following `src/constants/home.constants.test.ts` and `src/configs/i18n/locales.test.ts` conventions.
 - Strict TypeScript: no `any`, avoid type assertions, JSDoc on every interface/type field (per `CLAUDE.md`).
-- `IArticleMeta.title`/`description` are `Record<ELanguage, string>` — not i18next keys. Only page chrome (headings, labels) goes through `public/locales/en.json` / `ru.json`.
+- `IArticleMeta.title`/`description` are `Record<ELanguage, string>` - not i18next keys. Only page chrome (headings, labels) goes through `public/locales/en.json` / `ru.json`.
 - Import order in every file: relative style import first, blank line, external packages, blank line, internal `@/`-aliased imports (deepest/most specific last), matching the existing files read during planning (e.g. `src/home-sections/Writing/components/Article/Article.tsx`).
-- Git commits: author is picked up from the existing local git config (`Nikita Kolosov <n.kolosov2003@mail.ru>`, already used by every prior commit in this repo) — do not add a `Co-Authored-By` trailer, matching this repo's existing commit history.
+- Git commits: author is picked up from the existing local git config (`Nikita Kolosov <n.kolosov2003@mail.ru>`, already used by every prior commit in this repo) - do not add a `Co-Authored-By` trailer, matching this repo's existing commit history.
 - Run `pnpm check-types && pnpm lint` after every task; it must be clean before moving on.
 
 ---
@@ -80,7 +80,7 @@
 - [ ] **Step 2: Run the test to verify it fails**
 
   Run: `pnpm vitest run src/constants/articles.constants.test.ts`
-  Expected: FAIL — `Cannot find module '@/constants/articles.constants'`.
+  Expected: FAIL - `Cannot find module '@/constants/articles.constants'`.
 
 - [ ] **Step 3: Implement the registry**
 
@@ -104,8 +104,8 @@
 
   /**
    * The first self-hosted article. Exported individually (not just looked up from
-   * {@link articles}) so consumers that need exactly this article — like the homepage
-   * Writing card — get a type-checked reference instead of a runtime `.find()` lookup.
+   * {@link articles}) so consumers that need exactly this article - like the homepage
+   * Writing card - get a type-checked reference instead of a runtime `.find()` lookup.
    */
   export const aiBoilerplateSeniorEngineersArticle: IArticleMeta = {
     slug: 'ai-boilerplate-senior-engineers',
@@ -113,13 +113,13 @@
       [ELanguage.en]:
         "Compiling Isn't Shipping: What AI Boilerplate Still Leaves for Senior Engineers",
       [ELanguage.ru]:
-        'Компилируется — не значит готово: что ИИ-boilerplate оставляет senior-инженеру',
+        'Компилируется - не значит готово: что ИИ-boilerplate оставляет senior-инженеру',
     },
     description: {
       [ELanguage.en]:
-        'AI closes the distance on typing code. It never closed the distance on owning it — here is what still requires a senior engineer in 2026.',
+        'AI closes the distance on typing code. It never closed the distance on owning it - here is what still requires a senior engineer in 2026.',
       [ELanguage.ru]:
-        'ИИ сократил путь от идеи до кода, но не путь до владения этим кодом — что в 2026 году по-прежнему требует senior-инженера.',
+        'ИИ сократил путь от идеи до кода, но не путь до владения этим кодом - что в 2026 году по-прежнему требует senior-инженера.',
     },
     publishedDate: '2026-08-13',
     readingTimeMinutes: 5,
@@ -174,25 +174,25 @@
   ```json
     "articleContent": {
       "aiBoilerplateSeniorEngineers": {
-        "intro1": "Ninety percent of developers now use an AI coding assistant regularly. Copilot, Cursor, Claude Code — pick one, and it will write you a working component in seconds. A form with validation. A CRUD screen. A data table with sorting. Code that compiles, passes the linter, and looks like something a human wrote.",
+        "intro1": "Ninety percent of developers now use an AI coding assistant regularly. Copilot, Cursor, Claude Code - pick one, and it will write you a working component in seconds. A form with validation. A CRUD screen. A data table with sorting. Code that compiles, passes the linter, and looks like something a human wrote.",
         "intro2": "None of that means it's ready to ship.",
         "intro3": "There's a gap between “the code runs” and “the product survives production,” and in 2026 that gap is exactly where the job of a senior engineer lives. AI closed the distance on typing code. It didn't close the distance on owning it.",
         "closesWellHeading": "What AI Actually Closes Well",
-        "closesWell1": "Worth saying plainly: AI is genuinely good at boilerplate, and pretending otherwise wastes everyone's time. Scaffolding a new route, wiring a form to a schema, generating a test skeleton, translating a Figma layout into markup — these are pattern-matching tasks, and pattern-matching is what large models do best. If a task has been solved the same way a thousand times on GitHub, an AI assistant will solve it for you in seconds, and it should.",
+        "closesWell1": "Worth saying plainly: AI is genuinely good at boilerplate, and pretending otherwise wastes everyone's time. Scaffolding a new route, wiring a form to a schema, generating a test skeleton, translating a Figma layout into markup - these are pattern-matching tasks, and pattern-matching is what large models do best. If a task has been solved the same way a thousand times on GitHub, an AI assistant will solve it for you in seconds, and it should.",
         "closesWell2": "The failure mode isn't using AI for this. It's treating everything else as if it worked the same way.",
         "decisionsHeading": "Three Decisions AI Won't Make for You",
         "decision1Lead": "1. Rendering strategy, not just rendering code.",
-        "decision1Before": "On a real-time product I worked on — video and audio streaming in the browser — the question was never “can you render this component.” It was ",
+        "decision1Before": "On a real-time product I worked on - video and audio streaming in the browser - the question was never “can you render this component.” It was ",
         "decision1Em": "when",
         "decision1After": ": does this piece hydrate before the media connection opens, or after? Get it backwards and you either block the user on JavaScript that doesn't matter yet, or you let them click “join” before the stream is actually ready to receive input. An AI assistant will happily generate a component that renders correctly in isolation. It has no opinion on where that component sits in your connection lifecycle, because that opinion depends on your architecture, not your syntax.",
         "decision2Lead": "2. Where the weight goes.",
-        "decision2Body": "Bundle-splitting and offloading work to a Web Worker both “work” almost anywhere you put them — that's what makes them dangerous to delegate. AI will suggest a lazy-loaded chunk boundary that's syntactically fine and practically wrong: splitting at a point that still blocks first paint, or moving computation to a worker that then has to serialize a payload so large the postMessage cost erases the benefit. Judging that trade-off means knowing your actual traffic shape, your device targets, your performance budget — context that lives in your team's dashboards, not in the prompt.",
+        "decision2Body": "Bundle-splitting and offloading work to a Web Worker both “work” almost anywhere you put them - that's what makes them dangerous to delegate. AI will suggest a lazy-loaded chunk boundary that's syntactically fine and practically wrong: splitting at a point that still blocks first paint, or moving computation to a worker that then has to serialize a payload so large the postMessage cost erases the benefit. Judging that trade-off means knowing your actual traffic shape, your device targets, your performance budget - context that lives in your team's dashboards, not in the prompt.",
         "decision3Lead": "3. What deserves a test, and what a passing test actually proves.",
-        "decision3Body": "Ask an AI assistant to write tests for a component and it will write tests — for the happy path, matching whatever the component currently does. That's the trap: it tests the implementation, not the requirement. On the same real-time product, the tests that mattered weren't “does the button render” — they were “does the UI recover correctly when the connection drops mid-call” and “does the reconnect logic race against a user who already closed the tab.” Nobody generates that test by pattern-matching the codebase, because the failure case isn't in the codebase yet. Deciding what should break the build is a judgment call about risk, and judgment calls are the one thing you can't outsource to autocomplete.",
+        "decision3Body": "Ask an AI assistant to write tests for a component and it will write tests - for the happy path, matching whatever the component currently does. That's the trap: it tests the implementation, not the requirement. On the same real-time product, the tests that mattered weren't “does the button render” - they were “does the UI recover correctly when the connection drops mid-call” and “does the reconnect logic race against a user who already closed the tab.” Nobody generates that test by pattern-matching the codebase, because the failure case isn't in the codebase yet. Deciding what should break the build is a judgment call about risk, and judgment calls are the one thing you can't outsource to autocomplete.",
         "skillGapHeading": "The Real Skill Gap Is Direction, Not Typing",
-        "skillGap1": "Put these three together and a pattern shows up: none of them are about writing code faster. They're about deciding what the code is for before a single line exists. AI collapses the distance between “I know what I want” and “it's written.” It does nothing to help you figure out what you want in the first place — and in a system with real-time constraints, real users, and real failure modes, that's most of the job.",
-        "skillGap2": "This is also the cleanest way to tell candidates apart in an interview. Anyone can now produce a working component on request — that stopped being a signal the moment AI assistants got good. What still separates a senior hire from a junior one is whether they can look at generated code and say why it's wrong for this system, or whether they ship whatever came back from the prompt because it passed CI. One of those people is directing a tool. The other is hoping it's right.",
-        "skillGap3": "If you're hiring for “AI-native” engineers, that's the question worth asking in the interview — not “do you use Copilot,” but “show me a time an AI suggestion was reasonable and still wrong.” The answer tells you whether you're looking at ownership or autocomplete with a job title.",
+        "skillGap1": "Put these three together and a pattern shows up: none of them are about writing code faster. They're about deciding what the code is for before a single line exists. AI collapses the distance between “I know what I want” and “it's written.” It does nothing to help you figure out what you want in the first place - and in a system with real-time constraints, real users, and real failure modes, that's most of the job.",
+        "skillGap2": "This is also the cleanest way to tell candidates apart in an interview. Anyone can now produce a working component on request - that stopped being a signal the moment AI assistants got good. What still separates a senior hire from a junior one is whether they can look at generated code and say why it's wrong for this system, or whether they ship whatever came back from the prompt because it passed CI. One of those people is directing a tool. The other is hoping it's right.",
+        "skillGap3": "If you're hiring for “AI-native” engineers, that's the question worth asking in the interview - not “do you use Copilot,” but “show me a time an AI suggestion was reasonable and still wrong.” The answer tells you whether you're looking at ownership or autocomplete with a job title.",
         "closing": "AI didn't make senior engineers less necessary. It just made the necessary part more visible."
       }
     },
@@ -267,7 +267,7 @@
 - [ ] **Step 4: Run the locale parity test**
 
   Run: `pnpm vitest run src/configs/i18n/locales.test.ts`
-  Expected: PASS — confirms `en.json`/`ru.json` still have identical key sets with no blank values, covering the new `articleContent.*` keys.
+  Expected: PASS - confirms `en.json`/`ru.json` still have identical key sets with no blank values, covering the new `articleContent.*` keys.
 
 - [ ] **Step 5: Type-check and lint**
 
@@ -294,7 +294,7 @@
 **Interfaces:**
 
 - Consumes: `AiBoilerplateSeniorEngineersContent` (Task 2), `aiBoilerplateSeniorEngineersArticle` (Task 1).
-- Produces: `export const articleContentRegistry: Record<string, ComponentType>`; `export const ArticleContent = ({ slug }: { slug: string }) => JSX.Element | null`, rendered as `<div data-testid={\`article-content-${slug}\`}>`. The registry is keyed only by slug — each component resolves its own language internally via `useTranslation()`, so there is nothing language-specific left for `ArticleContent` to select.
+- Produces: `export const articleContentRegistry: Record<string, ComponentType>`; `export const ArticleContent = ({ slug }: { slug: string }) => JSX.Element | null`, rendered as `<div data-testid={\`article-content-${slug}\`}>`. The registry is keyed only by slug - each component resolves its own language internally via `useTranslation()`, so there is nothing language-specific left for `ArticleContent` to select.
 
 - [ ] **Step 1: Create the content registry**
 
@@ -432,7 +432,7 @@
     source: string
     /**
      * False for self-hosted articles that should navigate in-app via `next/link` instead of
-     * opening as an external link in a new tab. Omit (or set `true`) for external publications —
+     * opening as an external link in a new tab. Omit (or set `true`) for external publications -
      * this preserves the existing external-link behavior.
      */
     isExternal?: boolean
@@ -487,7 +487,7 @@
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${title} — ${t('aside.opensInNewTab')}`}
+          aria-label={`${title} - ${t('aside.opensInNewTab')}`}
           data-testid={`writing-article-${id}`}
           className={styles.card}
         >
@@ -503,7 +503,7 @@
 - [ ] **Step 3: Type-check and lint**
 
   Run: `pnpm check-types && pnpm lint`
-  Expected: no errors. (`writingArticles` is still `[]` at this point, so nothing renders yet — behavior is verified in Task 7's e2e test once an entry exists.)
+  Expected: no errors. (`writingArticles` is still `[]` at this point, so nothing renders yet - behavior is verified in Task 7's e2e test once an entry exists.)
 
 - [ ] **Step 4: Commit**
 
@@ -564,7 +564,7 @@
 - [ ] **Step 3: Run the locale parity test**
 
   Run: `pnpm vitest run src/configs/i18n/locales.test.ts`
-  Expected: PASS — confirms the two files still have identical key sets with no blank values.
+  Expected: PASS - confirms the two files still have identical key sets with no blank values.
 
 - [ ] **Step 4: Commit**
 
@@ -883,7 +883,7 @@
     // The root layout's Suspense boundary briefly swaps in its loading fallback during
     // hydration, which unmounts this tree after the browser's native "scroll to URL
     // fragment" step already ran (and against a shorter, not-yet-laid-out page). Once this
-    // component's real content is mounted for good, re-run that scroll ourselves —
+    // component's real content is mounted for good, re-run that scroll ourselves -
     // `scrollIntoView` honors the `scroll-margin-top` set on headings in ArticleContent.module.css.
     useEffect(() => {
       const hash = window.location.hash.slice(1)
@@ -1228,10 +1228,10 @@
 > 2. **The Writing-card navigation test was flaky under WebKit** (`--project=safari`):
 >    `card.click()`'s built-in auto-scroll can race the page's smooth scrolling, landing the
 >    click on the wrong element. Fixed by explicitly calling `scrollIntoViewIfNeeded()` before
->    the click in the test — reflected in Step 1 below.
+>    the click in the test - reflected in Step 1 below.
 >
 > **Known, deferred issue:** the language switcher's dropdown item click is flaky under
-> `--project=mobile-firefox` specifically on the (long) article page — not reproducible on the
+> `--project=mobile-firefox` specifically on the (long) article page - not reproducible on the
 > home page with the same steps. Root cause looks like a reflow/scrollbar-width race triggered
 > by the much larger `i18next` language-switch re-render on a long article body, colliding with
 > the sticky header's positioning in Firefox's mobile viewport. This plan's verification is
@@ -1268,7 +1268,7 @@
     test('renders the article page with its content', async ({ page }) => {
       await page.goto(`/articles/${ARTICLE_SLUG}`)
 
-      // Scoped to <article> — the Aside's own name is also an <h1> on every page.
+      // Scoped to <article> - the Aside's own name is also an <h1> on every page.
       await expect(page.locator('article').getByRole('heading', { level: 1 })).toBeVisible()
       await expect(page.getByTestId(`article-content-${ARTICLE_SLUG}`)).toBeVisible()
     })

@@ -16,13 +16,13 @@ interface IOgImageSize {
   height: number
 }
 
-/** Next.js file-convention export — keep this exact name, or the framework stops picking it up. */
+/** Next.js file-convention export - keep this exact name, or the framework stops picking it up. */
 export const size: IOgImageSize = {
   width: 1200,
   height: 630,
 }
 
-/** Next.js file-convention export (MIME type) — keep this exact name, or the framework stops picking it up. */
+/** Next.js file-convention export (MIME type) - keep this exact name, or the framework stops picking it up. */
 export const contentType = 'image/png'
 
 export function generateStaticParams() {

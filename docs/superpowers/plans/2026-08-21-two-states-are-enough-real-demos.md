@@ -1,4 +1,4 @@
-# Two States Are Enough — Real Brightness Preview, Fixed light-dark() Demo, Patterns-Styled Gallery Implementation Plan
+# Two States Are Enough - Real Brightness Preview, Fixed light-dark() Demo, Patterns-Styled Gallery Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -11,33 +11,33 @@
 ## Global Constraints
 
 - Strict TypeScript: no `any`, no type assertions (`as`); use type guards/discriminated unions instead. Boolean identifiers prefixed `is`/`has`.
-- JSDoc on interface/type fields, component props, and non-`useState` variables — one line, states the non-obvious reason only.
+- JSDoc on interface/type fields, component props, and non-`useState` variables - one line, states the non-obvious reason only.
 - Comments elsewhere: 1-2 lines max, state the _why_, not the _what_.
 - True module-level constants in `UPPER_SNAKE_CASE`.
 - Each component in its own directory with a separate `.module.css` file.
 - Stable `data-testid` (no random selectors).
 - Destructure function params/callback args/object fields over repeated dotted access.
-- `SwitchAnalogy`'s brightness swatches are purely decorative (`aria-hidden="true"`) — the buttons/slider that drive them already expose their value accessibly; do not add new locale keys for them.
-- `LightDarkDemo`'s fix must not touch the project-wide `browserslist` config (`package.json`) — the fix is scoped to this one component, via inline `style` objects that bypass Lightning CSS's build-time `light-dark()` polyfill.
-- `PatternGallery`'s underlying real state model (`matchMedia` + `localStorage`, `handleCycle`/`handleSwitchChange`/`handleSelectChange` branching) must not change — only the markup/styling of the three controls changes.
-- Once `ThemeDropdown/` has no consumers, delete the whole directory and its now-unused `demoSelectLabel` locale key — don't leave dead code or dead copy behind.
+- `SwitchAnalogy`'s brightness swatches are purely decorative (`aria-hidden="true"`) - the buttons/slider that drive them already expose their value accessibly; do not add new locale keys for them.
+- `LightDarkDemo`'s fix must not touch the project-wide `browserslist` config (`package.json`) - the fix is scoped to this one component, via inline `style` objects that bypass Lightning CSS's build-time `light-dark()` polyfill.
+- `PatternGallery`'s underlying real state model (`matchMedia` + `localStorage`, `handleCycle`/`handleSwitchChange`/`handleSelectChange` branching) must not change - only the markup/styling of the three controls changes.
+- Once `ThemeDropdown/` has no consumers, delete the whole directory and its now-unused `demoSelectLabel` locale key - don't leave dead code or dead copy behind.
 - Commits must not include a `Co-Authored-By` trailer.
 - Run `pnpm check-types && pnpm lint` before considering the change complete.
-- If formatting needs fixing, run `npx prettier --write <exact file path(s) touched by this task>` — never `pnpm format` (repo-wide) — scope every formatting fix to the files the task actually touches.
+- If formatting needs fixing, run `npx prettier --write <exact file path(s) touched by this task>` - never `pnpm format` (repo-wide) - scope every formatting fix to the files the task actually touches.
 
 ---
 
-### Task 1: Locale copy (EN + RU) — rename the dropdown label, drop the dead select label
+### Task 1: Locale copy (EN + RU) - rename the dropdown label, drop the dead select label
 
 **Files:**
 
 - Modify: `public/locales/en.json`
 - Modify: `public/locales/ru.json`
-- Test: `src/configs/i18n/locales.test.ts` (already generic — no edits, just re-run)
+- Test: `src/configs/i18n/locales.test.ts` (already generic - no edits, just re-run)
 
 **Interfaces:**
 
-- Produces: `articleContent.twoStatesAreEnough.demoTabSegmentedLabel` — consumed by Task 4
+- Produces: `articleContent.twoStatesAreEnough.demoTabSegmentedLabel` - consumed by Task 4
   (`PatternGallery`). Removes `articleContent.twoStatesAreEnough.demoTabDropdownLabel` and
   `articleContent.twoStatesAreEnough.demoSelectLabel` (both become unused once `ThemeDropdown/` is
   deleted in Task 4).
@@ -75,9 +75,9 @@ Replace with:
 - [ ] **Step 3: Validate JSON and run the locale parity test**
 
 Run: `pnpm test -- locales`
-Expected: PASS — `demoTabSegmentedLabel` exists in both locales with matching structure, and no
+Expected: PASS - `demoTabSegmentedLabel` exists in both locales with matching structure, and no
 leftover reference to the removed keys breaks the suite (the suite only checks key parity between
-the two files, not usage — Task 4 removes the actual code references).
+the two files, not usage - Task 4 removes the actual code references).
 
 - [ ] **Step 4: Commit**
 
@@ -88,7 +88,7 @@ git commit -m "feat: rename PatternGallery's dropdown label to segments"
 
 ---
 
-### Task 2: `SwitchAnalogy` — live brightness swatches
+### Task 2: `SwitchAnalogy` - live brightness swatches
 
 **Files:**
 
@@ -98,7 +98,7 @@ git commit -m "feat: rename PatternGallery's dropdown label to segments"
 **Interfaces:**
 
 - Consumes: only already-shipped locale keys (no Task 1 dependency).
-- Produces: `SwitchAnalogy` (default + named export, unchanged signature — still no props),
+- Produces: `SwitchAnalogy` (default + named export, unchanged signature - still no props),
   consumed by `Content.tsx` exactly as before (no import change).
 
 - [ ] **Step 1: Add a swatch after Panel A's dial row**
@@ -205,7 +205,7 @@ git commit -m "feat: give SwitchAnalogy's panels a live brightness preview"
 
 ---
 
-### Task 3: `LightDarkDemo` — fix the light-dark() build bug
+### Task 3: `LightDarkDemo` - fix the light-dark() build bug
 
 **Files:**
 
@@ -223,7 +223,7 @@ Playwright):** Lightning CSS rewrites `background: light-dark(#fff, #1e1e1e)` in
 files into `background: var(--lightningcss-light, #fff) var(--lightningcss-dark, #1e1e1e)` because
 the project's shared `browserslist` includes browsers without native `light-dark()` support. That
 polyfill resolves from the OS-level `prefers-color-scheme` media query, not from the element's
-`color-scheme` — so the demo's toggle button (which only sets `color-scheme` via inline style) has
+`color-scheme` - so the demo's toggle button (which only sets `color-scheme` via inline style) has
 no visible effect. Moving the affected declarations to inline `style` objects in the TSX sidesteps
 Lightning CSS entirely (inline `style` strings are never run through the CSS build), so the browser
 evaluates `light-dark()` natively.
@@ -233,14 +233,14 @@ evaluates `light-dark()` natively.
 In `LightDarkDemo.tsx`, find:
 
 ```tsx
-/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+/** The three macOS traffic-light colors, in their fixed left-to-right order - never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 ```
 
 Replace with:
 
 ```tsx
-/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+/** The three macOS traffic-light colors, in their fixed left-to-right order - never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
 /**
@@ -356,13 +356,13 @@ Replace with:
 Run: `pnpm check-types && pnpm lint`
 Expected: both PASS.
 
-- [ ] **Step 5: Manual verification — confirm the actual repaint, not just no crash**
+- [ ] **Step 5: Manual verification - confirm the actual repaint, not just no crash**
 
 Run: `pnpm dev`
 Visit `http://localhost:3000/articles/two-states-are-enough` and confirm:
 
 - Clicking the sun/moon toggle now visibly flips the mock window's titlebar and page background
-  between light and dark colors (this was the broken behavior — must visibly change now).
+  between light and dark colors (this was the broken behavior - must visibly change now).
 - Open DevTools → Elements on the `.titlebar`/`.page`/`.pageLine` elements and confirm their
   `style` attribute contains the literal `background: light-dark(...)` string (proving the browser,
   not a media query, is resolving the color).
@@ -370,7 +370,7 @@ Visit `http://localhost:3000/articles/two-states-are-enough` and confirm:
 To directly confirm the root cause is fixed (optional but recommended), inspect the compiled CSS
 served for this route (e.g. via DevTools → Network → the `.css` chunk, or `curl` the page and grep
 the linked stylesheet) and confirm no `--lightningcss-light`/`--lightningcss-dark` variable remains
-for `.titlebar`/`.page`/`.pageLine`/`.pageLineShort` — those three `background` declarations should
+for `.titlebar`/`.page`/`.pageLine`/`.pageLineShort` - those three `background` declarations should
 no longer appear in the compiled CSS at all (they're inline now).
 
 Stop the dev server once confirmed.
@@ -384,7 +384,7 @@ git commit -m "fix: make LightDarkDemo's toggle actually repaint the mockup wind
 
 ---
 
-### Task 4: `PatternGallery` — restyle controls to match `PatternsInTheWild`, delete `ThemeDropdown`
+### Task 4: `PatternGallery` - restyle controls to match `PatternsInTheWild`, delete `ThemeDropdown`
 
 **Files:**
 
@@ -416,19 +416,19 @@ import { Icon, Switch } from '@gravity-ui/uikit'
 import { Moon, Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
-/** This demo's own localStorage key — scoped to the demo only, unrelated to the site's own (dark-only) theme. */
+/** This demo's own localStorage key - scoped to the demo only, unrelated to the site's own (dark-only) theme. */
 const STORAGE_KEY = 'demo-theme-override'
 
 /** The user's explicit choice, or `null` when following the OS preference. */
 type TThemeOverride = 'light' | 'dark' | null
 
-/** What's actually rendered — always exactly one of these two. */
+/** What's actually rendered - always exactly one of these two. */
 type TResolvedTheme = 'light' | 'dark'
 
-/** The segmented control's own value space — an explicit shade, or the literal `'system'` option. */
+/** The segmented control's own value space - an explicit shade, or the literal `'system'` option. */
 type TSegmentValue = 'light' | 'dark' | 'system'
 
-/** The three segments, in display order — same trio `PatternsInTheWild` illustrates as a static mockup. */
+/** The three segments, in display order - same trio `PatternsInTheWild` illustrates as a static mockup. */
 const SEGMENT_OPTIONS: TSegmentValue[] = ['light', 'dark', 'system']
 
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
@@ -472,14 +472,14 @@ export const PatternGallery = () => {
     }
   }
 
-  /** A real switch has only two positions, so — unlike Button — it always sets an explicit override; it can't hand you back to "system". Checked (on) means light, mirroring a physical light switch. */
+  /** A real switch has only two positions, so - unlike Button - it always sets an explicit override; it can't hand you back to "system". Checked (on) means light, mirroring a physical light switch. */
   const handleSwitchChange = (checked: boolean) => {
     const next: TResolvedTheme = checked ? 'light' : 'dark'
     setOverride(next)
     window.localStorage.setItem(STORAGE_KEY, next)
   }
 
-  /** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+  /** The segmented pattern sets state directly instead of cycling - that's the whole tradeoff it's here to show. */
   const handleSegmentChange = (value: TSegmentValue) => {
     if (value === 'system') {
       setOverride(null)
@@ -580,19 +580,19 @@ export const PatternGallery = () => {
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoOsPreferenceLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? osLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? osLabel : '-'}</dd>
         </div>
         <div className={styles.stateRow}>
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoOverrideLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? overrideLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? overrideLabel : '-'}</dd>
         </div>
         <div className={styles.stateRow}>
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoResolvedLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? resolvedLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? resolvedLabel : '-'}</dd>
         </div>
       </dl>
 
@@ -695,10 +695,10 @@ Run: `pnpm dev`
 Visit `http://localhost:3000/articles/two-states-are-enough` and confirm:
 
 - The "Попробуй сам" card shows three tiles: the icon button, a Light/Dark/System segmented pill
-  (no dropdown menu), and a bordered row containing the Switch — visually resembling the three
+  (no dropdown menu), and a bordered row containing the Switch - visually resembling the three
   `PatternsInTheWild` tiles above it, not the old Button/Switch/Dropdown-with-debug-table look.
 - Clicking the icon button updates the segmented pill's active segment, the Switch's position, the
-  preview background, and the state readout below — all at once.
+  preview background, and the state readout below - all at once.
 - Toggling the Switch likewise updates the icon button's icon, the segmented pill, the preview, and
   the readout.
 - Clicking "System" in the segmented pill clears the override and returns everything to match the

@@ -1,4 +1,4 @@
-# Two States Are Enough — Simulate-OS Control for PatternGallery Implementation Plan
+# Two States Are Enough - Simulate-OS Control for PatternGallery Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -11,11 +11,11 @@
 ## Global Constraints
 
 - True module-level constants/types follow existing naming (`UPPER_SNAKE_CASE` for constants, `T`-prefixed for type aliases).
-- JSDoc on non-`useState` module-level variables and on the new handler — one line, states the non-obvious reason only.
-- The new "Simulate OS" control is pure local UI state — no `localStorage`, no `STORAGE_KEY` involvement, resets on reload.
-- The state `<dl>` readout (OS preference / your override / resolved theme) must not change — it stays 100% real, unaffected by the new simulation.
+- JSDoc on non-`useState` module-level variables and on the new handler - one line, states the non-obvious reason only.
+- The new "Simulate OS" control is pure local UI state - no `localStorage`, no `STORAGE_KEY` involvement, resets on reload.
+- The state `<dl>` readout (OS preference / your override / resolved theme) must not change - it stays 100% real, unaffected by the new simulation.
 - The page content (`.previewPage`/`.previewHeading`/`.previewBody`) must keep using the existing `data-theme` mechanism on `.preview`, driven by `resolvedTheme` exactly as before.
-- The new toggle button needs its own distinct `aria-label`/`title` — not shared with the existing site-toggle button's labels.
+- The new toggle button needs its own distinct `aria-label`/`title` - not shared with the existing site-toggle button's labels.
 - Commits must not include a `Co-Authored-By` trailer.
 - Run `pnpm check-types && pnpm lint` before considering the change complete.
 
@@ -27,29 +27,29 @@
 
 - Modify: `public/locales/en.json`
 - Modify: `public/locales/ru.json`
-- Test: `src/configs/i18n/locales.test.ts` (already generic — no edits, just re-run)
+- Test: `src/configs/i18n/locales.test.ts` (already generic - no edits, just re-run)
 
 **Interfaces:**
 
 - Produces: `articleContent.twoStatesAreEnough.demoSimulateOsLabel`,
   `articleContent.twoStatesAreEnough.demoSimulateOsCaption`,
   `articleContent.twoStatesAreEnough.demoSimulateToggleToDark`,
-  `articleContent.twoStatesAreEnough.demoSimulateToggleToLight` — all consumed by Task 2.
+  `articleContent.twoStatesAreEnough.demoSimulateToggleToLight` - all consumed by Task 2.
 
 - [ ] **Step 1: Add the four keys to `en.json`**
 
 Find this line inside the `"twoStatesAreEnough"` object:
 
 ```json
-      "demoCaption": "This state is real — a live matchMedia listener and an actual localStorage entry, not a simulation. Reload the page and your choice persists exactly like Lea Verou describes.",
+      "demoCaption": "This state is real - a live matchMedia listener and an actual localStorage entry, not a simulation. Reload the page and your choice persists exactly like Lea Verou describes.",
 ```
 
 Replace with:
 
 ```json
-      "demoCaption": "This state is real — a live matchMedia listener and an actual localStorage entry, not a simulation. Reload the page and your choice persists exactly like Lea Verou describes.",
+      "demoCaption": "This state is real - a live matchMedia listener and an actual localStorage entry, not a simulation. Reload the page and your choice persists exactly like Lea Verou describes.",
       "demoSimulateOsLabel": "Simulate OS",
-      "demoSimulateOsCaption": "Changes only the window chrome above — not your real OS or the state below.",
+      "demoSimulateOsCaption": "Changes only the window chrome above - not your real OS or the state below.",
       "demoSimulateToggleToDark": "Simulate dark OS",
       "demoSimulateToggleToLight": "Simulate light OS",
 ```
@@ -59,15 +59,15 @@ Replace with:
 Find:
 
 ```json
-      "demoCaption": "Это состояние настоящее — реальный matchMedia-слушатель и реальная запись в localStorage, а не симуляция. Перезагрузи страницу — выбор сохранится ровно так, как описывает Лея Веру.",
+      "demoCaption": "Это состояние настоящее - реальный matchMedia-слушатель и реальная запись в localStorage, а не симуляция. Перезагрузи страницу - выбор сохранится ровно так, как описывает Лея Веру.",
 ```
 
 Replace with:
 
 ```json
-      "demoCaption": "Это состояние настоящее — реальный matchMedia-слушатель и реальная запись в localStorage, а не симуляция. Перезагрузи страницу — выбор сохранится ровно так, как описывает Лея Веру.",
+      "demoCaption": "Это состояние настоящее - реальный matchMedia-слушатель и реальная запись в localStorage, а не симуляция. Перезагрузи страницу - выбор сохранится ровно так, как описывает Лея Веру.",
       "demoSimulateOsLabel": "Симулировать ОС",
-      "demoSimulateOsCaption": "Меняет только вид окна выше — не твою настоящую ОС и не состояние ниже.",
+      "demoSimulateOsCaption": "Меняет только вид окна выше - не твою настоящую ОС и не состояние ниже.",
       "demoSimulateToggleToDark": "Симулировать тёмную ОС",
       "demoSimulateToggleToLight": "Симулировать светлую ОС",
 ```
@@ -75,7 +75,7 @@ Replace with:
 - [ ] **Step 3: Validate JSON and run the locale parity test**
 
 Run: `pnpm test -- locales`
-Expected: PASS — all four new keys exist in both locales with matching structure.
+Expected: PASS - all four new keys exist in both locales with matching structure.
 
 - [ ] **Step 4: Commit**
 
@@ -86,7 +86,7 @@ git commit -m "feat: add copy for PatternGallery's simulate-OS control"
 
 ---
 
-### Task 2: `PatternGallery` — simulate-OS control, decoupled native chrome
+### Task 2: `PatternGallery` - simulate-OS control, decoupled native chrome
 
 **Files:**
 
@@ -105,14 +105,14 @@ git commit -m "feat: add copy for PatternGallery's simulate-OS control"
 In `PatternGallery.tsx`, find:
 
 ```tsx
-/** The segmented control's own value space — an explicit shade, or the literal `'system'` option. */
+/** The segmented control's own value space - an explicit shade, or the literal `'system'` option. */
 type TSegmentValue = 'light' | 'dark' | 'system'
 ```
 
 Replace with:
 
 ```tsx
-/** The segmented control's own value space — an explicit shade, or the literal `'system'` option. */
+/** The segmented control's own value space - an explicit shade, or the literal `'system'` option. */
 type TSegmentValue = 'light' | 'dark' | 'system'
 
 /** The simulated native/OS shade shown in the chrome above, or `null` to follow the real OS preference. */
@@ -156,7 +156,7 @@ const nativeChromeTheme: TResolvedTheme = simulatedNative ?? (osPrefersDark ? 'd
 Find:
 
 ```tsx
-/** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+/** The segmented pattern sets state directly instead of cycling - that's the whole tradeoff it's here to show. */
 const handleSegmentChange = (value: TSegmentValue) => {
   if (value === 'system') {
     setOverride(null)
@@ -171,7 +171,7 @@ const handleSegmentChange = (value: TSegmentValue) => {
 Replace with:
 
 ```tsx
-/** The segmented pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+/** The segmented pattern sets state directly instead of cycling - that's the whole tradeoff it's here to show. */
 const handleSegmentChange = (value: TSegmentValue) => {
   if (value === 'system') {
     setOverride(null)
@@ -182,7 +182,7 @@ const handleSegmentChange = (value: TSegmentValue) => {
   }
 }
 
-/** Simulates the native/OS theme independently of the site's own override — press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
+/** Simulates the native/OS theme independently of the site's own override - press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
 const handleSimulateNativeCycle = () => {
   if (simulatedNative === null) {
     setSimulatedNative(nativeChromeTheme === 'dark' ? 'light' : 'dark')
@@ -397,7 +397,7 @@ Replace with:
 Run: `pnpm check-types && pnpm lint`
 Expected: both PASS.
 
-- [ ] **Step 9: Manual verification in the browser (use a real browser engine with an actual script + raw output — not source/HTML inspection, not a prose summary)**
+- [ ] **Step 9: Manual verification in the browser (use a real browser engine with an actual script + raw output - not source/HTML inspection, not a prose summary)**
 
 Run: `pnpm dev`
 Drive the page with a real browser engine (e.g. Playwright + the Chromium build already on this
@@ -406,12 +406,12 @@ machine) and confirm on `http://localhost:3000/articles/two-states-are-enough`:
 - `[data-testid="pattern-gallery"]` now shows a fourth tile labelled "Simulate OS" with an icon
   toggle and a caption below it.
 - Click the icon-button tile (first tile, the real site toggle) and read the computed
-  `background-color` of `[class*="previewTitlebar"]` before and after — it must NOT change. Read
-  the computed `background-color`/`color` of `[class*="previewHeading"]` before and after — it
+  `background-color` of `[class*="previewTitlebar"]` before and after - it must NOT change. Read
+  the computed `background-color`/`color` of `[class*="previewHeading"]` before and after - it
   MUST change. Confirm the state `<dl>` values update as before.
 - Click the new "Simulate OS" tile's button and read the computed `background-color` of
-  `[class*="previewTitlebar"]` before and after — it MUST change. Read the computed color of
-  `[class*="previewHeading"]` before and after this click — it must NOT change. Confirm the state
+  `[class*="previewTitlebar"]` before and after - it MUST change. Read the computed color of
+  `[class*="previewHeading"]` before and after this click - it must NOT change. Confirm the state
   `<dl>` values do NOT change (OS preference/your override/resolved theme stay exactly as they
   were before this click).
 - Paste the actual script and its raw console output into your report.

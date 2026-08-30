@@ -43,7 +43,7 @@ export const Article = ({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`${title[language]} — ${t('aside.opensInNewTab')}`}
+        aria-label={`${title[language]} - ${t('aside.opensInNewTab')}`}
         data-testid={`writing-article-${id}`}
         className={styles.card}
       >

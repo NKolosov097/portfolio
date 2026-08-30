@@ -1,4 +1,4 @@
-# Two States Are Enough — Interactive Hook, Live light-dark() Demo, Simultaneous Pattern Gallery Implementation Plan
+# Two States Are Enough - Interactive Hook, Live light-dark() Demo, Simultaneous Pattern Gallery Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -7,7 +7,7 @@
 **Architecture:** All three changes are contained rewrites of existing files in
 `src/content/articles/two-states-are-enough/`, following the exact visual/CSS-Modules conventions
 already established by their siblings. No new state model, no new npm dependency, no new ESLint
-override — the interactivity added is either purely local UI state (`SwitchAnalogy`,
+override - the interactivity added is either purely local UI state (`SwitchAnalogy`,
 `LightDarkDemo`) or a rendering change over an already-existing real state model
 (`PatternGallery`).
 
@@ -16,19 +16,19 @@ override — the interactivity added is either purely local UI state (`SwitchAna
 ## Global Constraints
 
 - Strict TypeScript: no `any`, no type assertions (`as`); use type guards/discriminated unions instead. Boolean identifiers prefixed `is`/`has`.
-- JSDoc on interface/type fields, component props, and non-`useState` variables — one line, states the non-obvious reason only.
+- JSDoc on interface/type fields, component props, and non-`useState` variables - one line, states the non-obvious reason only.
 - Comments elsewhere: 1-2 lines max, state the _why_, not the _what_.
 - True module-level constants in `UPPER_SNAKE_CASE`.
 - Each component in its own directory with a separate `.module.css` file.
 - Stable `data-testid` (no random selectors).
 - Destructure function params/callback args/object fields over repeated dotted access.
-- `SwitchAnalogy`'s new interactivity stays decorative/local UI state only — no `localStorage`, no tie to the real site theme (same constraint as before this change).
-- `LightDarkDemo`'s live demo must be a genuine CSS effect (`color-scheme` forcing `light-dark()` resolution) — no JavaScript computing or assigning any color value.
-- `PatternGallery`'s underlying real state model (`matchMedia` + `localStorage`) must not change — only which controls are visible changes.
+- `SwitchAnalogy`'s new interactivity stays decorative/local UI state only - no `localStorage`, no tie to the real site theme (same constraint as before this change).
+- `LightDarkDemo`'s live demo must be a genuine CSS effect (`color-scheme` forcing `light-dark()` resolution) - no JavaScript computing or assigning any color value.
+- `PatternGallery`'s underlying real state model (`matchMedia` + `localStorage`) must not change - only which controls are visible changes.
 - No new npm dependency for any of this (range input styling and the macOS-mockup markup are both hand-built, matching existing sibling conventions).
 - Commits must not include a `Co-Authored-By` trailer.
 - Run `pnpm check-types && pnpm lint` before considering the change complete.
-- If formatting needs fixing, run `npx prettier --write <exact file path(s) touched by this task>` — never `pnpm format` (which is `prettier --write .`, repo-wide). A prior revision's implementer ran the repo-wide command and left unrelated pre-existing files reformatted in the working tree; scope every formatting fix to the files this task actually touches.
+- If formatting needs fixing, run `npx prettier --write <exact file path(s) touched by this task>` - never `pnpm format` (which is `prettier --write .`, repo-wide). A prior revision's implementer ran the repo-wide command and left unrelated pre-existing files reformatted in the working tree; scope every formatting fix to the files this task actually touches.
 
 ---
 
@@ -38,14 +38,14 @@ override — the interactivity added is either purely local UI state (`SwitchAna
 
 - Modify: `public/locales/en.json`
 - Modify: `public/locales/ru.json`
-- Test: `src/configs/i18n/locales.test.ts` (already generic — no edits, just re-run)
+- Test: `src/configs/i18n/locales.test.ts` (already generic - no edits, just re-run)
 
 **Interfaces:**
 
 - Produces: `articleContent.twoStatesAreEnough.switchAnalogySliderLabel`,
   `articleContent.twoStatesAreEnough.lightDarkEyebrow`,
   `articleContent.twoStatesAreEnough.lightDarkMechanism`,
-  `articleContent.twoStatesAreEnough.lightDarkDemoCaption` — consumed by Task 2 (`SwitchAnalogy`)
+  `articleContent.twoStatesAreEnough.lightDarkDemoCaption` - consumed by Task 2 (`SwitchAnalogy`)
   and Task 3 (`LightDarkDemo`). Also reuses several already-shipped keys with no changes needed:
   `switchAnalogyPanelALabel` (as an `aria-label`), `demoToggleToDark`/`demoToggleToLight` (as the
   new demo's button `aria-label`/`title`), and `demoTabButtonLabel`/`demoTabSwitchLabel`/
@@ -71,18 +71,18 @@ Replace it with:
 Find these two lines (still inside `"twoStatesAreEnough"`):
 
 ```json
-      "lightDarkIntro": "CSS agrees with the two-value model too: light-dark() takes exactly two colors — there's no third argument for a system fallback.",
-      "lightDarkCaption": "Two arguments, no more — the function is binary by construction, not by convention.",
+      "lightDarkIntro": "CSS agrees with the two-value model too: light-dark() takes exactly two colors - there's no third argument for a system fallback.",
+      "lightDarkCaption": "Two arguments, no more - the function is binary by construction, not by convention.",
 ```
 
 Replace them with:
 
 ```json
-      "lightDarkIntro": "CSS agrees with the two-value model too: light-dark() takes exactly two colors — there's no third argument for a system fallback.",
+      "lightDarkIntro": "CSS agrees with the two-value model too: light-dark() takes exactly two colors - there's no third argument for a system fallback.",
       "lightDarkEyebrow": "Live, not simulated",
-      "lightDarkCaption": "Two arguments, no more — the function is binary by construction, not by convention.",
-      "lightDarkMechanism": "color-scheme is what actually decides: set it to light or dark on any element and every light-dark() value inside inherits that choice — no media query, no JavaScript computing colors.",
-      "lightDarkDemoCaption": "This window's colors are set entirely by light-dark() — clicking only changes color-scheme; the browser repaints the rest.",
+      "lightDarkCaption": "Two arguments, no more - the function is binary by construction, not by convention.",
+      "lightDarkMechanism": "color-scheme is what actually decides: set it to light or dark on any element and every light-dark() value inside inherits that choice - no media query, no JavaScript computing colors.",
+      "lightDarkDemoCaption": "This window's colors are set entirely by light-dark() - clicking only changes color-scheme; the browser repaints the rest.",
 ```
 
 - [ ] **Step 3: Make the matching edits in `ru.json`**
@@ -90,37 +90,37 @@ Replace them with:
 Find:
 
 ```json
-      "switchAnalogyTakeaway": "Трёхпозиционный контрол просит тебя прочитать. Двухпозиционный — просто почувствовать направление.",
+      "switchAnalogyTakeaway": "Трёхпозиционный контрол просит тебя прочитать. Двухпозиционный - просто почувствовать направление.",
 ```
 
 Replace with:
 
 ```json
-      "switchAnalogyTakeaway": "Трёхпозиционный контрол просит тебя прочитать. Двухпозиционный — просто почувствовать направление.",
+      "switchAnalogyTakeaway": "Трёхпозиционный контрол просит тебя прочитать. Двухпозиционный - просто почувствовать направление.",
       "switchAnalogySliderLabel": "Ползунок яркости",
 ```
 
 Find:
 
 ```json
-      "lightDarkIntro": "CSS тоже согласен с моделью из двух значений: light-dark() принимает ровно два цвета — третьего аргумента под системный fallback в нём нет.",
-      "lightDarkCaption": "Ровно два аргумента — функция бинарна по конструкции, а не по договорённости.",
+      "lightDarkIntro": "CSS тоже согласен с моделью из двух значений: light-dark() принимает ровно два цвета - третьего аргумента под системный fallback в нём нет.",
+      "lightDarkCaption": "Ровно два аргумента - функция бинарна по конструкции, а не по договорённости.",
 ```
 
 Replace with:
 
 ```json
-      "lightDarkIntro": "CSS тоже согласен с моделью из двух значений: light-dark() принимает ровно два цвета — третьего аргумента под системный fallback в нём нет.",
+      "lightDarkIntro": "CSS тоже согласен с моделью из двух значений: light-dark() принимает ровно два цвета - третьего аргумента под системный fallback в нём нет.",
       "lightDarkEyebrow": "Живо, не симуляция",
-      "lightDarkCaption": "Ровно два аргумента — функция бинарна по конструкции, а не по договорённости.",
-      "lightDarkMechanism": "Решает именно color-scheme: выстави light или dark на любом элементе — и каждое значение light-dark() внутри унаследует этот выбор. Ни media-запроса, ни JS, вычисляющего цвет.",
-      "lightDarkDemoCaption": "Цвета этого окна целиком заданы через light-dark() — клик меняет только color-scheme, всё остальное перерисовывает браузер.",
+      "lightDarkCaption": "Ровно два аргумента - функция бинарна по конструкции, а не по договорённости.",
+      "lightDarkMechanism": "Решает именно color-scheme: выстави light или dark на любом элементе - и каждое значение light-dark() внутри унаследует этот выбор. Ни media-запроса, ни JS, вычисляющего цвет.",
+      "lightDarkDemoCaption": "Цвета этого окна целиком заданы через light-dark() - клик меняет только color-scheme, всё остальное перерисовывает браузер.",
 ```
 
 - [ ] **Step 4: Validate JSON and run the locale parity test**
 
 Run: `pnpm test -- locales`
-Expected: PASS — every new key added to `en.json` has a Russian counterpart and vice versa, no blank values, no non-string leaves, no duplicate paths.
+Expected: PASS - every new key added to `en.json` has a Russian counterpart and vice versa, no blank values, no non-string leaves, no duplicate paths.
 
 - [ ] **Step 5: Commit**
 
@@ -131,7 +131,7 @@ git commit -m "feat: add copy for the interactive hook and live light-dark demo"
 
 ---
 
-### Task 2: `SwitchAnalogy` — real interaction
+### Task 2: `SwitchAnalogy` - real interaction
 
 **Files:**
 
@@ -143,7 +143,7 @@ git commit -m "feat: add copy for the interactive hook and live light-dark demo"
 - Consumes: `articleContent.twoStatesAreEnough.switchAnalogySliderLabel` (Task 1), plus the
   already-shipped `switchAnalogyEyebrow`/`switchAnalogyPanelALabel`/`switchAnalogyPanelACaption`/
   `switchAnalogyPanelBLabel`/`switchAnalogyPanelBCaption`/`switchAnalogyTakeaway`.
-- Produces: `SwitchAnalogy` (default + named export, unchanged signature — still no props),
+- Produces: `SwitchAnalogy` (default + named export, unchanged signature - still no props),
   consumed by `Content.tsx` exactly as before (no import path change).
 
 - [ ] **Step 1: Replace the component**
@@ -162,10 +162,10 @@ import { useTranslation } from 'react-i18next'
 /** The five labelled dial positions shown in the "read every label" panel. */
 const DIAL_PERCENTAGES: number[] = [10, 30, 50, 70, 100]
 
-/** Which dial position starts pressed — purely decorative, moved by clicking any dial button. */
+/** Which dial position starts pressed - purely decorative, moved by clicking any dial button. */
 const DEFAULT_DIAL_PERCENTAGE = 50
 
-/** The slider's starting position (0-100) — purely decorative, moved by dragging the range input. */
+/** The slider's starting position (0-100) - purely decorative, moved by dragging the range input. */
 const DEFAULT_SLIDER_VALUE = 70
 
 export const SwitchAnalogy = () => {
@@ -377,7 +377,7 @@ git commit -m "feat: make SwitchAnalogy's dial buttons and slider genuinely inte
 
 ---
 
-### Task 3: `LightDarkDemo` — rename + expand from `LightDarkSnippet`, wire into `Content.tsx`
+### Task 3: `LightDarkDemo` - rename + expand from `LightDarkSnippet`, wire into `Content.tsx`
 
 **Files:**
 
@@ -392,9 +392,9 @@ git commit -m "feat: make SwitchAnalogy's dial buttons and slider genuinely inte
 - Consumes: `articleContent.twoStatesAreEnough.lightDarkEyebrow`/`lightDarkMechanism`/
   `lightDarkDemoCaption` (Task 1), plus the already-shipped `lightDarkCaption`,
   `demoToggleToDark`/`demoToggleToLight`. Also consumes `Icon` from `@gravity-ui/uikit` and
-  `Moon`/`Sun` from `@gravity-ui/icons` — both already imported the same way in
+  `Moon`/`Sun` from `@gravity-ui/icons` - both already imported the same way in
   `PatternGallery.tsx`.
-- Produces: `LightDarkDemo` (default + named export, no props) — consumed by `Content.tsx` in
+- Produces: `LightDarkDemo` (default + named export, no props) - consumed by `Content.tsx` in
   place of the old `LightDarkSnippet`.
 
 - [ ] **Step 1: Write the new component**
@@ -411,7 +411,7 @@ import { Icon } from '@gravity-ui/uikit'
 import { Moon, Sun } from '@gravity-ui/icons'
 import { useTranslation } from 'react-i18next'
 
-/** Verbatim CSS — code samples aren't localized elsewhere in this project either. */
+/** Verbatim CSS - code samples aren't localized elsewhere in this project either. */
 const LIGHT_DARK_CSS = `:root {
   color-scheme: light dark;
 }
@@ -421,10 +421,10 @@ body {
   color: light-dark(#111, #fff);
 }`
 
-/** Either branch light-dark() can resolve to in the demo below — always exactly one of these two. */
+/** Either branch light-dark() can resolve to in the demo below - always exactly one of these two. */
 type TNativeScheme = 'light' | 'dark'
 
-/** The three macOS traffic-light colors, in their fixed left-to-right order — never themed, just decoration. */
+/** The three macOS traffic-light colors, in their fixed left-to-right order - never themed, just decoration. */
 const TRAFFIC_LIGHTS: string[] = ['red', 'yellow', 'green']
 
 export const LightDarkDemo = () => {
@@ -654,7 +654,7 @@ with:
 import { LightDarkDemo } from './LightDarkDemo/LightDarkDemo'
 ```
 
-(This import stays in the same alphabetical position among the local imports — `LightDarkDemo`
+(This import stays in the same alphabetical position among the local imports - `LightDarkDemo`
 still sorts between `CombinationGrid` and `PatternGallery`.)
 
 Then replace:
@@ -669,7 +669,7 @@ with:
 <LightDarkDemo />
 ```
 
-No other line in `Content.tsx` changes — `lightDarkIntro` still renders as the `<p>` immediately
+No other line in `Content.tsx` changes - `lightDarkIntro` still renders as the `<p>` immediately
 above this component, unchanged.
 
 - [ ] **Step 5: Validate**
@@ -690,7 +690,7 @@ Visit `http://localhost:3000/articles/two-states-are-enough` and confirm:
 - Open the browser's DevTools element inspector on the mockup's outer window `div` after clicking:
   confirm its inline `style` attribute contains `color-scheme: light` or `color-scheme: dark`
   matching the current toggle state, and that no inline `background`/`color` styles are being set
-  by JavaScript anywhere in this component — the color change must come entirely from the CSS
+  by JavaScript anywhere in this component - the color change must come entirely from the CSS
   `light-dark()` values in `LightDarkDemo.module.css` re-resolving.
 
 Stop the dev server once confirmed.
@@ -704,7 +704,7 @@ git commit -m "feat: rename LightDarkSnippet to LightDarkDemo and add a live col
 
 ---
 
-### Task 4: `PatternGallery` — show all three controls at once
+### Task 4: `PatternGallery` - show all three controls at once
 
 **Files:**
 
@@ -713,10 +713,10 @@ git commit -m "feat: rename LightDarkSnippet to LightDarkDemo and add a live col
 
 **Interfaces:**
 
-- Consumes: only already-shipped locale keys — no Task 1 dependency. Reuses
+- Consumes: only already-shipped locale keys - no Task 1 dependency. Reuses
   `demoTabButtonLabel`/`demoTabSwitchLabel`/`demoTabDropdownLabel` as tile captions instead of tab
   labels.
-- Produces: `PatternGallery` (default + named export, unchanged signature — still no props),
+- Produces: `PatternGallery` (default + named export, unchanged signature - still no props),
   consumed by `Content.tsx` exactly as before (no import change needed for this task).
 
 - [ ] **Step 1: Replace the component**
@@ -737,13 +737,13 @@ import { useTranslation } from 'react-i18next'
 import { ThemeDropdown } from './ThemeDropdown/ThemeDropdown'
 import type { TDropdownValue } from './ThemeDropdown/ThemeDropdown'
 
-/** This demo's own localStorage key — scoped to the demo only, unrelated to the site's own (dark-only) theme. */
+/** This demo's own localStorage key - scoped to the demo only, unrelated to the site's own (dark-only) theme. */
 const STORAGE_KEY = 'demo-theme-override'
 
 /** The user's explicit choice, or `null` when following the OS preference. */
 type TThemeOverride = 'light' | 'dark' | null
 
-/** What's actually rendered — always exactly one of these two. */
+/** What's actually rendered - always exactly one of these two. */
 type TResolvedTheme = 'light' | 'dark'
 
 const isThemeOverride = (value: string | null): value is Exclude<TThemeOverride, null> =>
@@ -787,14 +787,14 @@ export const PatternGallery = () => {
     }
   }
 
-  /** A real switch has only two positions, so — unlike Button — it always sets an explicit override; it can't hand you back to "system". Checked (on) means light, mirroring a physical light switch. */
+  /** A real switch has only two positions, so - unlike Button - it always sets an explicit override; it can't hand you back to "system". Checked (on) means light, mirroring a physical light switch. */
   const handleSwitchChange = (checked: boolean) => {
     const next: TResolvedTheme = checked ? 'light' : 'dark'
     setOverride(next)
     window.localStorage.setItem(STORAGE_KEY, next)
   }
 
-  /** The Dropdown pattern sets state directly instead of cycling — that's the whole tradeoff it's here to show. */
+  /** The Dropdown pattern sets state directly instead of cycling - that's the whole tradeoff it's here to show. */
   const handleSelectChange = (value: TDropdownValue) => {
     if (value === 'system') {
       setOverride(null)
@@ -879,19 +879,19 @@ export const PatternGallery = () => {
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoOsPreferenceLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? osLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? osLabel : '-'}</dd>
         </div>
         <div className={styles.stateRow}>
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoOverrideLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? overrideLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? overrideLabel : '-'}</dd>
         </div>
         <div className={styles.stateRow}>
           <dt className={styles.stateLabel}>
             {t('articleContent.twoStatesAreEnough.demoResolvedLabel')}
           </dt>
-          <dd className={styles.stateValue}>{isMounted ? resolvedLabel : '—'}</dd>
+          <dd className={styles.stateValue}>{isMounted ? resolvedLabel : '-'}</dd>
         </div>
       </dl>
 
@@ -1066,7 +1066,7 @@ Visit `http://localhost:3000/articles/two-states-are-enough` and confirm:
 - The "Try it" card now shows all three controls (icon button, switch, dropdown) side by side, no
   tabs, each with its label above it.
 - Clicking the icon button updates the switch's position, the dropdown's selected value, the
-  preview background, and the state readout below — all at once, without any click on the switch
+  preview background, and the state readout below - all at once, without any click on the switch
   or dropdown.
 - Dragging the switch likewise updates the button's icon, the dropdown's value, the preview, and
   the readout.

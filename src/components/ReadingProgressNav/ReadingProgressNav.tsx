@@ -28,7 +28,7 @@ export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
       return
     }
 
-    /** Resolved in one pass — only headings whose element actually exists in the DOM. */
+    /** Resolved in one pass - only headings whose element actually exists in the DOM. */
     const elements = headings.reduce<HTMLElement[]>((found, { id }) => {
       const element = document.getElementById(id)
       return element ? [...found, element] : found
@@ -38,7 +38,7 @@ export const ReadingProgressNav = ({ headings }: IReadingProgressNavProps) => {
       return
     }
 
-    /** Recomputes which heading is current from live positions, not crossing events —
+    /** Recomputes which heading is current from live positions, not crossing events -
      * correct whether the user scrolled gradually or jumped straight to a heading. */
     const updateActiveHeading = () => {
       const isAtDocumentBottom =

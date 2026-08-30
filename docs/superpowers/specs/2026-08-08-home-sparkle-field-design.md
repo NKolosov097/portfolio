@@ -1,4 +1,4 @@
-# Home Sparkle Field — Design
+# Home Sparkle Field - Design
 
 **Date:** 2026-08-08
 **Status:** Approved (design), pending implementation plan
@@ -10,8 +10,8 @@
 
 The `Home` section (`src/home-sections/Home/Home.tsx`) is a full-viewport hero
 (`min-height: var(--min-height-section)`) whose content is pinned to the bottom
-via `justify-content: flex-end`. It renders only three elements — `Tag`, the
-`I'm Nikita Kolosov` headline, and the `Software Engineer` subtitle — leaving
+via `justify-content: flex-end`. It renders only three elements - `Tag`, the
+`I'm Nikita Kolosov` headline, and the `Software Engineer` subtitle - leaving
 roughly the top 60% of the first screen visually empty.
 
 The goal chosen for that space is **atmosphere**, not conversion, navigation, or
@@ -33,7 +33,7 @@ here:
   sparkle glyphs rendered behind the existing headline.
 - React to the pointer **per particle**: sparkles near the cursor grow brighter
   and larger and are gently pushed outward.
-- Reuse the existing brand vocabulary — the same 4-point glyph already used by
+- Reuse the existing brand vocabulary - the same 4-point glyph already used by
   `Sparkle`, the same white core with a `--g-color-line-brand` glow.
 - Stay smooth on low-end devices, degrading measurably rather than optimistically.
 - Add zero new runtime dependencies.
@@ -59,7 +59,7 @@ progressive-enhancement transport and a measurement-driven quality governor.
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | DOM `<span>` + CSS `@keyframes` | Per-particle distance-to-cursor response cannot be expressed in CSS; it degrades to a single radial-gradient spotlight, which loses the core of the chosen concept. Also 60+ animated nodes.                                                       |
 | WebGL / `three.js`              | Bundle cost disproportionate to a decorative layer.                                                                                                                                                                                                |
-| Typed arrays (SoA) for state    | At 60–220 particles there is no measurable win, and it costs readability and type precision. The property that actually matters — **zero allocation inside the frame loop** — is achieved by allocating particles once and mutating them in place. |
+| Typed arrays (SoA) for state    | At 60–220 particles there is no measurable win, and it costs readability and type precision. The property that actually matters - **zero allocation inside the frame loop** - is achieved by allocating particles once and mutating them in place. |
 
 ## 5. File layout
 
@@ -67,7 +67,7 @@ progressive-enhancement transport and a measurement-driven quality governor.
 src/home-sections/Home/
   components/
     Sparkle/
-      Sparkle.tsx                 (existing — glyph path moves to a constant)
+      Sparkle.tsx                 (existing - glyph path moves to a constant)
       Sparkle.module.css          (existing)
     SparkleField/
       SparkleField.tsx            client component: mode selection, lifecycle
@@ -109,16 +109,16 @@ builder (as a `Path2D`). One source of truth.
 Declared in `src/home-sections/Home/types/home.type.ts`, every field carrying
 JSDoc that explains intent:
 
-- `ISparkleParticle` — position, base size, base opacity, twinkle phase and
+- `ISparkleParticle` - position, base size, base opacity, twinkle phase and
   speed, drift velocity, and a depth factor used for parallax. Mutated in place.
-- `IPointerPosition` — smoothed pointer coordinates in CSS pixels relative to
+- `IPointerPosition` - smoothed pointer coordinates in CSS pixels relative to
   the field, plus whether the pointer is currently inside the section.
-- `ESparkleTier` — `high | medium | low | static` (enum, matching the project's
+- `ESparkleTier` - `high | medium | low | static` (enum, matching the project's
   `ETabID` / `ELanguage` convention).
-- `ISparkleTierConfig` — max particle count, DPR ceiling, glow on/off.
-- `ISparkleFieldConfig` — density, size range, drift and twinkle speed ranges,
+- `ISparkleTierConfig` - max particle count, DPR ceiling, glow on/off.
+- `ISparkleFieldConfig` - density, size range, drift and twinkle speed ranges,
   influence radius, size/alpha boosts, fade-in duration.
-- `ISparkleGovernorState` — rolling frame-time window, current tier, and whether
+- `ISparkleGovernorState` - rolling frame-time window, current tier, and whether
   the one permitted upgrade has been spent.
 
 ## 7. Rendering pipeline
@@ -129,7 +129,7 @@ JSDoc that explains intent:
    symmetry, so 8 steps across 90° cover a full visual rotation cycle. Each
    sprite bakes the white core **and** the brand-coloured glow, so no
    `shadowBlur` is ever executed at frame time. Peak atlas footprint is ~32
-   sprites of ≤32 px — negligible.
+   sprites of ≤32 px - negligible.
 2. **Frame draw.** One `clearRect`, then one `drawImage` per particle. Continuous
    scaling between buckets is handled by `drawImage`'s destination size;
    rotation is handled by selecting an atlas frame. No `save`/`restore`,
@@ -146,8 +146,8 @@ JSDoc that explains intent:
    proportionally rather than regenerated, and the atlas is rebuilt only when the
    effective DPR bucket changes.
 6. **Particle count.** `clamp(round(area / DENSITY_AREA_PER_PARTICLE), MIN, tier.maxCount)`
-   — density is derived from area, so a 4K display does not receive a thousand
-   sparks and a phone does not receive a dozen.
+   - density is derived from area, so a 4K display does not receive a thousand
+     sparks and a phone does not receive a dozen.
 7. **Motion.** Drift and twinkle advance on delta time, clamped to a maximum
    step (50 ms) so a tab returning from the background does not teleport the
    field. Particles wrap around the field edges.
@@ -173,7 +173,7 @@ JSDoc that explains intent:
 
 ### Why a worker
 
-An OffscreenCanvas worker does not buy throughput here — the particle maths is
+An OffscreenCanvas worker does not buy throughput here - the particle maths is
 sub-millisecond. It buys **jank isolation**: the animation keeps running while
 the main thread is busy with hydration, i18n initialisation, and the mounting of
 the lazily-loaded sections below. On low-end devices, main-thread contention is
@@ -222,7 +222,7 @@ a missing signal is simply skipped rather than treated as a low value.
 | `static` | 60            | 1           | no   | single frame |
 
 Windows are **non-overlapping**, not rolling. A decision consumes a full window
-of samples and starts the next one empty, whatever the outcome — including "no
+of samples and starts the next one empty, whatever the outcome - including "no
 change needed". This matters twice over: a superseded regime's samples can never
 contaminate the next decision (a sliding window lets a handful of fresh frames
 flip a p90 that is still dominated by stale ones, which at the lowest animated
@@ -243,7 +243,7 @@ Rules over each 60-frame window:
 
 `sparkleGovernor.ts` is pure: it consumes a sequence of frame durations and its
 own state, and returns the next state plus a tier decision. No DOM, no timers.
-This makes the most safety-critical logic in the feature fully unit-testable —
+This makes the most safety-critical logic in the feature fully unit-testable -
 including the window-reset property, which is asserted directly rather than
 inferred from a tier sequence.
 
@@ -251,16 +251,16 @@ inferred from a tier sequence.
 
 The loop must not run when nobody can see it:
 
-- `IntersectionObserver` on the section — scrolling down to `Portfolio` stops
+- `IntersectionObserver` on the section - scrolling down to `Portfolio` stops
   the loop entirely (the hero is at the top of the page, so this fires
   constantly in real use).
-- `visibilitychange` — a hidden tab stops the loop.
-- `prefers-reduced-motion` — resolved through the existing
+- `visibilitychange` - a hidden tab stops the loop.
+- `prefers-reduced-motion` - resolved through the existing
   `src/helpers/prefersReducedMotion.ts` helper, with a live `change`
   subscription so toggling the OS setting takes effect without a reload. When
   reduced motion is requested the field renders a single static frame, attaches
   no pointer listeners, and starts no worker.
-- Unmount — cancel rAF, disconnect both observers, remove listeners, terminate
+- Unmount - cancel rAF, disconnect both observers, remove listeners, terminate
   the worker. No callback may touch a canvas after unmount.
 
 ## 12. Seamless mount
@@ -268,7 +268,7 @@ The loop must not run when nobody can see it:
 The field must not compete with the hero's LCP or with hydration, and must not
 pop into existence:
 
-1. `next/dynamic` with `ssr: false` — the field is absent from the SSR payload,
+1. `next/dynamic` with `ssr: false` - the field is absent from the SSR payload,
    so the headline's LCP is unaffected.
 2. The chunk is requested inside `requestIdleCallback` (with a `setTimeout`
    fallback for Safari), i.e. after hydration has settled.
@@ -276,7 +276,7 @@ pop into existence:
    frame is not a spike.
 4. The canvas mounts at `opacity: 0`. After the first frame is painted, a CSS
    `opacity` transition of ~800 ms `ease-out` brings it to its working
-   opacity — GPU-composited, no layout work.
+   opacity - GPU-composited, no layout work.
 5. Under `prefers-reduced-motion`, the fade is skipped and the static frame is
    shown at its final opacity immediately.
 
@@ -285,7 +285,7 @@ pop into existence:
 - The `Home` section gains `position: relative`; the canvas is
   `position: absolute; inset: 0; z-index: 0; pointer-events: none`, and the
   existing content is raised to `z-index: 1`.
-- The canvas carries `aria-hidden="true"` and is not focusable — it conveys no
+- The canvas carries `aria-hidden="true"` and is not focusable - it conveys no
   information.
 - Text readability is preserved by a CSS `mask-image` that fades the canvas out
   toward the bottom of the section, where the headline sits.
@@ -329,11 +329,11 @@ No magic numbers in component or helper bodies.
 
 **vitest (unit, no DOM):**
 
-- `sparkleField.test.ts` — particle creation with an injected RNG (deterministic),
+- `sparkleField.test.ts` - particle creation with an injected RNG (deterministic),
   count resolution across viewport sizes and tiers, drift/wrap behaviour under a
   given delta, delta clamping, and pointer influence falloff (zero beyond the
   radius, monotonic within it).
-- `sparkleGovernor.test.ts` — tier stays put on healthy frame times; steps down
+- `sparkleGovernor.test.ts` - tier stays put on healthy frame times; steps down
   on a degraded window; steps up at most once; never oscillates given an
   alternating sequence; reaches `static` from `low` under sustained overrun;
   `static` is terminal.
@@ -343,7 +343,7 @@ No magic numbers in component or helper bodies.
 `data-running="false"` after scrolling past the hero; the headline remains
 visible and unobstructed.
 
-The canvas raster itself is not asserted pixel-by-pixel — the valuable logic is
+The canvas raster itself is not asserted pixel-by-pixel - the valuable logic is
 in the pure modules, which are covered directly.
 
 ## 17. Documentation impact

@@ -6,7 +6,7 @@ User feedback: both `LightDarkDemo`'s closing caption and `PatternGallery`'s "Si
 caption currently sit on their own line below the interactive element they describe, leaving
 visibly empty horizontal space beside that element (the mock window in `LightDarkDemo`; the small
 icon button in `PatternGallery`'s fourth tile). Moving each caption to sit beside its control
-instead of below it fills that dead space — purely a layout change, no copy or logic changes.
+instead of below it fills that dead space - purely a layout change, no copy or logic changes.
 
 ## Decision
 
@@ -49,7 +49,7 @@ No copy changes, no new locale keys, no state/handler changes in either componen
 ```
 
 (The standalone `<p className={styles.demoCaption}>` that previously sat after the closing `</div>`
-of `.demo` is removed from there and placed inside `.demo` as shown above — same JSX node, same
+of `.demo` is removed from there and placed inside `.demo` as shown above - same JSX node, same
 translation key, new position.)
 
 CSS: `.demoCaption` gains `flex: 1 1 12rem;` (its `margin`/`font-size`/`color` are unchanged).

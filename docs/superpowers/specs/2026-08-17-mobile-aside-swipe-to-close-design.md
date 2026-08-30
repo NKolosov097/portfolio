@@ -1,4 +1,4 @@
-# Mobile aside swipe-to-close — design
+# Mobile aside swipe-to-close - design
 
 ## Problem
 
@@ -35,7 +35,7 @@ src/layout/Aside/hooks/useSwipeToClose.ts
 
 Signature: `useSwipeToClose({ ref, onClose, isEnabled }): void`
 
-- `ref`: `RefObject<HTMLElement>` — the draggable surface. `MobileAside`
+- `ref`: `RefObject<HTMLElement>` - the draggable surface. `MobileAside`
   passes the ref it already attaches to `#aside-card`
   (`.drawerItemContent`).
 - `onClose`: callback invoked when a swipe crosses the close threshold.
@@ -46,7 +46,7 @@ Signature: `useSwipeToClose({ ref, onClose, isEnabled }): void`
 The hook attaches `touchstart` / `touchmove` / `touchend` / `touchcancel`
 listeners via `useEffect` directly on the DOM node (not React synthetic
 events), and writes `element.style.transform` / `element.style.transition`
-imperatively during the gesture — no React state updates per `touchmove`,
+imperatively during the gesture - no React state updates per `touchmove`,
 so dragging stays smooth (60fps, no re-render churn).
 
 `MobileAside` change: create `const cardRef = useRef<HTMLDivElement>(null)`,
@@ -66,12 +66,12 @@ State kept in refs inside the hook (not component state):
 - **`touchmove`**:
   - While `direction` is still `null`: once total movement exceeds ~8px,
     decide direction by comparing `|dx|` vs `|dy|`. `|dy| >= |dx|` ⇒
-    `'vertical'` — stop handling this touch for the rest of the gesture
+    `'vertical'` - stop handling this touch for the rest of the gesture
     (let the browser's native scroll take over). `|dx| > |dy|` ⇒
     `'horizontal'`.
   - While `direction === 'horizontal'`: call `preventDefault()` (need
     `{ passive: false }` on `touchmove`) and set
-    `transform: translateX(${Math.min(0, dx)}px)` on the element — swiping
+    `transform: translateX(${Math.min(0, dx)}px)` on the element - swiping
     right beyond the resting position is clamped to `0`, since the panel
     is already flush with the left edge.
 - **`touchend` / `touchcancel`**:
@@ -79,12 +79,12 @@ State kept in refs inside the hook (not component state):
   - Compute `dx` (negative = moved left) and `velocity = |dx| /
 (Date.now() - startTime)`.
   - Close if `|dx| > element.offsetWidth * 0.25` **or**
-    `velocity > 0.5` (px/ms) — the second clause catches fast short
+    `velocity > 0.5` (px/ms) - the second clause catches fast short
     flicks that would miss the distance threshold.
   - If closing: call `onClose()`. Leave the inline `transform` as-is; the
     `Drawer` unmounts/animates out via its own `open` prop transition, so
     the dragged element disappears with it.
-  - If not closing: snap back — add a transient `transition:
+  - If not closing: snap back - add a transient `transition:
 transform 0.2s ease` inline style, set `transform: translateX(0)`,
     then remove the inline `transition` after the transitionend (or a
     matching timeout fallback) so it doesn't fight future drags. Skip the
@@ -102,7 +102,7 @@ reduce)').matches`.
   listeners and clears any inline `transform`/`transition` left on the
   node, so the panel isn't visually offset the next time it opens.
 - **`touchcancel`** (e.g. OS gesture takes over) is treated the same as
-  `touchend` with the current `dx` — either completes the close or snaps
+  `touchend` with the current `dx` - either completes the close or snaps
   back.
 - **Reduced motion**: snap-back is instant, no transition, per above.
 

@@ -15,7 +15,7 @@ export const Advantage = ({ id, title, description }: IAdvantage) => {
     if (!card) return
 
     const rect = card.getBoundingClientRect()
-    // Card not laid out yet — nothing meaningful to compute.
+    // Card not laid out yet - nothing meaningful to compute.
     if (rect.width === 0 || rect.height === 0) return
 
     const glowX = event.clientX - rect.left

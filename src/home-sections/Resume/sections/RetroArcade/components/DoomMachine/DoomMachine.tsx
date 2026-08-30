@@ -28,7 +28,7 @@ import {
 import { TouchControls } from '@/home-sections/Resume/sections/RetroArcade/components/DoomMachine/components/TouchControls/TouchControls'
 import type { DoomMachineStatus } from '@/home-sections/Resume/sections/RetroArcade/types/retroArcade.types'
 
-/** Never changes over a session, so subscribing is a no-op — only the client/server snapshot differs. */
+/** Never changes over a session, so subscribing is a no-op - only the client/server snapshot differs. */
 const subscribeToNothing = () => () => {}
 const getServerCapabilitySnapshot = () => false
 
@@ -37,7 +37,7 @@ export const DoomMachine = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const screenRef = useRef<HTMLDivElement>(null)
-  /** Holds the running engine outside React state — it's an imperative handle, not render data. */
+  /** Holds the running engine outside React state - it's an imperative handle, not render data. */
   const engineRef = useRef<DoomEngine | null>(null)
 
   const [status, setStatus] = useState<DoomMachineStatus>({ kind: 'idle' })
@@ -62,7 +62,7 @@ export const DoomMachine = () => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
 
-  // Stops the render loop if the visitor navigates away mid-game — the engine has no other way to know.
+  // Stops the render loop if the visitor navigates away mid-game - the engine has no other way to know.
   useEffect(() => () => engineRef.current?.stop(), [])
 
   const handlePlay = async () => {

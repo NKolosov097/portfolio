@@ -20,7 +20,7 @@ const VEIL_SNAP_BACK_TRANSITION = 'opacity 0.2s ease'
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
 /**
- * Gravity UI Drawer's own backdrop element — an ancestor of the panel, not something this hook
+ * Gravity UI Drawer's own backdrop element - an ancestor of the panel, not something this hook
  * renders. Its background only reacts to the `open` prop, so without dimming it ourselves it
  * stays fully opaque while the panel is dragged away, hiding the page that should be peeking
  * through. Reaching into this internal class matches the existing pattern in

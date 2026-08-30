@@ -21,7 +21,7 @@ export const isServerListening = (): Promise<boolean> =>
     socket.once('error', () => settle(false))
   })
 
-/** Pids holding {@link E2E_PORT} — by port, since `next start` re-spawns and outlives its pid. */
+/** Pids holding {@link E2E_PORT} - by port, since `next start` re-spawns and outlives its pid. */
 const findListeningPids = (): number[] => {
   try {
     if (process.platform === 'win32') {

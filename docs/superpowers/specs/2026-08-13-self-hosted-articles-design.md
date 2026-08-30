@@ -6,16 +6,16 @@ Host original long-form articles on the portfolio itself (not just link out to H
 
 ## Scope
 
-First article: "Compiling Isn't Shipping: What AI Boilerplate Still Leaves for Senior Engineers" (slug `ai-boilerplate-senior-engineers`). The architecture must support adding further articles the same way, but no article-authoring tooling (CMS, MDX pipeline) is in scope — content is authored directly as TSX.
+First article: "Compiling Isn't Shipping: What AI Boilerplate Still Leaves for Senior Engineers" (slug `ai-boilerplate-senior-engineers`). The architecture must support adding further articles the same way, but no article-authoring tooling (CMS, MDX pipeline) is in scope - content is authored directly as TSX.
 
 ## Routing
 
 Two new App Router routes, additive to the existing single-page `/`:
 
-- `src/app/articles/page.tsx` — list of all self-hosted articles.
-- `src/app/articles/[slug]/page.tsx` — a single article, statically generated via `generateStaticParams` from the article registry.
+- `src/app/articles/page.tsx` - list of all self-hosted articles.
+- `src/app/articles/[slug]/page.tsx` - a single article, statically generated via `generateStaticParams` from the article registry.
 
-Deep-linking to a section within an article uses a plain URL fragment (`/articles/ai-boilerplate-senior-engineers#three-decisions-ai-wont-make-for-you`) resolved by the browser's native anchor scrolling — no client-side scroll JS needed. Section headings get stable, hand-assigned `id`s. Because the site header is sticky, heading elements get `scroll-margin-top` in the article CSS module so an anchor jump doesn't hide the heading behind it.
+Deep-linking to a section within an article uses a plain URL fragment (`/articles/ai-boilerplate-senior-engineers#three-decisions-ai-wont-make-for-you`) resolved by the browser's native anchor scrolling - no client-side scroll JS needed. Section headings get stable, hand-assigned `id`s. Because the site header is sticky, heading elements get `scroll-margin-top` in the article CSS module so an anchor jump doesn't hide the heading behind it.
 
 `HeaderTabs` already renders an empty placeholder on any pathname other than `/` (see `pathname === '/' ? <Tabs .../> : <div className={styles.tabs} />`), so the tab bar correctly disappears on `/articles` routes with no changes needed there. `Aside` is route-agnostic and stays as-is.
 
@@ -25,15 +25,15 @@ Each article's body is a single TSX component, not Markdown/MDX and not a pair o
 
 ```
 src/content/articles/ai-boilerplate-senior-engineers/
-  Content.tsx   -- export default function Content(): the article's markup — <h2>/<p>/<strong>
-                   with hand-set heading ids — sourcing every piece of text via useTranslation()
+  Content.tsx   -- export default function Content(): the article's markup - <h2>/<p>/<strong>
+                   with hand-set heading ids - sourcing every piece of text via useTranslation()
 ```
 
 Rationale: the project has no Markdown/MDX pipeline today (no `@next/mdx`, `remark`, or `rehype`), and none of its content is currently rendered from raw strings via `dangerouslySetInnerHTML`. Introducing an MDX toolchain for a single article is more infrastructure than the current scope justifies. Plain TSX needs no new dependency and is fully covered by the project's existing strict-TypeScript/ESLint/Prettier setup.
 
-An earlier version of this spec used a _pair_ of TSX files per article (`en.tsx`/`ru.tsx`), each holding its own copy of the full markup. That was rejected during implementation: it means every heading, paragraph, and inline `<strong>`/`<em>` exists twice, so a structural change (reordering a section, adding a paragraph) has to be repeated correctly in both files, and a third language would mean a third full copy of the markup. Instead, the markup lives in exactly one file, and every text string is a key resolved via `t('articleContent.<slug>.<key>')`, with the translated values living in `public/locales/en.json` / `ru.json` — the same locale files (and the same parity test, `src/configs/i18n/locales.test.ts`) already used for every other piece of UI copy in the app. Adding a language later means adding one more locale file's worth of translated strings, not a new component. Heading `id`s stay as literal strings in the single component (not translated), so a fragment link resolves identically regardless of the active language.
+An earlier version of this spec used a _pair_ of TSX files per article (`en.tsx`/`ru.tsx`), each holding its own copy of the full markup. That was rejected during implementation: it means every heading, paragraph, and inline `<strong>`/`<em>` exists twice, so a structural change (reordering a section, adding a paragraph) has to be repeated correctly in both files, and a third language would mean a third full copy of the markup. Instead, the markup lives in exactly one file, and every text string is a key resolved via `t('articleContent.<slug>.<key>')`, with the translated values living in `public/locales/en.json` / `ru.json` - the same locale files (and the same parity test, `src/configs/i18n/locales.test.ts`) already used for every other piece of UI copy in the app. Adding a language later means adding one more locale file's worth of translated strings, not a new component. Heading `id`s stay as literal strings in the single component (not translated), so a fragment link resolves identically regardless of the active language.
 
-Inline emphasis inside a paragraph (e.g. the italicized "when" in the second section) is expressed by splitting that paragraph into multiple adjacent `t()` calls — a "before" key, the emphasized word as its own key, and an "after" key — rather than embedding markup inside a translation string. This avoids introducing `react-i18next`'s `<Trans>` component, which no other file in the project uses; plain `t()` calls stay consistent with the rest of the codebase's i18n usage.
+Inline emphasis inside a paragraph (e.g. the italicized "when" in the second section) is expressed by splitting that paragraph into multiple adjacent `t()` calls - a "before" key, the emphasized word as its own key, and an "after" key - rather than embedding markup inside a translation string. This avoids introducing `react-i18next`'s `<Trans>` component, which no other file in the project uses; plain `t()` calls stay consistent with the rest of the codebase's i18n usage.
 
 ## Article registry
 
@@ -75,13 +75,13 @@ isExternal?: boolean
 
 No separate reader-mode toggle. The article page itself is the reading experience:
 
-- Body copy constrained to ~65–75ch measure, generous `line-height`, spacing scale tuned for long-form prose — a dedicated CSS module (e.g. `ArticleContent.module.css`), not the compact styles used by the homepage's card-based sections.
+- Body copy constrained to ~65–75ch measure, generous `line-height`, spacing scale tuned for long-form prose - a dedicated CSS module (e.g. `ArticleContent.module.css`), not the compact styles used by the homepage's card-based sections.
 - Heading hierarchy limited to `h1` (article title, rendered once by the page, not by the content component) and `h2`/`h3` inside content.
 - No sidebar widgets or homepage chrome injected into the content column; `Aside` remains in its usual place outside the content column, unchanged.
 
 ## Rendering & performance
 
-Both routes are fully static: no request-time data fetching, `generateStaticParams` on `/articles/[slug]` pre-renders every slug from the registry at build time, so both routes ship as plain pre-rendered HTML (same deployment model the rest of the site already uses on Vercel). The article body component is a client component only because it calls `useTranslation()` to resolve its strings — the same mechanism the rest of the app's i18n already relies on — not because of any per-language file switch. This keeps first paint of the article text as fast as the rest of the site.
+Both routes are fully static: no request-time data fetching, `generateStaticParams` on `/articles/[slug]` pre-renders every slug from the registry at build time, so both routes ship as plain pre-rendered HTML (same deployment model the rest of the site already uses on Vercel). The article body component is a client component only because it calls `useTranslation()` to resolve its strings - the same mechanism the rest of the app's i18n already relies on - not because of any per-language file switch. This keeps first paint of the article text as fast as the rest of the site.
 
 ## SEO
 
@@ -93,9 +93,9 @@ Both routes are fully static: no request-time data fetching, `generateStaticPara
 
 ## Accessibility & machine readability
 
-- Semantic structure: one `h1` (page-rendered title) and a strict `h2`/`h3` hierarchy inside content, real `<p>`/`<ul>`/`<strong>` elements — no div soup — so both screen readers and text-extracting crawlers get a clean outline.
-- Full article text is present in the initial server-rendered HTML (static generation, no lazy/client-only content), so any crawler that doesn't execute JavaScript — many AI-agent fetchers included — still gets the complete article, not a skeleton.
-- **Known limitation, pre-existing to the site and not solved by this feature:** `i18n.ts` intentionally pins language to English for SSR ("Fixed 'en' on init so SSR and initial hydration always produce identical HTML"), and `<html lang="en">` is static in `layout.tsx`. This means the statically-generated HTML for `/articles/[slug]` is always the English variant; the Russian variant only appears after client-side hydration switches language. A non-JS crawler hitting the URL will only ever see English, same as every other translated section of the site today. Serving locale-correct HTML per URL would require splitting into `/en/`, `/ru/` routes — a site-wide i18n architecture change, out of scope here.
+- Semantic structure: one `h1` (page-rendered title) and a strict `h2`/`h3` hierarchy inside content, real `<p>`/`<ul>`/`<strong>` elements - no div soup - so both screen readers and text-extracting crawlers get a clean outline.
+- Full article text is present in the initial server-rendered HTML (static generation, no lazy/client-only content), so any crawler that doesn't execute JavaScript - many AI-agent fetchers included - still gets the complete article, not a skeleton.
+- **Known limitation, pre-existing to the site and not solved by this feature:** `i18n.ts` intentionally pins language to English for SSR ("Fixed 'en' on init so SSR and initial hydration always produce identical HTML"), and `<html lang="en">` is static in `layout.tsx`. This means the statically-generated HTML for `/articles/[slug]` is always the English variant; the Russian variant only appears after client-side hydration switches language. A non-JS crawler hitting the URL will only ever see English, same as every other translated section of the site today. Serving locale-correct HTML per URL would require splitting into `/en/`, `/ru/` routes - a site-wide i18n architecture change, out of scope here.
 
 ## Verification
 

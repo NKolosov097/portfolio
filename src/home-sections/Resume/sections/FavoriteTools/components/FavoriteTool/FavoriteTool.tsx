@@ -15,7 +15,7 @@ export const FavoriteTool = ({ id, icon, title }: IFavoriteTool) => {
     if (!card) return
 
     const rect = card.getBoundingClientRect()
-    // Card not laid out yet — nothing meaningful to compute.
+    // Card not laid out yet - nothing meaningful to compute.
     if (rect.width === 0 || rect.height === 0) return
 
     card.style.setProperty('--glow-x', `${event.clientX - rect.left}px`)

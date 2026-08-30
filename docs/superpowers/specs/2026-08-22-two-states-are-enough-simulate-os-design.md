@@ -7,12 +7,12 @@ User feedback after the browser-window preview revision:
 1. `PatternGallery`'s new titlebar/URL-bar chrome and its page content were both driven by the
    same `resolvedTheme` (`override ?? osPrefersDark`). That's inaccurate: a real browser's native
    chrome (title bar, URL bar) reflects the **OS/browser's own theme**, not an individual website's
-   own dark-mode toggle — setting a site to light mode doesn't turn the OS's dark title bar white.
+   own dark-mode toggle - setting a site to light mode doesn't turn the OS's dark title bar white.
    These are supposed to be two independent axes, exactly what `CombinationGrid` already
    demonstrates elsewhere in the article (native × site = 4 combinations). `PatternGallery`
    collapsed them into one.
 2. Confirmed as a separate, correct question (no fix needed): `LightDarkDemo`'s titlebar mock and
-   page mock changing together on one toggle click **does** match real `color-scheme` behavior —
+   page mock changing together on one toggle click **does** match real `color-scheme` behavior -
    both are descendants of the same `.window` div that sets `color-scheme`, which is an inherited
    property, so both correctly resolve `light-dark()` to the same branch. That demo has no
    independent native/site axis to begin with (it's one simulated environment, not two), so this
@@ -20,10 +20,10 @@ User feedback after the browser-window preview revision:
 
 ## Decision
 
-- Add a fourth control tile to `PatternGallery`: **"Simulate OS"** — an icon toggle (Sun/Moon, same
+- Add a fourth control tile to `PatternGallery`: **"Simulate OS"** - an icon toggle (Sun/Moon, same
   visual pattern as the existing icon-button tile), explicitly labeled and captioned as a
   simulation, with its own 2-press cycle (press 1 overrides the chrome to the opposite shade,
-  press 2 clears back to following the real OS preference) — mirroring the existing `handleCycle`
+  press 2 clears back to following the real OS preference) - mirroring the existing `handleCycle`
   pattern used by the first tile.
 - New state `simulatedNative: 'light' | 'dark' | null`, independent of `override`. `override`
   keeps driving the page content exactly as today (unchanged). The titlebar/URL-bar now read a new
@@ -32,16 +32,16 @@ User feedback after the browser-window preview revision:
   independent `data-native-theme` attribute placed on `.previewTitlebar` itself (the URL-bar pill
   is already nested inside the titlebar div, so it styles via a descendant selector off the same
   attribute). The page content (`.previewPage`/`.previewHeading`/`.previewBody`) keeps using
-  `data-theme` on the outer `.preview` exactly as before — untouched.
-- The state `<dl>` readout (OS preference / your override / resolved theme) is **not** touched —
+  `data-theme` on the outer `.preview` exactly as before - untouched.
+- The state `<dl>` readout (OS preference / your override / resolved theme) is **not** touched -
   it stays 100% real, unaffected by the new simulation. A short caption under the new tile makes
-  clear it only changes the chrome shown above, not the reader's real OS or that readout — so the
+  clear it only changes the chrome shown above, not the reader's real OS or that readout - so the
   rest of the block's "this state is real, not a simulation" claim stays true.
 - `simulatedNative` is pure local UI state: no `localStorage`, no tie to `STORAGE_KEY` (which
-  remains scoped to `override` only) — reload the page and the simulated chrome resets to
+  remains scoped to `override` only) - reload the page and the simulated chrome resets to
   following the real OS, exactly like `SwitchAnalogy`'s and `CombinationGrid`'s local-only state did.
 - Two new locale-key pairs (en/ru): a label + caption for the new tile, and two accessible-label
-  strings for the toggle button (`demoSimulateToggleToDark`/`demoSimulateToggleToLight`) — distinct
+  strings for the toggle button (`demoSimulateToggleToDark`/`demoSimulateToggleToLight`) - distinct
   from the existing `demoToggleToDark`/`demoToggleToLight` (which describe the real site toggle),
   so a screen-reader user doesn't hear two differently-behaving buttons announced identically.
 
@@ -67,7 +67,7 @@ const nativeChromeTheme: TResolvedTheme = simulatedNative ?? (osPrefersDark ? 'd
 **New handler**, mirroring `handleCycle`:
 
 ```tsx
-/** Simulates the native/OS theme independently of the site's own override — press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
+/** Simulates the native/OS theme independently of the site's own override - press 1 flips the chrome to the opposite of what it currently shows, press 2 clears back to following the real OS preference. Never touches osPrefersDark, override, or localStorage. */
 const handleSimulateNativeCycle = () => {
   if (simulatedNative === null) {
     setSimulatedNative(nativeChromeTheme === 'dark' ? 'light' : 'dark')
@@ -109,7 +109,7 @@ const simulateCycleLabel =
 </div>
 ```
 
-**Titlebar markup** gains the new attribute (URL-bar markup is unchanged — it's already nested
+**Titlebar markup** gains the new attribute (URL-bar markup is unchanged - it's already nested
 inside the titlebar):
 
 ```tsx
@@ -118,7 +118,7 @@ inside the titlebar):
 
 **CSS**: replace the existing `.preview[data-theme='light'|'dark'] .previewTitlebar` and
 `.preview[data-theme='light'|'dark'] .previewUrlBar` rules with `.previewTitlebar[data-native-theme='light'|'dark']`
-and `.previewTitlebar[data-native-theme='light'|'dark'] .previewUrlBar` respectively — same colors,
+and `.previewTitlebar[data-native-theme='light'|'dark'] .previewUrlBar` respectively - same colors,
 new selector root. Add a `.controlCaption` rule (small muted text, matching the visual weight of
 the card's other secondary text) for the new tile's clarifying caption.
 
@@ -129,11 +129,11 @@ own distinct `aria-label`/`title` (not shared with the real toggle's).
 
 New keys under `articleContent.twoStatesAreEnough`:
 
-- `demoSimulateOsLabel` — en: "Simulate OS", ru: "Симулировать ОС"
-- `demoSimulateOsCaption` — en: "Changes only the window chrome above — not your real OS or the
-  state below.", ru: "Меняет только вид окна выше — не твою настоящую ОС и не состояние ниже."
-- `demoSimulateToggleToDark` — en: "Simulate dark OS", ru: "Симулировать тёмную ОС"
-- `demoSimulateToggleToLight` — en: "Simulate light OS", ru: "Симулировать светлую ОС"
+- `demoSimulateOsLabel` - en: "Simulate OS", ru: "Симулировать ОС"
+- `demoSimulateOsCaption` - en: "Changes only the window chrome above - not your real OS or the
+  state below.", ru: "Меняет только вид окна выше - не твою настоящую ОС и не состояние ниже."
+- `demoSimulateToggleToDark` - en: "Simulate dark OS", ru: "Симулировать тёмную ОС"
+- `demoSimulateToggleToLight` - en: "Simulate light OS", ru: "Симулировать светлую ОС"
 
 No existing keys change.
 
@@ -157,6 +157,6 @@ automatically), manual browser verification via a real browser engine (not sourc
 clicking the new "Simulate OS" tile changes only the titlebar/URL-bar, leaving the page content and
 the state `<dl>` readout unaffected; clicking the existing icon/segments/switch controls changes
 only the page content and the readout, leaving the titlebar/URL-bar unaffected (unless the real OS
-preference happens to already match, in which case both would coincidentally show the same shade —
+preference happens to already match, in which case both would coincidentally show the same shade -
 verify by first simulating the opposite native shade so the two are visibly out of sync, then
 confirm the site controls don't move the chrome).

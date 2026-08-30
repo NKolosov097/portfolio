@@ -5,7 +5,7 @@ export const LANG_COOKIE_KEY = 'app-lang'
 
 /**
  * Supported language codes for membership checks.
- * Explicit list required because ELanguage is a const enum — Object.values is unavailable at runtime.
+ * Explicit list required because ELanguage is a const enum - Object.values is unavailable at runtime.
  */
 const SUPPORTED_LANGUAGES: ReadonlySet<string> = new Set<string>([ELanguage.en, ELanguage.ru])
 
