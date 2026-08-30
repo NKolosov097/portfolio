@@ -15,6 +15,7 @@ import {
   DOOM_KEY_RIGHT_ARROW,
   DOOM_KEY_FIRE,
   DOOM_KEY_USE,
+  DOOM_KEY_ENTER,
 } from '@/home-sections/Resume/sections/RetroArcade/doom/doomConstants'
 
 export interface ITouchControlsProps {
@@ -26,14 +27,14 @@ export const TouchControls = ({ onKey }: ITouchControlsProps) => {
   const { t } = useTranslation()
 
   /** Presses and releases only fire while the same pointer stays on the button - no drag-off double fire. */
-  const bindKey = (keyCode: number) => ({
+  const bindKeys = (...keyCodes: number[]) => ({
     onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => {
       event.preventDefault()
       event.currentTarget.setPointerCapture(event.pointerId)
-      onKey(keyCode, true)
+      keyCodes.forEach((keyCode) => onKey(keyCode, true))
     },
-    onPointerUp: () => onKey(keyCode, false),
-    onPointerCancel: () => onKey(keyCode, false),
+    onPointerUp: () => keyCodes.forEach((keyCode) => onKey(keyCode, false)),
+    onPointerCancel: () => keyCodes.forEach((keyCode) => onKey(keyCode, false)),
   })
 
   return (
@@ -43,7 +44,7 @@ export const TouchControls = ({ onKey }: ITouchControlsProps) => {
           type="button"
           aria-label={t('resume.retroArcadeMoveUp')}
           className={styles.dPadUp}
-          {...bindKey(DOOM_KEY_UP_ARROW)}
+          {...bindKeys(DOOM_KEY_UP_ARROW)}
         >
           <Icon data={ArrowUp} size={20} />
         </button>
@@ -51,7 +52,7 @@ export const TouchControls = ({ onKey }: ITouchControlsProps) => {
           type="button"
           aria-label={t('resume.retroArcadeMoveLeft')}
           className={styles.dPadLeft}
-          {...bindKey(DOOM_KEY_LEFT_ARROW)}
+          {...bindKeys(DOOM_KEY_LEFT_ARROW)}
         >
           <Icon data={ArrowLeft} size={20} />
         </button>
@@ -59,7 +60,7 @@ export const TouchControls = ({ onKey }: ITouchControlsProps) => {
           type="button"
           aria-label={t('resume.retroArcadeMoveRight')}
           className={styles.dPadRight}
-          {...bindKey(DOOM_KEY_RIGHT_ARROW)}
+          {...bindKeys(DOOM_KEY_RIGHT_ARROW)}
         >
           <Icon data={ArrowRight} size={20} />
         </button>
@@ -67,7 +68,7 @@ export const TouchControls = ({ onKey }: ITouchControlsProps) => {
           type="button"
           aria-label={t('resume.retroArcadeMoveDown')}
           className={styles.dPadDown}
-          {...bindKey(DOOM_KEY_DOWN_ARROW)}
+          {...bindKeys(DOOM_KEY_DOWN_ARROW)}
         >
           <Icon data={ArrowDown} size={20} />
         </button>
@@ -78,7 +79,7 @@ export const TouchControls = ({ onKey }: ITouchControlsProps) => {
           type="button"
           aria-label={t('resume.retroArcadeUse')}
           className={styles.actionButton}
-          {...bindKey(DOOM_KEY_USE)}
+          {...bindKeys(DOOM_KEY_USE, DOOM_KEY_ENTER)}
         >
           <Icon data={Hand} size={22} />
         </button>
@@ -86,7 +87,7 @@ export const TouchControls = ({ onKey }: ITouchControlsProps) => {
           type="button"
           aria-label={t('resume.retroArcadeFire')}
           className={styles.actionButtonFire}
-          {...bindKey(DOOM_KEY_FIRE)}
+          {...bindKeys(DOOM_KEY_FIRE)}
         >
           <Icon data={Skull} size={22} />
         </button>
