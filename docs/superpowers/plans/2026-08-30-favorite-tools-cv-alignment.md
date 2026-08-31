@@ -21,11 +21,13 @@
 ### Task 1: Rename the `RTK Query` favorite tool to `Redux Toolkit`
 
 **Files:**
+
 - Create: `public/assets/svg/tools/redux-toolkit.svg` (copy of the current `rtk-query.svg` content - it is already the Redux atom mark, `#764ABC`)
 - Delete: `public/assets/svg/tools/rtk-query.svg`
 - Modify: `src/constants/resume.constants.tsx:173-177` (the `rtk-query` entry in `favoriteTools`)
 
 **Interfaces:**
+
 - Consumes: `IFavoriteTool` from `src/home-sections/Resume/types/resume.type.ts` (unchanged: `{ id: string; icon: JSX.Element; title: string }`).
 - Produces: a `favoriteTools` array entry with `id: 'redux-toolkit'`, `title: 'Redux Toolkit'`, consumed by `FavoriteTools.tsx` (unchanged rendering).
 
@@ -85,10 +87,12 @@ git commit -m "fix: rename RTK Query favorite tool to Redux Toolkit"
 ### Task 2: Add a `TypeScript` favorite tool entry
 
 **Files:**
+
 - Verify: `public/assets/svg/tools/typescript.svg` (already created - official TypeScript mark, `#3178C6`)
 - Modify: `src/constants/resume.constants.tsx` (append to `favoriteTools`, after the `zod` entry and before `redux-toolkit` - keeping the existing "core language/data" grouping order used today)
 
 **Interfaces:**
+
 - Consumes: `IFavoriteTool` (unchanged).
 - Produces: a new `favoriteTools` array entry with `id: 'typescript'`, `title: 'TypeScript'`.
 
