@@ -4,3 +4,4 @@
 - [ ] Revisit which features belong in "favourite features" - base the picks on the resume/CV content rather than the current placeholder set.
 - [ ] Decide whether a link to a profile photo is worth adding to the aside panel.
 - [ ] Doom machine: add a way to expand the game to full screen on mobile. `canFullscreen` (`doomSupport.ts`) gates the existing fullscreen button on `document.documentElement.requestFullscreen` support, which iOS Safari lacks for arbitrary elements - so the button never shows there today. Needs a mobile-friendly fallback (e.g. a CSS-only "fill the viewport" mode) instead of relying on the Fullscreen API.
+- [ ] Build proper loading skeletons for the home page and other components, instead of the current placeholder/blank loading state.
