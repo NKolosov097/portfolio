@@ -35,7 +35,9 @@
     "opensInNewTab": "открывается в новой вкладке",
     "openProfile": "Открыть профиль",
     "closeProfile": "Закрыть профиль",
-    "backToHome": "На главную"
+    "backToHome": "На главную",
+    "viewPhoto": "Открыть фото крупнее",
+    "closePhoto": "Закрыть фото"
   },
 
   "headerTabs": {

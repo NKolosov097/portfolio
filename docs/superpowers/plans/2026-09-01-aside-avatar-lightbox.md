@@ -27,6 +27,7 @@
 ## Task 1: `AsideAvatar` component with a working desktop lightbox
 
 **Files:**
+
 - Create: `src/layout/Aside/context/AsideLightbox.context.ts`
 - Modify: `src/layout/Aside/types/aside.type.ts`
 - Create: `src/layout/Aside/components/AsideAvatar/AsideAvatar.module.css`
@@ -38,6 +39,7 @@
 - Test: `e2e/aside-avatar-lightbox.spec.ts`
 
 **Interfaces:**
+
 - Produces `IAsideLightboxContext` (`src/layout/Aside/types/aside.type.ts`): `{ onLightboxOpenChange: (_isOpen: boolean) => void }`.
 - Produces `AsideLightboxContext` (`src/layout/Aside/context/AsideLightbox.context.ts`): `React.Context<IAsideLightboxContext>`, default value `{ onLightboxOpenChange: () => {} }` (a no-op, used whenever no ancestor `Drawer` needs to know).
 - Produces `AsideAvatar` component (`src/layout/Aside/components/AsideAvatar/AsideAvatar.tsx`), no props, no exported non-default members besides the named export `AsideAvatar`.
@@ -154,8 +156,7 @@ export const AsideLightboxContext = createContext<IAsideLightboxContext>(
   DEFAULT_ASIDE_LIGHTBOX_CONTEXT,
 )
 
-export const useAsideLightboxContext = (): IAsideLightboxContext =>
-  useContext(AsideLightboxContext)
+export const useAsideLightboxContext = (): IAsideLightboxContext => useContext(AsideLightboxContext)
 ```
 
 - [ ] **Step 6: Create `AsideAvatar.module.css`**
@@ -271,11 +272,7 @@ export const AsideAvatar = () => {
         />
       </button>
 
-      <Modal
-        open={isPhotoOpen}
-        onOpenChange={handleOpenChange}
-        data-testid="aside-avatar-lightbox"
-      >
+      <Modal open={isPhotoOpen} onOpenChange={handleOpenChange} data-testid="aside-avatar-lightbox">
         <div className={styles.lightboxContent}>
           <Button
             view="flat"
@@ -308,34 +305,38 @@ export const AsideAvatar = () => {
 Read `src/layout/Aside/components/AsideContent/AsideContent.tsx` first. Remove the `Image` import (line 3 - it becomes unused), add an `AsideAvatar` import, and replace the `Link`-wrapped avatar block:
 
 Remove:
+
 ```tsx
 import Image from 'next/image'
 ```
 
 Add, alphabetically between the `AnimatedGhost` and `AsideAvailability` imports:
+
 ```tsx
 import { AsideAvatar } from '@/layout/Aside/components/AsideAvatar/AsideAvatar'
 ```
 
 Replace:
+
 ```tsx
-        <Link href="/" className={styles.avatarLink} aria-label={t('aside.backToHome')}>
-          <Image
-            width={250}
-            height={250}
-            priority
-            src="/assets/img/avatar/avatar.webp"
-            alt="Avatar"
-            placeholder="blur"
-            blurDataURL="/assets/img/avatar/avatar.webp"
-            className={styles.avatar}
-          />
-        </Link>
+<Link href="/" className={styles.avatarLink} aria-label={t('aside.backToHome')}>
+  <Image
+    width={250}
+    height={250}
+    priority
+    src="/assets/img/avatar/avatar.webp"
+    alt="Avatar"
+    placeholder="blur"
+    blurDataURL="/assets/img/avatar/avatar.webp"
+    className={styles.avatar}
+  />
+</Link>
 ```
 
 with:
+
 ```tsx
-        <AsideAvatar />
+<AsideAvatar />
 ```
 
 - [ ] **Step 9: Remove the now-dead CSS from `aside.module.css`**
@@ -382,10 +383,12 @@ git commit -m "feat: expand aside avatar into a photo lightbox"
 ## Task 2: Keep the mobile drawer open when the lightbox dismisses
 
 **Files:**
+
 - Modify: `src/layout/Aside/components/MobileAside/MobileAside.tsx`
 - Test: `e2e/aside-avatar-lightbox.spec.ts` (extend)
 
 **Interfaces:**
+
 - Consumes: `AsideLightboxContext` from Task 1 (`src/layout/Aside/context/AsideLightbox.context.ts`).
 - Produces: nothing new consumed by later tasks - this is the last task in the plan.
 
@@ -394,59 +397,59 @@ git commit -m "feat: expand aside avatar into a photo lightbox"
 Read `e2e/aside-avatar-lightbox.spec.ts` first, then append a new nested `describe` block at the end, inside the existing outer `test.describe('aside avatar lightbox', ...)`, right after the third test's closing `})`:
 
 ```typescript
-  test.describe('inside the mobile drawer', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.setViewportSize({ width: 390, height: 844 })
-    })
-
-    test('closing via the close button leaves the drawer open', async ({ page }) => {
-      await page.goto('/')
-
-      const drawer = await revealAside(page)
-
-      await drawer.getByTestId('aside-avatar-trigger').click()
-
-      const lightbox = page.getByTestId('aside-avatar-lightbox')
-      await expect(lightbox).toBeVisible()
-
-      await page.getByTestId('aside-avatar-lightbox-close').click()
-
-      await expect(lightbox).toBeHidden()
-      await expect(drawer).toBeVisible()
-    })
-
-    test('closing via Escape leaves the drawer open', async ({ page }) => {
-      await page.goto('/')
-
-      const drawer = await revealAside(page)
-
-      await drawer.getByTestId('aside-avatar-trigger').click()
-
-      const lightbox = page.getByTestId('aside-avatar-lightbox')
-      await expect(lightbox).toBeVisible()
-
-      await page.keyboard.press('Escape')
-
-      await expect(lightbox).toBeHidden()
-      await expect(drawer).toBeVisible()
-    })
-
-    test('closing via outside click leaves the drawer open', async ({ page }) => {
-      await page.goto('/')
-
-      const drawer = await revealAside(page)
-
-      await drawer.getByTestId('aside-avatar-trigger').click()
-
-      const lightbox = page.getByTestId('aside-avatar-lightbox')
-      await expect(lightbox).toBeVisible()
-
-      await page.mouse.click(5, 5)
-
-      await expect(lightbox).toBeHidden()
-      await expect(drawer).toBeVisible()
-    })
+test.describe('inside the mobile drawer', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
   })
+
+  test('closing via the close button leaves the drawer open', async ({ page }) => {
+    await page.goto('/')
+
+    const drawer = await revealAside(page)
+
+    await drawer.getByTestId('aside-avatar-trigger').click()
+
+    const lightbox = page.getByTestId('aside-avatar-lightbox')
+    await expect(lightbox).toBeVisible()
+
+    await page.getByTestId('aside-avatar-lightbox-close').click()
+
+    await expect(lightbox).toBeHidden()
+    await expect(drawer).toBeVisible()
+  })
+
+  test('closing via Escape leaves the drawer open', async ({ page }) => {
+    await page.goto('/')
+
+    const drawer = await revealAside(page)
+
+    await drawer.getByTestId('aside-avatar-trigger').click()
+
+    const lightbox = page.getByTestId('aside-avatar-lightbox')
+    await expect(lightbox).toBeVisible()
+
+    await page.keyboard.press('Escape')
+
+    await expect(lightbox).toBeHidden()
+    await expect(drawer).toBeVisible()
+  })
+
+  test('closing via outside click leaves the drawer open', async ({ page }) => {
+    await page.goto('/')
+
+    const drawer = await revealAside(page)
+
+    await drawer.getByTestId('aside-avatar-trigger').click()
+
+    const lightbox = page.getByTestId('aside-avatar-lightbox')
+    await expect(lightbox).toBeVisible()
+
+    await page.mouse.click(5, 5)
+
+    await expect(lightbox).toBeHidden()
+    await expect(drawer).toBeVisible()
+  })
+})
 ```
 
 - [ ] **Step 2: Run it to confirm the Escape case fails**
@@ -459,52 +462,55 @@ Expected: FAIL on "closing via Escape leaves the drawer open" - the drawer close
 Read `src/layout/Aside/components/MobileAside/MobileAside.tsx` first, then:
 
 Change the React import to add `useState`:
+
 ```tsx
 import { useCallback, useEffect, useState } from 'react'
 ```
 
 Add a new import:
+
 ```tsx
 import { AsideLightboxContext } from '@/layout/Aside/context/AsideLightbox.context'
 ```
 
 Add a new piece of state alongside the existing `isOpenDrawer`/`setIsOpenDrawer` destructure:
+
 ```tsx
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 ```
 
 Pass `disableEscapeKeyDown` to the `Drawer`, and wrap the drawer's content in the context provider so `AsideAvatar` (rendered inside `AsideContent`) can reach `setIsLightboxOpen`:
 
 ```tsx
-    <Drawer
-      open={isOpenDrawer}
-      onOpenChange={(isOpen) => !isOpen && handleCloseDrawer()}
-      disableEscapeKeyDown={isLightboxOpen}
-      className={styles.drawer}
-      contentClassName={styles.drawerItem}
+<Drawer
+  open={isOpenDrawer}
+  onOpenChange={(isOpen) => !isOpen && handleCloseDrawer()}
+  disableEscapeKeyDown={isLightboxOpen}
+  className={styles.drawer}
+  contentClassName={styles.drawerItem}
+>
+  <div
+    id="aside-card"
+    ref={swipeToCloseRef}
+    data-testid="aside-drawer"
+    className={styles.drawerItemContent}
+  >
+    <Button
+      data-testid="aside-close-profile"
+      view="flat"
+      pin="circle-circle"
+      size="m"
+      aria-label={t('aside.closeProfile')}
+      className={styles.closeIcon}
+      onClick={handleCloseDrawer}
     >
-      <div
-        id="aside-card"
-        ref={swipeToCloseRef}
-        data-testid="aside-drawer"
-        className={styles.drawerItemContent}
-      >
-        <Button
-          data-testid="aside-close-profile"
-          view="flat"
-          pin="circle-circle"
-          size="m"
-          aria-label={t('aside.closeProfile')}
-          className={styles.closeIcon}
-          onClick={handleCloseDrawer}
-        >
-          <CircleXmark />
-        </Button>
-        <AsideLightboxContext.Provider value={{ onLightboxOpenChange: setIsLightboxOpen }}>
-          <AsideContent />
-        </AsideLightboxContext.Provider>
-      </div>
-    </Drawer>
+      <CircleXmark />
+    </Button>
+    <AsideLightboxContext.Provider value={{ onLightboxOpenChange: setIsLightboxOpen }}>
+      <AsideContent />
+    </AsideLightboxContext.Provider>
+  </div>
+</Drawer>
 ```
 
 - [ ] **Step 4: Type-check and lint**
