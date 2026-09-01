@@ -380,16 +380,16 @@ git commit -m "feat: expand aside avatar into a photo lightbox"
 
 ---
 
-## Task 2: Keep the mobile drawer open when the lightbox dismisses
+## Task 2: Verify the mobile drawer stays open when the lightbox dismisses
 
 **Files:**
 
-- Modify: `src/layout/Aside/components/MobileAside/MobileAside.tsx`
 - Test: `e2e/aside-avatar-lightbox.spec.ts` (extend)
+- ~~Modify: `src/layout/Aside/components/MobileAside/MobileAside.tsx`~~ - not needed, see Step 2/3 below.
 
 **Interfaces:**
 
-- Consumes: `AsideLightboxContext` from Task 1 (`src/layout/Aside/context/AsideLightbox.context.ts`).
+- Would have consumed `AsideLightboxContext` from Task 1 (`src/layout/Aside/context/AsideLightbox.context.ts`) had the fix been necessary. It wasn't - see Step 2.
 - Produces: nothing new consumed by later tasks - this is the last task in the plan.
 
 - [ ] **Step 1: Write the failing e2e coverage for the nested-overlay case**
@@ -452,88 +452,42 @@ test.describe('inside the mobile drawer', () => {
 })
 ```
 
-- [ ] **Step 2: Run it to confirm the Escape case fails**
+- [x] **Step 2: Run it to confirm the Escape case fails**
 
 Run: `pnpm test:e2e -- e2e/aside-avatar-lightbox.spec.ts --project=mobile-chrome`
-Expected: FAIL on "closing via Escape leaves the drawer open" - the drawer closes too, because `Drawer` and `Modal` each register their own independent `Escape` dismiss handler (confirmed by reading `@gravity-ui/uikit`'s `Drawer`/`Modal` source: neither shares a `FloatingTree`, so both fire on the same keydown). The other two mobile tests are expected to already pass, since outside-click dismissal is scoped per-overlay via a `.closest('.g-modal'|'.g-drawer')` check in each component's own `useDismiss` callback.
+Expected: FAIL on "closing via Escape leaves the drawer open".
 
-- [ ] **Step 3: Disable the drawer's own Escape handling while the lightbox is open**
+**Actual result: all 6 tests PASSED, including the Escape case, with no fix applied.** The predicted bug does not reproduce. Re-run 3x in a row (isolated and as part of the full spec) to rule out a fluke - consistently green every time. The source-level analysis in this plan's Architecture section was incomplete: `FloatingFocusManager` traps focus inside the `Modal`'s own portaled DOM subtree while it's open, and the native `Escape` keydown only bubbles up through _that_ subtree to `document` - it never passes through the `Drawer`'s separate portaled subtree at all. Since `Drawer`'s dismiss listener apparently isn't a bare unconditional `document`-level listener (contrary to what the earlier static read of `useDismiss` suggested), it never sees an `Escape` that originated inside the `Modal`'s subtree. The two overlays are already correctly isolated without any extra code.
 
-Read `src/layout/Aside/components/MobileAside/MobileAside.tsx` first, then:
+- [x] ~~Step 3: Disable the drawer's own Escape handling while the lightbox is open~~ **SKIPPED**
 
-Change the React import to add `useState`:
+Confirmed with the user: since the bug doesn't reproduce, adding `AsideLightboxContext`/`disableEscapeKeyDown` wiring to `MobileAside.tsx` would be unused defensive code for a scenario that can't happen (violates this project's YAGNI convention). Not implemented. `AsideLightboxContext` (Task 1) stays in the codebase unconsumed for now - `AsideAvatar` still calls `onLightboxOpenChange` against its default no-op, so nothing breaks; it's simply not wired to anything yet.
 
-```tsx
-import { useCallback, useEffect, useState } from 'react'
-```
-
-Add a new import:
-
-```tsx
-import { AsideLightboxContext } from '@/layout/Aside/context/AsideLightbox.context'
-```
-
-Add a new piece of state alongside the existing `isOpenDrawer`/`setIsOpenDrawer` destructure:
-
-```tsx
-const [isLightboxOpen, setIsLightboxOpen] = useState(false)
-```
-
-Pass `disableEscapeKeyDown` to the `Drawer`, and wrap the drawer's content in the context provider so `AsideAvatar` (rendered inside `AsideContent`) can reach `setIsLightboxOpen`:
-
-```tsx
-<Drawer
-  open={isOpenDrawer}
-  onOpenChange={(isOpen) => !isOpen && handleCloseDrawer()}
-  disableEscapeKeyDown={isLightboxOpen}
-  className={styles.drawer}
-  contentClassName={styles.drawerItem}
->
-  <div
-    id="aside-card"
-    ref={swipeToCloseRef}
-    data-testid="aside-drawer"
-    className={styles.drawerItemContent}
-  >
-    <Button
-      data-testid="aside-close-profile"
-      view="flat"
-      pin="circle-circle"
-      size="m"
-      aria-label={t('aside.closeProfile')}
-      className={styles.closeIcon}
-      onClick={handleCloseDrawer}
-    >
-      <CircleXmark />
-    </Button>
-    <AsideLightboxContext.Provider value={{ onLightboxOpenChange: setIsLightboxOpen }}>
-      <AsideContent />
-    </AsideLightboxContext.Provider>
-  </div>
-</Drawer>
-```
-
-- [ ] **Step 4: Type-check and lint**
+- [x] **Step 4: Type-check and lint**
 
 Run: `pnpm check-types && pnpm lint`
-Expected: PASS.
+Result: PASS (5 pre-existing `react-hooks/exhaustive-deps` warnings in unrelated files, 0 errors).
 
-- [ ] **Step 5: Run the full e2e spec across desktop and mobile projects**
+- [x] **Step 5: Run the full e2e spec across desktop and mobile projects**
 
-Run: `pnpm test:e2e -- e2e/aside-avatar-lightbox.spec.ts`
-Expected: PASS, all 6 tests green on every configured project (`chromium`, `mobile-chrome`, `firefox`, `mobile-firefox`, `safari`, `mobile-safari`).
+Run: `npx playwright test e2e/aside-avatar-lightbox.spec.ts --project=chromium --project=mobile-chrome --project=firefox --project=mobile-firefox`
+Result: PASS, 24/24 across all four projects (headless run; also verified headed per-project). `safari`/`mobile-safari` are not installed in this environment - unrelated to this change, every existing spec fails identically on those two projects here, not just this one.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
-git add src/layout/Aside/components/MobileAside/MobileAside.tsx e2e/aside-avatar-lightbox.spec.ts
-git commit -m "fix: keep the mobile aside drawer open when the avatar lightbox dismisses"
+git add e2e/aside-avatar-lightbox.spec.ts docs/superpowers/plans/2026-09-01-aside-avatar-lightbox.md
+git commit -m "test: cover the avatar lightbox inside the mobile drawer"
 ```
 
 ---
 
 ## Self-Review Notes
 
-- **Spec coverage:** trigger button + `aside.viewPhoto` (Task 1 Step 7-8), `Modal` lightbox with veil/Escape/outside-click/close-button (Task 1 Step 7), `aside.closePhoto` (Task 1 Step 7), removed duplicate `backToHome` link (Task 1 Step 8), moved `.avatar`/`.avatarLink` CSS (Task 1 Steps 6 & 9), test ids (Task 1 Steps 7-8), nested-overlay risk called out in the spec (Task 2, with the exact library-level cause identified and fixed) - all covered.
+- **Spec coverage:** trigger button + `aside.viewPhoto` (Task 1 Step 7-8), `Modal` lightbox with veil/Escape/outside-click/close-button (Task 1 Step 7), `aside.closePhoto` (Task 1 Step 7), removed duplicate `backToHome` link (Task 1 Step 8), moved `.avatar`/`.avatarLink` CSS (Task 1 Steps 6 & 9), test ids (Task 1 Steps 7-8) - all covered. The spec's nested-overlay risk was investigated (Task 2) and turned out to already be a non-issue in practice; regression tests lock that in.
 - **Placeholder scan:** no TBD/TODO; every step has literal code or an exact command.
-- **Type consistency:** `IAsideLightboxContext.onLightboxOpenChange` (Task 1 Step 4) is the single signature used everywhere it appears - `AsideLightbox.context.ts`'s default value, `AsideAvatar.tsx`'s consumption, and `MobileAside.tsx`'s `setIsLightboxOpen` (which structurally matches `(_isOpen: boolean) => void`).
+- **Type consistency:** `IAsideLightboxContext.onLightboxOpenChange` (Task 1 Step 4) is used consistently in `AsideLightbox.context.ts`'s default value and `AsideAvatar.tsx`'s consumption. It has no other consumer - Task 2 found the `MobileAside.tsx` wiring it was meant for unnecessary (see Task 2 Step 2/3).
+
+## Outcome
+
+Task 2's premise - that `@gravity-ui/uikit`'s `Drawer` and `Modal` would both react to the same `Escape` keypress - did not hold up under actual testing, despite being grounded in a source-level read of `useDismiss`. The two overlays turned out to already be correctly isolated (see Task 2 Step 2 for the corrected explanation). The planned fix (`AsideLightboxContext` wiring into `MobileAside.tsx`, `disableEscapeKeyDown`) was not implemented, by the user's explicit choice, to avoid defensive code for a scenario that doesn't occur. `AsideLightboxContext` (Task 1) remains in the codebase, currently unconsumed beyond its no-op default - `AsideAvatar` calls it, but nothing overrides it. The three extra mobile-drawer e2e tests written for Task 2 stayed in as regression coverage, since they now document and lock in the correct (already-existing) behavior.
