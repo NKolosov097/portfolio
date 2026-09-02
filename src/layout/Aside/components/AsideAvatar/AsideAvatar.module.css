@@ -23,13 +23,21 @@
 .lightboxContent {
   position: relative;
   display: flex;
-  max-width: min(90vw, 1024px);
-  max-height: 90vh;
+  align-items: center;
+  justify-content: center;
+  width: min(90vw, 1024px);
+  height: min(90vh, 1024px);
+}
+
+/* Overrides Modal's own surface token so only the veil and the photo are visible, not a background box behind the letterboxed image. */
+.lightboxSurface {
+  --g-color-base-modal: transparent;
 }
 
 .lightboxImage {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
   border-radius: 1.2rem;
 }
 

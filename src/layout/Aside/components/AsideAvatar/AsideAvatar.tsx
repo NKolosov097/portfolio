@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 
@@ -24,6 +24,21 @@ export const AsideAvatar = () => {
     setIsPhotoOpen(isOpen)
     onLightboxOpenChange(isOpen)
   }
+
+  /**
+   * Modal's own scroll lock overwrites `body.style.paddingRight` with just the scrollbar width,
+   * discarding this app's own `--body-padding` and shifting the layout - `scrollbar-gutter: stable`
+   * (globals.css) already keeps the page width constant, so no compensation is needed here at all.
+   */
+  useEffect(() => {
+    if (!isPhotoOpen) return
+
+    document.documentElement.style.overflow = 'hidden'
+
+    return () => {
+      document.documentElement.style.overflow = ''
+    }
+  }, [isPhotoOpen])
 
   return (
     <>
@@ -49,6 +64,8 @@ export const AsideAvatar = () => {
       <Modal
         open={isPhotoOpen}
         onOpenChange={handleOpenChange}
+        disableBodyScrollLock
+        contentClassName={styles.lightboxSurface}
         data-testid="aside-avatar-lightbox"
       >
         <div className={styles.lightboxContent}>

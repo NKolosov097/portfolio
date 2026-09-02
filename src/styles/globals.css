@@ -55,6 +55,7 @@ body {
   margin: 0 auto;
   background-color: var(--root-bg-color);
   color: var(--root-text-color);
+  scrollbar-gutter: stable;
 }
 
 @supports (height: 100svh) {
