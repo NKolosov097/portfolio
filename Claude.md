@@ -4,6 +4,7 @@ Claude may assist with planning, prototyping, tests, and documentation. Treat al
 
 ## Development conventions
 
+- Write everything that lands in the repository or on GitHub in English: identifiers, comments, JSDoc, commit messages, PR titles and descriptions, documentation, and user-facing copy. Chat with the user may be in any language; the artefacts must not be.
 - Use strict TypeScript. Do not introduce `any`; avoid type assertions; prefer generics, type guards, and discriminated unions. Prefix boolean identifiers with `is` or `has`.
 - Use JSDoc to explain intent on interface and type fields, component props, and non-`useState` variables.
 - Keep comments to 1-2 lines - short but information-dense: state the non-obvious reason, not paragraph-length blocks.
