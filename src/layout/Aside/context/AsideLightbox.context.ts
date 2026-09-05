@@ -11,5 +11,4 @@ export const AsideLightboxContext = createContext<IAsideLightboxContext>(
   DEFAULT_ASIDE_LIGHTBOX_CONTEXT,
 )
 
-export const useAsideLightboxContext = (): IAsideLightboxContext =>
-  useContext(AsideLightboxContext)
+export const useAsideLightboxContext = (): IAsideLightboxContext => useContext(AsideLightboxContext)
