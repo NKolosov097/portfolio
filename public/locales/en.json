@@ -35,7 +35,9 @@
     "opensInNewTab": "opens in a new tab",
     "openProfile": "Open profile",
     "closeProfile": "Close profile",
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "viewPhoto": "View larger photo",
+    "closePhoto": "Close photo"
   },
 
   "headerTabs": {

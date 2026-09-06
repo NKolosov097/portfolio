@@ -171,9 +171,16 @@ export const favoriteTools: IFavoriteTool[] = [
     title: 'Zod',
   },
   {
-    id: 'rtk-query',
-    icon: <Image src="/assets/svg/tools/rtk-query.svg" alt="RTK Query" width={40} height={40} />,
-    title: 'RTK Query',
+    id: 'typescript',
+    icon: <Image src="/assets/svg/tools/typescript.svg" alt="TypeScript" width={40} height={40} />,
+    title: 'TypeScript',
+  },
+  {
+    id: 'redux-toolkit',
+    icon: (
+      <Image src="/assets/svg/tools/redux-toolkit.svg" alt="Redux Toolkit" width={40} height={40} />
+    ),
+    title: 'Redux Toolkit',
   },
   {
     id: 'zustand',
