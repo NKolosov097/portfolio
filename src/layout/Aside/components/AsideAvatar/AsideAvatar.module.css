@@ -2,7 +2,7 @@
   display: flex;
   padding: 0;
   border: none;
-  border-radius: 1.2rem; /* Mirrors the photo's radius so the focus ring follows its corners instead of boxing them. */
+  border-radius: 1.2rem;
   background: none;
   cursor: pointer;
 }
@@ -21,8 +21,6 @@
   box-shadow: 0 0 15px 5px rgb(255 255 255 / 15%);
 }
 
-/* Square box tracking the square source photo: object-fit would otherwise letterbox the photo inside a
-   viewport-shaped box, hiding the rounded corners and detaching the close button from the photo's edge. */
 .lightboxContent {
   position: relative;
   display: flex;
@@ -30,7 +28,6 @@
   aspect-ratio: 1;
 }
 
-/* Overrides Modal's own surface token so only the veil and the photo are visible, not a background box showing through the photo's rounded corners. */
 .lightboxSurface {
   --g-color-base-modal: transparent;
 }

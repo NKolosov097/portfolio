@@ -65,7 +65,6 @@ body {
   }
 }
 
-/* Modals run with `disableBodyScrollLock`: Gravity's own lock rewrites `body` padding and drops `--body-padding`. `scrollbar-gutter: stable` above already reserves the scrollbar, so freezing the page here is all that is left to do. */
 html:has(.g-modal_open) {
   overflow: hidden;
 }
