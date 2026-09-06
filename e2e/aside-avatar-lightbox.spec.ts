@@ -1,6 +1,45 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { revealAside } from './helpers/aside'
+
+/** Rectangles of the lightbox photo and its close button, sampled in the same frame. */
+interface ILightboxBoxes {
+  /** Border box of the rendered photo. */
+  photoBox: DOMRect
+  /** Border box of the close button. */
+  closeBox: DOMRect
+}
+
+/**
+ * Waits out the modal's scale-in transition, then measures the photo and the close button together -
+ * separate `boundingBox()` calls would sample different frames of that transition.
+ */
+const measureSettledLightbox = (page: Page): Promise<ILightboxBoxes> =>
+  page.evaluate(async () => {
+    const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+    const photo = document.querySelector<HTMLElement>('[data-testid="aside-avatar-lightbox-image"]')
+    const close = document.querySelector<HTMLElement>('[data-testid="aside-avatar-lightbox-close"]')
+
+    if (!photo || !close) throw new Error('The lightbox photo or its close button is not mounted.')
+
+    let previousWidth = -1
+
+    // The transition is short; the cap only guards against a never-settling layout.
+    for (let frame = 0; frame < 120; frame += 1) {
+      const { width } = photo.getBoundingClientRect()
+
+      if (width > 0 && width === previousWidth) break
+
+      previousWidth = width
+      await nextFrame()
+    }
+
+    return {
+      photoBox: photo.getBoundingClientRect().toJSON(),
+      closeBox: close.getBoundingClientRect().toJSON(),
+    }
+  })
 
 test.describe('aside avatar lightbox', () => {
   test('opens on click and closes via the close button', async ({ page }) => {
@@ -47,6 +86,41 @@ test.describe('aside avatar lightbox', () => {
 
     await expect(lightbox).toBeHidden()
   })
+
+  /** The source photo is square; its rendered box must stay square so the rounded corners and the
+   *  close button anchor to the photo itself instead of a viewport-shaped letterbox. */
+  const SQUARE_TOLERANCE_PX = 1
+
+  const LIGHTBOX_VIEWPORTS = [
+    { width: 1440, height: 720 },
+    { width: 900, height: 1200 },
+    { width: 1280, height: 1024 },
+  ]
+
+  for (const viewport of LIGHTBOX_VIEWPORTS) {
+    test(`keeps the photo square and the close button on it at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport)
+      await page.goto('/')
+
+      const aside = await revealAside(page)
+
+      await aside.getByTestId('aside-avatar-trigger').click()
+
+      const photo = page.getByTestId('aside-avatar-lightbox-image')
+      await expect(photo).toBeVisible()
+
+      const { photoBox, closeBox } = await measureSettledLightbox(page)
+
+      expect(Math.abs(photoBox.width - photoBox.height)).toBeLessThanOrEqual(SQUARE_TOLERANCE_PX)
+
+      expect(closeBox.x).toBeGreaterThanOrEqual(photoBox.x)
+      expect(closeBox.y).toBeGreaterThanOrEqual(photoBox.y)
+      expect(closeBox.x + closeBox.width).toBeLessThanOrEqual(photoBox.x + photoBox.width)
+      expect(closeBox.y + closeBox.height).toBeLessThanOrEqual(photoBox.y + photoBox.height)
+    })
+  }
 
   test.describe('inside the mobile drawer', () => {
     test.beforeEach(async ({ page }) => {

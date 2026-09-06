@@ -72,6 +72,7 @@ export const AsideAvatar = () => {
             src={AVATAR_SRC}
             alt="Avatar"
             className={styles.lightboxImage}
+            data-testid="aside-avatar-lightbox-image"
           />
         </div>
       </Modal>

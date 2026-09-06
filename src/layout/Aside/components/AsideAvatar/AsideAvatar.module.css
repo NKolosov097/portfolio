@@ -20,16 +20,16 @@
   box-shadow: 0 0 15px 5px rgb(255 255 255 / 15%);
 }
 
+/* Square box tracking the square source photo: object-fit would otherwise letterbox the photo inside a
+   viewport-shaped box, hiding the rounded corners and detaching the close button from the photo's edge. */
 .lightboxContent {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: min(90vw, 1024px);
-  height: min(90vh, 1024px);
+  width: min(90vw, 90vh, 1024px);
+  aspect-ratio: 1;
 }
 
-/* Overrides Modal's own surface token so only the veil and the photo are visible, not a background box behind the letterboxed image. */
+/* Overrides Modal's own surface token so only the veil and the photo are visible, not a background box showing through the photo's rounded corners. */
 .lightboxSurface {
   --g-color-base-modal: transparent;
 }
