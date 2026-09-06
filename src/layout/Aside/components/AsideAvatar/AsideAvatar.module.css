@@ -2,6 +2,7 @@
   display: flex;
   padding: 0;
   border: none;
+  border-radius: 1.2rem; /* Mirrors the photo's radius so the focus ring follows its corners instead of boxing them. */
   background: none;
   cursor: pointer;
 }
