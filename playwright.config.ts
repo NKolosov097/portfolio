@@ -23,6 +23,12 @@ export default defineConfig({
     },
     { name: 'safari', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile-safari', use: { ...devices['iPhone 15'] } },
+    // Both tablet orientations plus the foldable's unfolded and cover screens - the touch sizes
+    // between the phone and desktop projects, including the near-square 984x1016 inner screen.
+    { name: 'tablet-safari', use: { ...devices['iPad Pro 11'] } },
+    { name: 'tablet-chrome-landscape', use: { ...devices['Galaxy Tab S4 landscape'] } },
+    { name: 'foldable-chrome', use: { ...devices['Galaxy Z Fold 7'] } },
+    { name: 'foldable-cover-chrome', use: { ...devices['Galaxy Z Fold 7 Cover'] } },
   ],
   /**
    * The server lifecycle lives in these hooks rather than Playwright's `webServer`, which cannot

@@ -41,6 +41,34 @@ const measureSettledLightbox = (page: Page): Promise<ILightboxBoxes> =>
     }
   })
 
+/** The source photo is square; its rendered box must stay square so the rounded corners and the
+ *  close button anchor to the photo itself instead of a viewport-shaped letterbox. */
+const SQUARE_TOLERANCE_PX = 1
+
+/** Opens the lightbox from the aside on the current viewport and measures it once settled. */
+const openSettledLightbox = async (page: Page): Promise<ILightboxBoxes> => {
+  await page.goto('/')
+
+  const aside = await revealAside(page)
+
+  await aside.getByTestId('aside-avatar-trigger').click()
+
+  const photo = page.getByTestId('aside-avatar-lightbox-image')
+  await expect(photo).toBeVisible()
+
+  return measureSettledLightbox(page)
+}
+
+/** Asserts the sizing contract shared by every viewport: square photo, close button on top of it. */
+const expectSquarePhotoWithCloseInside = ({ photoBox, closeBox }: ILightboxBoxes): void => {
+  expect(Math.abs(photoBox.width - photoBox.height)).toBeLessThanOrEqual(SQUARE_TOLERANCE_PX)
+
+  expect(closeBox.x).toBeGreaterThanOrEqual(photoBox.x)
+  expect(closeBox.y).toBeGreaterThanOrEqual(photoBox.y)
+  expect(closeBox.x + closeBox.width).toBeLessThanOrEqual(photoBox.x + photoBox.width)
+  expect(closeBox.y + closeBox.height).toBeLessThanOrEqual(photoBox.y + photoBox.height)
+}
+
 test.describe('aside avatar lightbox', () => {
   test('opens on click and closes via the close button', async ({ page }) => {
     await page.goto('/')
@@ -87,10 +115,6 @@ test.describe('aside avatar lightbox', () => {
     await expect(lightbox).toBeHidden()
   })
 
-  /** The source photo is square; its rendered box must stay square so the rounded corners and the
-   *  close button anchor to the photo itself instead of a viewport-shaped letterbox. */
-  const SQUARE_TOLERANCE_PX = 1
-
   const LIGHTBOX_VIEWPORTS = [
     { width: 1440, height: 720 },
     { width: 900, height: 1200 },
@@ -102,25 +126,18 @@ test.describe('aside avatar lightbox', () => {
       page,
     }) => {
       await page.setViewportSize(viewport)
-      await page.goto('/')
 
-      const aside = await revealAside(page)
-
-      await aside.getByTestId('aside-avatar-trigger').click()
-
-      const photo = page.getByTestId('aside-avatar-lightbox-image')
-      await expect(photo).toBeVisible()
-
-      const { photoBox, closeBox } = await measureSettledLightbox(page)
-
-      expect(Math.abs(photoBox.width - photoBox.height)).toBeLessThanOrEqual(SQUARE_TOLERANCE_PX)
-
-      expect(closeBox.x).toBeGreaterThanOrEqual(photoBox.x)
-      expect(closeBox.y).toBeGreaterThanOrEqual(photoBox.y)
-      expect(closeBox.x + closeBox.width).toBeLessThanOrEqual(photoBox.x + photoBox.width)
-      expect(closeBox.y + closeBox.height).toBeLessThanOrEqual(photoBox.y + photoBox.height)
+      expectSquarePhotoWithCloseInside(await openSettledLightbox(page))
     })
   }
+
+  // No viewport override, so every project - tablets, the near-square unfolded foldable, its cover
+  // screen - exercises the `min(90vw, 90vh, 1024px)` sizing at its own native resolution.
+  test('keeps the photo square and the close button on it at the project viewport', async ({
+    page,
+  }) => {
+    expectSquarePhotoWithCloseInside(await openSettledLightbox(page))
+  })
 
   test.describe('inside the mobile drawer', () => {
     test.beforeEach(async ({ page }) => {
