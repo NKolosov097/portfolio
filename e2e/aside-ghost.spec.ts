@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { revealAside } from './helpers/aside'
+import { openLanguageMenu } from './helpers/language'
 
 /** bob + sway + breathe on the body, plus the two eye animations. */
 const EXPECTED_ANIMATION_COUNT = 5
@@ -10,11 +11,8 @@ test.describe('aside ghost', () => {
   test('uses the aside surface color for the language menu', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByRole('button', { name: 'change language' }).click()
+    const languageMenu = await openLanguageMenu(page)
 
-    const languageMenu = page.locator('.g-dropdown-menu__popup-content .g-menu')
-
-    await expect(languageMenu).toBeVisible()
     await expect(languageMenu).toHaveCSS('background-color', ORIGINAL_ASIDE_BACKGROUND)
   })
 

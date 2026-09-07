@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { selectLanguage } from './helpers/language'
+
 import { ELanguage } from '@/constants/header.constants'
 import { aiBoilerplateSeniorEngineersArticle as article } from '@/constants/articles.constants'
 
@@ -41,11 +43,7 @@ test.describe('self-hosted articles', () => {
     const heading = page.locator('article').getByRole('heading', { level: 1 })
     await expect(heading).toHaveText(article.title[ELanguage.en])
 
-    await page.getByRole('button', { name: 'change language' }).click()
-    await page
-      .locator('.g-dropdown-menu__popup-content .g-menu')
-      .getByText('Русский', { exact: true })
-      .click()
+    await selectLanguage(page, 'Русский')
 
     await expect(heading).toHaveText(article.title[ELanguage.ru])
   })
