@@ -4,12 +4,18 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Sundays 15:17 UTC (08:17 for the repo owner). Off the hour: GitHub delays or drops cron runs
+    # queued at popular times.
+    - cron: '17 15 * * 0'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # The event belongs in the key: the weekly run shares main's ref, so a push would cancel it.
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -81,4 +87,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        # The weekly run doubles every test and drops retries, so a flake shows up red instead of
+        # being quietly rescued on a second attempt.
+        env:
+          E2E_FLAGS: ${{ github.event_name == 'schedule' && '--repeat-each=2 --retries=0' || '' }}
+        run: pnpm test:e2e $E2E_FLAGS
