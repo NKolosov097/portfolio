@@ -43,7 +43,7 @@ test.describe('self-hosted articles', () => {
     const heading = page.locator('article').getByRole('heading', { level: 1 })
     await expect(heading).toHaveText(article.title[ELanguage.en])
 
-    await selectLanguage(page, 'Русский')
+    await selectLanguage(page, ELanguage.ru)
 
     await expect(heading).toHaveText(article.title[ELanguage.ru])
   })
