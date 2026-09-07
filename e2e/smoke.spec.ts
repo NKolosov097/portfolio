@@ -5,6 +5,7 @@ import en from '@public/locales/en.json'
 import { ETabID } from '@/constants/header.constants'
 
 import { revealAside } from './helpers/aside'
+import { clickWhenSettled } from './helpers/interaction'
 
 const ALWAYS_RENDERED_SECTION_IDS = [
   ETabID.home,
@@ -72,10 +73,7 @@ test.describe('home page smoke', () => {
   test('scrolls to a section when its header tab is clicked', async ({ page }) => {
     await page.goto('/')
 
-    const resumeTab = page.getByRole('tab', { name: en.headerTabs.resume })
-
-    await expect(resumeTab).toBeVisible()
-    await resumeTab.click()
+    await clickWhenSettled(page.getByRole('tab', { name: en.headerTabs.resume }))
 
     await expect(page.locator(`section#${ETabID.resume}`)).toBeInViewport({ timeout: 10_000 })
   })
