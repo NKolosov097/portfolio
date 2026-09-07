@@ -5,6 +5,9 @@ import { openLanguageMenu } from './helpers/language'
 
 /** bob + sway + breathe on the body, plus the two eye animations. */
 const EXPECTED_ANIMATION_COUNT = 5
+
+/** Frame sampling window for the 180ms reduced-motion giggle, which a single read can miss. */
+const REDUCED_MOTION_SAMPLE_WINDOW_MS = 1_500
 const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
 
 test.describe('aside ghost', () => {
@@ -152,11 +155,33 @@ test.describe('aside ghost', () => {
 
     const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
 
+    const collectedAnimationIds = trigger.evaluate(
+      (node, windowMs) =>
+        new Promise<string[]>((resolve) => {
+          const seenIds = new Set<string>()
+          const deadline = performance.now() + windowMs
+
+          const sample = () => {
+            for (const { id } of node.getAnimations({ subtree: true })) {
+              if (id) seenIds.add(id)
+            }
+
+            if (performance.now() >= deadline) {
+              resolve([...seenIds])
+              return
+            }
+
+            requestAnimationFrame(sample)
+          }
+
+          sample()
+        }),
+      REDUCED_MOTION_SAMPLE_WINDOW_MS,
+    )
+
     await trigger.click()
 
-    const animationIds = await trigger.evaluate((node) =>
-      node.getAnimations({ subtree: true }).map(({ id }) => id),
-    )
+    const animationIds = await collectedAnimationIds
 
     expect(animationIds).not.toContain('ghost-tickle-body')
     expect(animationIds).toContain('ghost-reduced-giggle')

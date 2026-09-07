@@ -24,6 +24,9 @@ const isSettledHitTarget = (locator: Locator): Promise<boolean> =>
  */
 export const clickWhenSettled = async (locator: Locator): Promise<void> => {
   await expect(locator).toBeVisible()
+
+  await locator.scrollIntoViewIfNeeded()
+
   await expect.poll(() => isSettledHitTarget(locator)).toBe(true)
 
   await locator.click()
