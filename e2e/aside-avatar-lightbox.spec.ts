@@ -131,8 +131,6 @@ test.describe('aside avatar lightbox', () => {
     })
   }
 
-  // No viewport override, so every project - tablets, the near-square unfolded foldable, its cover
-  // screen - exercises the `min(90vw, 90vh, 1024px)` sizing at its own native resolution.
   test('keeps the photo square and the close button on it at the project viewport', async ({
     page,
   }) => {

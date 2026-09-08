@@ -27,6 +27,14 @@ export default defineConfig({
     { name: 'tablet-chrome-landscape', use: { ...devices['Galaxy Tab S4 landscape'] } },
     { name: 'foldable-chrome', use: { ...devices['Galaxy Z Fold 7'] } },
     { name: 'foldable-cover-chrome', use: { ...devices['Galaxy Z Fold 7 Cover'] } },
+    {
+      name: 'tablet-firefox',
+      use: { ...devices['Desktop Firefox'], viewport: { width: 834, height: 1194 } },
+    },
+    {
+      name: 'near-square-safari',
+      use: { ...devices['Desktop Safari'], viewport: { width: 984, height: 1016 } },
+    },
   ],
   /**
    * The server lifecycle lives in these hooks rather than Playwright's `webServer`, which cannot
