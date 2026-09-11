@@ -75,29 +75,40 @@ test.describe('aside ghost', () => {
     const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
 
     await trigger.click()
-    await page.waitForTimeout(350)
 
-    const elapsedBeforeRestart = await trigger.evaluate((node) => {
-      const animation = node
+    const restartResult = trigger.evaluate((node) => {
+      const previous = node
         .getAnimations({ subtree: true })
-        .find((candidate) => candidate.id === 'ghost-tickle-body')
+        .find((animation) => animation.id === 'ghost-tickle-body')
 
-      return Number(animation?.currentTime ?? 0)
+      if (!previous) throw new Error('The first tickle animation did not start.')
+
+      // Hold a real active run midway through its timeline, independent of WebKit frame timing.
+      previous.pause()
+      previous.currentTime = Number(previous.effect!.getTiming().duration) / 2
+
+      return new Promise<{ cancelledPrevious: boolean; startedNew: boolean }>((resolve) => {
+        window.addEventListener(
+          'click',
+          () => {
+            // Window bubbling runs after React's handler, before any remote round trip.
+            const next = node
+              .getAnimations({ subtree: true })
+              .find((animation) => animation.id === 'ghost-tickle-body')
+
+            resolve({
+              cancelledPrevious: previous.playState === 'idle',
+              startedNew: Boolean(next && next !== previous && next.playState === 'running'),
+            })
+          },
+          { once: true },
+        )
+      })
     })
 
     await trigger.click()
 
-    await expect
-      .poll(() =>
-        trigger.evaluate((node) => {
-          const animation = node
-            .getAnimations({ subtree: true })
-            .find((candidate) => candidate.id === 'ghost-tickle-body')
-
-          return Number(animation?.currentTime ?? Number.POSITIVE_INFINITY)
-        }),
-      )
-      .toBeLessThan(elapsedBeforeRestart)
+    expect(await restartResult).toEqual({ cancelledPrevious: true, startedNew: true })
   })
 
   test('folds toward its center without marks and settles without remounting', async ({ page }) => {
