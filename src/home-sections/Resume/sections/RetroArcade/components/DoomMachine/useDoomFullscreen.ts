@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 
 import { lockDoomScreen } from '@/home-sections/Resume/sections/RetroArcade/helpers/lockDoomScreen'
+import { EDoomFullscreenMode } from '@/home-sections/Resume/sections/RetroArcade/constants/retroArcade.constants'
 
 export const useDoomFullscreen = (
   screenRef: RefObject<HTMLDivElement | null>,
@@ -8,9 +9,9 @@ export const useDoomFullscreen = (
   toggleRef: RefObject<HTMLButtonElement | null>,
   playRef: RefObject<HTMLButtonElement | null>,
 ) => {
-  const [mode, setMode] = useState<'inline' | 'viewport' | 'native'>('inline')
+  const [mode, setMode] = useState<EDoomFullscreenMode>(EDoomFullscreenMode.inline)
   const wantsFullscreen = useRef(false)
-  const isFullscreen = mode !== 'inline'
+  const isFullscreen = mode !== EDoomFullscreenMode.inline
 
   const restoreFocus = useCallback(() => {
     // Stop replaces the HUD with Play, so resolve the destination after React updates the DOM.
@@ -30,7 +31,7 @@ export const useDoomFullscreen = (
     if (document.fullscreenElement === screenRef.current) {
       exitNative()
     } else {
-      setMode('inline')
+      setMode(EDoomFullscreenMode.inline)
     }
   }, [exitNative, screenRef])
 
@@ -43,7 +44,7 @@ export const useDoomFullscreen = (
     }
 
     wantsFullscreen.current = true
-    setMode('viewport')
+    setMode(EDoomFullscreenMode.viewport)
     if (typeof screen.requestFullscreen !== 'function') return
 
     try {
@@ -53,7 +54,11 @@ export const useDoomFullscreen = (
             if (document.fullscreenElement === screen) exitNative()
           } else {
             // The promise can settle before fullscreenchange (notably in WebKit).
-            setMode(document.fullscreenElement === screen ? 'native' : 'inline')
+            setMode(
+              document.fullscreenElement === screen
+                ? EDoomFullscreenMode.native
+                : EDoomFullscreenMode.inline,
+            )
           }
         },
         () => {
@@ -69,10 +74,12 @@ export const useDoomFullscreen = (
     const screen = screenRef.current
     const handleChange = () => {
       if (screen && document.fullscreenElement === screen) {
-        if (wantsFullscreen.current) setMode('native')
+        if (wantsFullscreen.current) setMode(EDoomFullscreenMode.native)
         else exitNative()
       } else {
-        setMode((current) => (current === 'native' ? 'inline' : current))
+        setMode((current) =>
+          current === EDoomFullscreenMode.native ? EDoomFullscreenMode.inline : current,
+        )
       }
     }
     document.addEventListener('fullscreenchange', handleChange)
@@ -123,5 +130,10 @@ export const useDoomFullscreen = (
     }
   }, [isFullscreen, screenRef, canvasRef, exitFullscreen, restoreFocus])
 
-  return { isFullscreen, isViewport: mode === 'viewport', toggleFullscreen, exitFullscreen }
+  return {
+    isFullscreen,
+    isViewport: mode === EDoomFullscreenMode.viewport,
+    toggleFullscreen,
+    exitFullscreen,
+  }
 }
