@@ -3,33 +3,48 @@ import { expect, test } from '@playwright/test'
 /** Viewport below the breakpoint where the header tab strip switches to its compact metrics. */
 const NARROW_VIEWPORT = { width: 393, height: 851 }
 
-/** How long the in-page recorder keeps sampling tab widths after navigation, in milliseconds. */
+/** Observe the first second in which the tabs are present, including the hydration frames. */
 const SAMPLE_WINDOW_MS = 1_000
+
+const COMPACT_METRICS = { height: '36px', gap: '24px', fontSize: '13px', lineHeight: '18px' }
+const LARGE_METRICS = { height: '40px', gap: '28px', fontSize: '15px', lineHeight: '20px' }
 
 declare global {
   interface Window {
-    /** Width of the first header tab captured on every animation frame after navigation. */
-    headerTabWidthSamples?: number[]
+    headerTabMetricSamples?: (typeof COMPACT_METRICS)[]
+    headerTabSamplingDone?: boolean
   }
 }
 
 /**
- * Runs before any page script so the first sample lands on the first painted frame - a width read
- * over the Playwright wire would arrive too late to catch a shift that settles within ~100ms.
+ * Runs before page scripts to catch a post-mount size switch. Read the size metrics rather than
+ * glyph widths: Inter uses font-display: swap, so loading it can change widths without changing these metrics.
  */
-const recordHeaderTabWidths = (sampleWindowMs: number) => {
-  window.headerTabWidthSamples = []
-
-  const startedAt = performance.now()
+const recordHeaderTabMetrics = (sampleWindowMs: number) => {
+  window.headerTabMetricSamples = []
+  window.headerTabSamplingDone = false
+  let startedAt: number | undefined
 
   const sample = () => {
-    const tab = document.querySelector('[role="tab"]')
+    const tab = document.querySelector('[role="tablist"] [role="tab"]')
+    const title = tab?.querySelector('.g-tabs-legacy__item-title')
 
-    if (tab) {
-      window.headerTabWidthSamples?.push(Math.round(tab.getBoundingClientRect().width * 100) / 100)
+    if (tab && title) {
+      startedAt ??= performance.now()
+      const tabStyle = getComputedStyle(tab)
+      const titleStyle = getComputedStyle(title)
+
+      window.headerTabMetricSamples?.push({
+        height: tabStyle.height,
+        gap: tabStyle.marginInlineEnd,
+        fontSize: titleStyle.fontSize,
+        lineHeight: titleStyle.lineHeight,
+      })
     }
 
-    if (performance.now() - startedAt < sampleWindowMs) {
+    if (startedAt !== undefined && performance.now() - startedAt >= sampleWindowMs) {
+      window.headerTabSamplingDone = true
+    } else {
       requestAnimationFrame(sample)
     }
   }
@@ -40,20 +55,37 @@ const recordHeaderTabWidths = (sampleWindowMs: number) => {
 test.describe('header tabs layout stability', () => {
   test.use({ viewport: NARROW_VIEWPORT })
 
-  test('keeps the compact tab strip at its settled width from the first frame', async ({
+  test('uses compact size metrics from the first frame', async ({ page }) => {
+    await page.addInitScript(recordHeaderTabMetrics, SAMPLE_WINDOW_MS)
+    await page.goto('/')
+    await page.waitForFunction(() => window.headerTabSamplingDone)
+
+    const samples = await page.evaluate(() => window.headerTabMetricSamples ?? [])
+
+    expect(samples.length).toBeGreaterThan(1)
+    expect(samples).toEqual(Array(samples.length).fill(COMPACT_METRICS))
+  })
+
+  test('uses compact metrics below 500px and large metrics from 500px when resized', async ({
     page,
   }) => {
     await page.goto('/')
-    await page.waitForLoadState('networkidle')
 
-    await page.addInitScript(recordHeaderTabWidths, SAMPLE_WINDOW_MS)
-    await page.reload({ waitUntil: 'commit' })
-    await page.waitForTimeout(SAMPLE_WINDOW_MS + 500)
+    const tab = page.getByRole('tab').first()
+    const title = tab.locator('.g-tabs-legacy__item-title')
 
-    const widths = await page.evaluate(() => window.headerTabWidthSamples ?? [])
-    const settledWidth = widths.at(-1)
-
-    expect(widths.length).toBeGreaterThan(0)
-    expect([...new Set(widths)]).toEqual([settledWidth])
+    for (const { width, metrics } of [
+      { width: 393, metrics: COMPACT_METRICS },
+      { width: 499, metrics: COMPACT_METRICS },
+      { width: 500, metrics: LARGE_METRICS },
+      { width: 800, metrics: LARGE_METRICS },
+      { width: 393, metrics: COMPACT_METRICS },
+    ]) {
+      await page.setViewportSize({ width, height: NARROW_VIEWPORT.height })
+      await expect(tab).toHaveCSS('height', metrics.height)
+      await expect(tab).toHaveCSS('margin-inline-end', metrics.gap)
+      await expect(title).toHaveCSS('font-size', metrics.fontSize)
+      await expect(title).toHaveCSS('line-height', metrics.lineHeight)
+    }
   })
 })
