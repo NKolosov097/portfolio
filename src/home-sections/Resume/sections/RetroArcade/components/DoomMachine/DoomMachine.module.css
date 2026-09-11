@@ -43,6 +43,10 @@
   border-radius: 0;
 }
 
+main:has(.screenViewport) {
+  z-index: 100;
+}
+
 .canvas {
   display: block;
   width: 100%;

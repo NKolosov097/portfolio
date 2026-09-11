@@ -29,6 +29,30 @@ const expectViewportScreen = async (page: Page) => {
     .toBeLessThanOrEqual(1)
 }
 
+const expectExitControlOnTop = async (page: Page) => {
+  const exit = page.getByRole('button', { name: en.resume.retroArcadeExitFullscreen, exact: true })
+  expect(
+    await exit.evaluate((button) => {
+      // Inert elements are skipped by hit testing even when they visually cover the HUD.
+      // Temporarily restore hit testing to check the actual stacking order.
+      const background = Array.from(document.querySelectorAll<HTMLElement>('[inert]'))
+      background.forEach((element) => {
+        element.inert = false
+      })
+      try {
+        const rect = button.getBoundingClientRect()
+        return [rect.x + 4, rect.x + rect.width / 2, rect.right - 4].every((x) =>
+          button.contains(document.elementFromPoint(x, rect.y + rect.height / 2)),
+        )
+      } finally {
+        background.forEach((element) => {
+          element.inert = true
+        })
+      }
+    }),
+  ).toBe(true)
+}
+
 for (const capability of ['missing', 'rejected'] as const) {
   test(`expands without restarting the game when fullscreen is ${capability}`, async ({ page }) => {
     const errors: string[] = []
@@ -60,10 +84,18 @@ for (const capability of ['missing', 'rejected'] as const) {
       page.getByRole('button', { name: en.resume.retroArcadeExitFullscreen, exact: true }),
     ).toBeVisible()
     await expect(canvas).toBeFocused()
+    await expectExitControlOnTop(page)
+    if (capability === 'missing') {
+      await page.screenshot({ path: test.info().outputPath('portrait.png') })
+    }
 
     await page.setViewportSize({ width: 851, height: 393 })
     await expectViewportScreen(page)
     await expect(canvas).toHaveCSS('object-fit', 'contain')
+    await expectExitControlOnTop(page)
+    if (capability === 'missing') {
+      await page.screenshot({ path: test.info().outputPath('landscape.png') })
+    }
     const touchControls = page.getByTestId('doom-touch-controls')
     if (await touchControls.isVisible()) {
       await expect(page.getByRole('button', { name: en.resume.retroArcadeUse })).toBeInViewport()

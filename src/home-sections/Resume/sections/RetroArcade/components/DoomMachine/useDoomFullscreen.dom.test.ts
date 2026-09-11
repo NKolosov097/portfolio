@@ -56,14 +56,18 @@ test('unmount restores existing page styles and inert state after viewport expan
   background.inert = false
   document.body.prepend(background)
   document.body.style.overflow = 'clip'
+  document.body.style.scrollbarGutter = 'stable'
   await act(async () => toggleRef.current?.click())
   expect(background.inert).toBe(true)
   expect(document.body.style.position).toBe('fixed')
+  expect(document.body.style.scrollbarGutter).toBe('auto')
 
   await act(async () => root.render(null))
   expect(background.inert).toBe(false)
   expect(document.body.style.position).toBe('')
   expect(document.body.style.overflow).toBe('clip')
+  expect(document.body.style.scrollbarGutter).toBe('stable')
+  expect(document.documentElement.style.scrollbarGutter).toBe('')
   background.remove()
 })
 

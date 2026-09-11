@@ -22,16 +22,20 @@ export const lockDoomScreen = (screen: HTMLElement): (() => void) => {
     left: body.style.left,
     width: body.style.width,
     overflow: body.style.overflow,
+    scrollbarGutter: body.style.scrollbarGutter,
   }
   const rootOverflow = document.documentElement.style.overflow
+  const rootGutter = document.documentElement.style.scrollbarGutter
   Object.assign(body.style, {
     position: 'fixed',
     top: `-${scrollY}px`,
     left: `-${scrollX}px`,
     width: '100%',
     overflow: 'hidden',
+    scrollbarGutter: 'auto',
   })
   document.documentElement.style.overflow = 'hidden'
+  document.documentElement.style.scrollbarGutter = 'auto'
 
   return () => {
     siblings.forEach((inert, sibling) => {
@@ -39,6 +43,7 @@ export const lockDoomScreen = (screen: HTMLElement): (() => void) => {
     })
     Object.assign(body.style, previous)
     document.documentElement.style.overflow = rootOverflow
+    document.documentElement.style.scrollbarGutter = rootGutter
     window.scrollTo({ left: scrollX, top: scrollY, behavior: 'instant' })
   }
 }
