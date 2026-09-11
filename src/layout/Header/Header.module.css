@@ -42,3 +42,12 @@
     pointer-events: all;
   }
 }
+
+@media screen and (width < 500px) {
+  .header .tabs {
+    --g-tabs-item-height: 36px;
+    --g-tabs-item-gap: 24px;
+    --g-text-body-2-font-size: var(--g-text-body-1-font-size);
+    --g-text-body-2-line-height: var(--g-text-body-1-line-height);
+  }
+}

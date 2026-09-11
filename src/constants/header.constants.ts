@@ -1,8 +1,5 @@
 import { ILanguageItem } from '@/layout/Header/types/header.type'
 
-/** Viewport width threshold below which header tabs switch to compact size. */
-export const tabsCompactBreakpoint = 500
-
 export const enum ELanguage {
   en = 'en',
   ru = 'ru',

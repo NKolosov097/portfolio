@@ -240,6 +240,10 @@ What is covered today:
   the jsdom environment.
 - **E2E smoke** (`e2e/smoke.spec.ts`) - every section anchor the header navigates to exists, the
   aside renders, the page loads without uncaught errors, and clicking a tab scrolls to its section.
+- **Header tabs layout stability** (`e2e/header-tabs.spec.ts`) - on a 393px viewport the tab strip
+  is sampled on every animation frame after navigation and must keep its compact height, gap and
+  typography, guarding against a post-mount JavaScript size switch without mistaking Inter font
+  loading for a size change. Resizing across 500px also checks compact and large metrics.
 - **Aside ghost** (`e2e/aside-ghost.spec.ts`) - all five animation layers run, the silhouette
   actually moves between frames, and every animation stops under `prefers-reduced-motion: reduce`.
 - **Profile drawer** (`e2e/mobile-drawer.spec.ts`) - below the breakpoint the sidebar is hidden

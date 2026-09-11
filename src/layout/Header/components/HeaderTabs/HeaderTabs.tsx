@@ -2,7 +2,7 @@
 
 import styles from '@/layout/Header/Header.module.css'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
@@ -10,7 +10,7 @@ import { Button, Icon } from '@gravity-ui/uikit'
 import { Tabs, type TabsItemProps as ITab } from '@gravity-ui/uikit/legacy'
 import { Person } from '@gravity-ui/icons'
 
-import { ETabID, tabsCompactBreakpoint } from '@/constants/header.constants'
+import { ETabID } from '@/constants/header.constants'
 import { WRITING_ARTICLES } from '@/constants/writing.constants'
 import { getElementPosition, scrollTo } from '@/helpers/scrollTo'
 
@@ -22,14 +22,6 @@ import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 export const HeaderTabs = () => {
   const { t } = useTranslation()
   const pathname = usePathname()
-  const [width, setWidth] = useState<number | undefined>(undefined)
-
-  useEffect(() => {
-    const updateWidth = () => setWidth(window.innerWidth)
-    updateWidth()
-    window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
-  }, [])
 
   const { currentTab, setCurrentTab, isClicked, setIsClicked } = useHeaderStore((state) => state)
   const { setIsOpenDrawer } = useAsideStore((state) => state)
@@ -154,7 +146,7 @@ export const HeaderTabs = () => {
       {pathname === '/' ? (
         <Tabs
           items={tabs}
-          size={width !== undefined && width < tabsCompactBreakpoint ? 'm' : 'l'}
+          size="l"
           activeTab={currentTab}
           onSelectTab={handleSelectTab}
           className={styles.tabs}
