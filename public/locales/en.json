@@ -204,6 +204,8 @@
     "retroArcadeRetry": "Retry",
     "retroArcadeStop": "Stop",
     "retroArcadeFullscreen": "Fullscreen",
+    "retroArcadeExitFullscreen": "Exit fullscreen",
+    "retroArcadeFullscreenHint": "Press Tab to reach the controls. Press Escape to exit fullscreen.",
     "retroArcadeControlsHint": "Arrows to move · Ctrl to shoot · Space to open doors",
     "retroArcadeMoveUp": "Move up",
     "retroArcadeMoveDown": "Move down",

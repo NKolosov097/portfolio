@@ -257,6 +257,10 @@ What is covered today:
 - **DOOM easter egg** (`e2e/doom-easter-egg.spec.ts`) - the machine in the Resume section boots
   the WASM build on click, shows the game canvas, and returns to its idle state when stopped,
   with no page errors along the way.
+- **DOOM fullscreen** (`e2e/doom-fullscreen.spec.ts`) - native fullscreen falls back to a viewport-sized
+  screen when the API is missing or rejected, preserving the running game across portrait/landscape
+  changes. Keyboard focus stays inside the expanded game; Escape, the exit button, and Stop restore
+  focus and page scrolling. Hook tests cover cleanup and native requests that settle after Stop.
 
 Tests reuse the app's own sources of truth rather than restating them: section anchors come from
 `ETabID`, tab labels and contact error messages from `public/locales/en.json`, and profile links
