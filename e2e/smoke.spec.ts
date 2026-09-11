@@ -2,9 +2,10 @@ import { expect, test } from '@playwright/test'
 
 import en from '@public/locales/en.json'
 
-import { ETabID } from '@/constants/header.constants'
+import { ETabID, tabsCompactBreakpoint } from '@/constants/header.constants'
 
 import { revealAside } from './helpers/aside'
+import { clickWhenSettled } from './helpers/interaction'
 
 const ALWAYS_RENDERED_SECTION_IDS = [
   ETabID.home,
@@ -72,10 +73,17 @@ test.describe('home page smoke', () => {
   test('scrolls to a section when its header tab is clicked', async ({ page }) => {
     await page.goto('/')
 
-    const resumeTab = page.getByRole('tab', { name: en.headerTabs.resume })
+    const isCompact = await page.evaluate(
+      (breakpoint) => innerWidth < breakpoint,
+      tabsCompactBreakpoint,
+    )
 
-    await expect(resumeTab).toBeVisible()
-    await resumeTab.click()
+    // The SSR strip starts large; wait for the mount effect before measuring click stability.
+    await expect(page.getByRole('tablist')).toHaveClass(
+      new RegExp('g-tabs-legacy_size_' + (isCompact ? 'm' : 'l')),
+    )
+
+    await clickWhenSettled(page.getByRole('tab', { name: en.headerTabs.resume }))
 
     await expect(page.locator(`section#${ETabID.resume}`)).toBeInViewport({ timeout: 10_000 })
   })

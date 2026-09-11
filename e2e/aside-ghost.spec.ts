@@ -1,20 +1,26 @@
 import { expect, test } from '@playwright/test'
 
 import { revealAside } from './helpers/aside'
+import { openLanguageMenu } from './helpers/language'
+
+import { TICKLE_DURATION_MS } from '@/layout/Aside/components/AnimatedGhost/ghostTickle'
 
 /** bob + sway + breathe on the body, plus the two eye animations. */
 const EXPECTED_ANIMATION_COUNT = 5
+
+/** Frame sampling window for the 180ms reduced-motion giggle, which a single read can miss. */
+const REDUCED_MOTION_SAMPLE_WINDOW_MS = 1_500
+/** Slack over the tickle's own length: the test replays it from zero, then waits for it to settle. */
+const TICKLE_SETTLE_GRACE_MS = 2_000
+
 const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
 
 test.describe('aside ghost', () => {
   test('uses the aside surface color for the language menu', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByRole('button', { name: 'change language' }).click()
+    const languageMenu = await openLanguageMenu(page)
 
-    const languageMenu = page.locator('.g-dropdown-menu__popup-content .g-menu')
-
-    await expect(languageMenu).toBeVisible()
     await expect(languageMenu).toHaveCSS('background-color', ORIGINAL_ASIDE_BACKGROUND)
   })
 
@@ -69,29 +75,40 @@ test.describe('aside ghost', () => {
     const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
 
     await trigger.click()
-    await page.waitForTimeout(350)
 
-    const elapsedBeforeRestart = await trigger.evaluate((node) => {
-      const animation = node
+    const restartResult = trigger.evaluate((node) => {
+      const previous = node
         .getAnimations({ subtree: true })
-        .find((candidate) => candidate.id === 'ghost-tickle-body')
+        .find((animation) => animation.id === 'ghost-tickle-body')
 
-      return Number(animation?.currentTime ?? 0)
+      if (!previous) throw new Error('The first tickle animation did not start.')
+
+      // Hold a real active run midway through its timeline, independent of WebKit frame timing.
+      previous.pause()
+      previous.currentTime = Number(previous.effect!.getTiming().duration) / 2
+
+      return new Promise<{ cancelledPrevious: boolean; startedNew: boolean }>((resolve) => {
+        window.addEventListener(
+          'click',
+          () => {
+            // Window bubbling runs after React's handler, before any remote round trip.
+            const next = node
+              .getAnimations({ subtree: true })
+              .find((animation) => animation.id === 'ghost-tickle-body')
+
+            resolve({
+              cancelledPrevious: previous.playState === 'idle',
+              startedNew: Boolean(next && next !== previous && next.playState === 'running'),
+            })
+          },
+          { once: true },
+        )
+      })
     })
 
     await trigger.click()
 
-    await expect
-      .poll(() =>
-        trigger.evaluate((node) => {
-          const animation = node
-            .getAnimations({ subtree: true })
-            .find((candidate) => candidate.id === 'ghost-tickle-body')
-
-          return Number(animation?.currentTime ?? Number.POSITIVE_INFINITY)
-        }),
-      )
-      .toBeLessThan(elapsedBeforeRestart)
+    expect(await restartResult).toEqual({ cancelledPrevious: true, startedNew: true })
   })
 
   test('folds toward its center without marks and settles without remounting', async ({ page }) => {
@@ -143,7 +160,9 @@ test.describe('aside ghost', () => {
 
     expect(minimumHorizontalScale).toBeLessThan(0.9)
 
-    await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 2_300 })
+    await expect(trigger).toHaveAttribute('data-tickling', 'false', {
+      timeout: TICKLE_DURATION_MS + TICKLE_SETTLE_GRACE_MS,
+    })
     await expect(sway).toHaveAttribute('data-continuity-probe', 'preserved')
     await expect(body).toHaveCSS('transform', 'none')
   })
@@ -154,11 +173,42 @@ test.describe('aside ghost', () => {
 
     const trigger = (await revealAside(page)).getByTestId('aside-ghost-trigger')
 
+    const collectedAnimationIds = trigger.evaluate(
+      (node, windowMs) =>
+        new Promise<string[]>((resolve) => {
+          const seenIds = new Set<string>()
+          let deadline = Number.POSITIVE_INFINITY
+
+          // Actionability can outlast the feedback window; start its clock at the real click.
+          node.addEventListener(
+            'click',
+            () => {
+              deadline = performance.now() + windowMs
+            },
+            { capture: true, once: true },
+          )
+
+          const sample = () => {
+            for (const { id } of node.getAnimations({ subtree: true })) {
+              if (id) seenIds.add(id)
+            }
+
+            if (performance.now() >= deadline) {
+              resolve([...seenIds])
+              return
+            }
+
+            requestAnimationFrame(sample)
+          }
+
+          sample()
+        }),
+      REDUCED_MOTION_SAMPLE_WINDOW_MS,
+    )
+
     await trigger.click()
 
-    const animationIds = await trigger.evaluate((node) =>
-      node.getAnimations({ subtree: true }).map(({ id }) => id),
-    )
+    const animationIds = await collectedAnimationIds
 
     expect(animationIds).not.toContain('ghost-tickle-body')
     expect(animationIds).toContain('ghost-reduced-giggle')
