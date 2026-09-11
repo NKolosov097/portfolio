@@ -204,6 +204,8 @@
     "retroArcadeRetry": "Повторить",
     "retroArcadeStop": "Стоп",
     "retroArcadeFullscreen": "На весь экран",
+    "retroArcadeExitFullscreen": "Выйти из полноэкранного режима",
+    "retroArcadeFullscreenHint": "Нажмите Tab для перехода к кнопкам управления, Escape — для выхода из полноэкранного режима.",
     "retroArcadeControlsHint": "Стрелки - движение · Ctrl - стрельба · Пробел - открыть дверь",
     "retroArcadeMoveUp": "Вверх",
     "retroArcadeMoveDown": "Вниз",

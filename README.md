@@ -260,6 +260,10 @@ What is covered today:
 - **DOOM easter egg** (`e2e/doom-easter-egg.spec.ts`) - the machine in the Resume section boots
   the WASM build on click, shows the game canvas, and returns to its idle state when stopped,
   with no page errors along the way.
+- **DOOM fullscreen** (`e2e/doom-fullscreen.spec.ts`) - native fullscreen falls back to a viewport-sized
+  screen when the API is missing or rejected, preserving the running game across portrait/landscape
+  changes. Keyboard focus stays inside the expanded game; Escape, the exit button, and Stop restore
+  focus and page scrolling. Hook tests cover cleanup and native requests that settle after Stop.
 
 Tests reuse the app's own sources of truth rather than restating them: section anchors come from
 `ETabID`, tab labels and contact error messages from `public/locales/en.json`, and profile links
@@ -283,8 +287,12 @@ when port 3000 is already busy instead of silently testing someone else's build.
 The Vitest reporter is set to `verbose`, so a run names every individual assertion instead of
 only the files - the suite doubles as a readable description of the guaranteed behaviour.
 
-Every spec runs across six projects: Chromium, Firefox and WebKit on desktop, plus Pixel 7,
-iPhone 15 and a narrow-viewport Firefox. Two caveats worth knowing:
+Every spec runs across twelve projects: Chromium, Firefox and WebKit on desktop, plus Pixel 7,
+iPhone 15 and a narrow-viewport Firefox on phones, and the sizes in between - an iPad Pro 11 in
+portrait, a Galaxy Tab S4 in landscape, the Galaxy Z Fold 7's unfolded (984x1016, nearly square)
+and cover (360x764) screens, a tablet-width Firefox, and WebKit at the foldable's near-square
+ratio. The last two are viewport-only stand-ins: no foldable exists for Gecko or WebKit, and
+Playwright ships tablet descriptors for Chromium and WebKit alone. Two caveats worth knowing:
 
 - Playwright's **WebKit is not Safari** - it omits Apple's proprietary layer, and real Safari can
   only be driven on macOS. Treat it as an engine-level check, not a Safari guarantee.
