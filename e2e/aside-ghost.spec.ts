@@ -166,7 +166,16 @@ test.describe('aside ghost', () => {
       (node, windowMs) =>
         new Promise<string[]>((resolve) => {
           const seenIds = new Set<string>()
-          const deadline = performance.now() + windowMs
+          let deadline = Number.POSITIVE_INFINITY
+
+          // Actionability can outlast the feedback window; start its clock at the real click.
+          node.addEventListener(
+            'click',
+            () => {
+              deadline = performance.now() + windowMs
+            },
+            { capture: true, once: true },
+          )
 
           const sample = () => {
             for (const { id } of node.getAnimations({ subtree: true })) {
