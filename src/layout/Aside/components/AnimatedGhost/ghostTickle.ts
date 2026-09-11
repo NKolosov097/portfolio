@@ -13,7 +13,8 @@ export interface IGhostTickleRun {
   cancel: () => void
 }
 
-const TICKLE_DURATION_MS = 1_800
+/** Length of the full tickle reaction; the e2e suite derives its settle budget from it. */
+export const TICKLE_DURATION_MS = 1_800
 
 const TICKLE_TIMING: KeyframeAnimationOptions = {
   duration: TICKLE_DURATION_MS,
