@@ -94,6 +94,12 @@ const submit = () => {
   getForm().requestSubmit()
 }
 
+const pressMessageKey = (key: string, options: KeyboardEventInit = {}) => {
+  const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...options })
+  getControl('contact-message').dispatchEvent(event)
+  return event
+}
+
 const submittedPayload = (call: number) => {
   const payload: unknown = sendMessageMock.mock.calls[call]?.[1]
   if (!(payload instanceof FormData))
@@ -108,6 +114,7 @@ const submittedId = (call: number) => {
 }
 
 beforeEach(async () => {
+  sendMessageMock.mockReset()
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   vi.stubGlobal(
     'ResizeObserver',
@@ -195,6 +202,80 @@ describe('contact form accessibility', () => {
 })
 
 describe('contact form action state', () => {
+  it('submits from the message field on Enter', async () => {
+    sendMessageMock.mockImplementationOnce(
+      async (_state: ContactSubmissionState, payload: FormData) => ({
+        status: 'success',
+        submissionId: String(payload.get('submissionId')),
+      }),
+    )
+    await act(async () => fillValidForm())
+
+    let event: KeyboardEvent | undefined
+    await act(async () => {
+      event = pressMessageKey('Enter')
+    })
+
+    expect(event?.defaultPrevented).toBe(true)
+    expect(sendMessageMock).toHaveBeenCalledTimes(1)
+    expect(submittedPayload(0).get('message')).toBe('Hello there')
+  })
+
+  it('keeps Shift+Enter available for a message line break', async () => {
+    await act(async () => fillValidForm())
+
+    let event: KeyboardEvent | undefined
+    await act(async () => {
+      event = pressMessageKey('Enter', { shiftKey: true })
+    })
+
+    expect(event?.defaultPrevented).toBe(false)
+    expect(sendMessageMock).not.toHaveBeenCalled()
+  })
+
+  it('does not submit while an input method editor is composing text', async () => {
+    sendMessageMock.mockResolvedValueOnce({
+      status: 'success',
+      submissionId: '11111111-1111-4111-8111-111111111111',
+    })
+    await act(async () => fillValidForm())
+
+    let event: KeyboardEvent | undefined
+    await act(async () => {
+      event = pressMessageKey('Enter', { isComposing: true })
+    })
+
+    expect(event?.defaultPrevented).toBe(false)
+    expect(sendMessageMock).not.toHaveBeenCalled()
+  })
+
+  it('clears a client field error as soon as that field is edited', async () => {
+    await act(async () => submit())
+    expect(getControl('contact-name').getAttribute('aria-invalid')).toBe('true')
+
+    await act(async () => changeControl('contact-name', 'P'))
+
+    expect(getControl('contact-name').getAttribute('aria-invalid')).not.toBe('true')
+    expect(host.querySelector('#contact-name-error')).toBeNull()
+  })
+
+  it('clears a server field error as soon as that field is edited', async () => {
+    sendMessageMock.mockResolvedValueOnce({
+      status: 'validation-error',
+      fieldErrors: { email: ['invalid_email'], message: ['too_short'] },
+    })
+    await act(async () => fillValidForm())
+    await act(async () => submit())
+    expect(getControl('contact-message').getAttribute('aria-invalid')).toBe('true')
+
+    await act(async () => changeControl('contact-message', 'Edited message'))
+
+    expect(getControl('contact-message').getAttribute('aria-invalid')).not.toBe('true')
+    expect(host.querySelector('#contact-message-error')).toBeNull()
+    expect(getControl('contact-email').getAttribute('aria-invalid')).toBe('true')
+    expect(host.querySelector('#contact-email-error')).not.toBeNull()
+  })
+
   it('stays pending through the response and rapid submits dispatch once', async () => {
     const response = deferred<ContactSubmissionState>()
     sendMessageMock.mockReturnValueOnce(response.promise)

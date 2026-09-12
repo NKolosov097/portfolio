@@ -1,6 +1,13 @@
 'use client'
 
-import { startTransition, useActionState, useEffect, useRef, useSyncExternalStore } from 'react'
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -74,8 +81,13 @@ export const Form = () => {
     },
     { status: 'idle' },
   )
+  const [editedServerErrors, setEditedServerErrors] = useState<{
+    source: ContactSubmissionState
+    fields: ReadonlySet<ContactFieldName>
+  }>({ source: submissionState, fields: new Set() })
 
   const {
+    clearErrors,
     register,
     formState: { errors },
     handleSubmit,
@@ -143,7 +155,8 @@ export const Form = () => {
   const getFieldError = (field: ContactFieldName) => {
     const clientMessage = errors[field]?.message
     const serverCode =
-      submissionState.status === 'validation-error'
+      submissionState.status === 'validation-error' &&
+      !(editedServerErrors.source === submissionState && editedServerErrors.fields.has(field))
         ? submissionState.fieldErrors[field]?.[0]
         : undefined
 
@@ -178,8 +191,18 @@ export const Form = () => {
     const error = getFieldError(field)
     const errorId = `${id}-error`
     const { ref, ...registration } = register(field)
+    const onChange: typeof registration.onChange = (event) => {
+      const result = registration.onChange(event)
+      clearErrors(field)
+      setEditedServerErrors((current) => ({
+        source: submissionState,
+        fields: new Set(current.source === submissionState ? current.fields : []).add(field),
+      }))
+      return result
+    }
     const commonProps = {
       ...registration,
+      onChange,
       id,
       controlRef: ref,
       placeholder,
@@ -197,6 +220,12 @@ export const Form = () => {
         {field === 'message' ? (
           <TextArea
             {...commonProps}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
+
+              event.preventDefault()
+              formRef.current?.requestSubmit()
+            }}
             controlProps={{
               'aria-invalid': Boolean(error),
               'aria-describedby': error ? errorId : undefined,
