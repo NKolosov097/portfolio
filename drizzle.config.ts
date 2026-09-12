@@ -8,6 +8,8 @@ for (const file of ['.env.local', '.env']) {
 }
 
 const url =
+  process.env.CONTACT_DB_DATABASE_URL_UNPOOLED?.trim() ||
+  process.env.CONTACT_DB_DATABASE_URL?.trim() ||
   process.env.DIRECT_DATABASE_URL?.trim() ||
   process.env.DATABASE_URL_UNPOOLED?.trim() ||
   process.env.DATABASE_URL?.trim()

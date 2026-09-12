@@ -2,9 +2,18 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-import { createContactPool } from '@/db/client'
+import { createContactPool, resolveContactDatabaseUrl } from '@/db/client'
 
 describe('createContactPool', () => {
+  it('prefers the prefixed Neon connection over a stale legacy URL', () => {
+    expect(
+      resolveContactDatabaseUrl({
+        DATABASE_URL: 'prisma://stale',
+        CONTACT_DB_DATABASE_URL: 'postgresql://neon.example/portfolio',
+      }),
+    ).toBe('postgresql://neon.example/portfolio')
+  })
+
   it('handles idle client errors without logging connection details', async () => {
     const pool = createContactPool(
       'postgres://feedback_test:feedback_test@127.0.0.1:15432/feedback_test',

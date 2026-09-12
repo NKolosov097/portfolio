@@ -7,6 +7,10 @@ import * as schema from '@/db/schema'
 
 const globalDatabase = globalThis as typeof globalThis & { contactPool?: Pool }
 
+export const resolveContactDatabaseUrl = (
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+) => environment.CONTACT_DB_DATABASE_URL?.trim() || environment.DATABASE_URL?.trim()
+
 export const createContactPool = (connectionString: string, max = 8) => {
   const pool = new Pool({
     connectionString,
@@ -23,7 +27,7 @@ export const createContactPool = (connectionString: string, max = 8) => {
 
 export const getContactPool = () => {
   if (globalDatabase.contactPool) return globalDatabase.contactPool
-  const connectionString = process.env.DATABASE_URL
+  const connectionString = resolveContactDatabaseUrl()
   if (!connectionString || connectionString.startsWith('prisma://'))
     throw new Error('contact database unavailable')
   const pool = createContactPool(connectionString)

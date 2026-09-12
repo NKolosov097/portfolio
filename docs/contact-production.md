@@ -14,6 +14,8 @@ Configure Production and a separate Preview database:
 
     DATABASE_URL
     DIRECT_DATABASE_URL
+    CONTACT_DB_DATABASE_URL
+    CONTACT_DB_DATABASE_URL_UNPOOLED
     NEXT_PUBLIC_LOCALHOST_API
     SMTP_SERVER_HOST=smtp.gmail.com
     SMTP_SERVER_PORT=465
@@ -29,7 +31,7 @@ Configure Production and a separate Preview database:
     OPERATIONS_SECRET
     CONTACT_RETRY_LIMIT=25
 
-The Gmail account must have two-step verification before Google offers App Passwords. Do not use the normal Google password.
+The application prefers the `CONTACT_DB_` Neon variables, allowing a stale legacy `DATABASE_URL` to remain untouched during rollout. The Gmail account must have two-step verification before Google offers App Passwords. Do not use the normal Google password.
 
 ## GitHub environments
 
