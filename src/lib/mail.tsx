@@ -35,7 +35,7 @@ export const sendMail = async ({
   try {
     await transporter.verify()
   } catch (error) {
-    console.error('Something Went Wrong', SMTP_SERVER_USERNAME, SMTP_SERVER_PASSWORD, error)
+    console.error('Something Went Wrong', error)
     return
   }
 
