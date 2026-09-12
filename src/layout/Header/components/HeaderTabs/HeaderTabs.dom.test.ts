@@ -4,11 +4,20 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 
 import { HeaderTabs } from './HeaderTabs'
 import { Providers } from '@/providers/Providers'
-import { ELanguage } from '@/constants/header.constants'
+import { ELanguage, ETabID } from '@/constants/header.constants'
 import { useHeaderStore } from '@/providers/stores/HeaderStore.provider'
 import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
+
+/** Real section identifiers mounted by the fixture to exercise loading transitions. */
+const TEST_SECTION_IDS: readonly ETabID[] = [
+  ETabID.home,
+  ETabID.portfolio,
+  ETabID.aboutMe,
+  ETabID.resume,
+  ETabID.writing,
+]
 
 let root: Root
 let host: HTMLDivElement
@@ -30,7 +39,7 @@ const Harness = ({ hasSections }: { hasSections: boolean }) =>
       'main',
       null,
       ...(hasSections
-        ? ['home', 'portfolio', 'aboutMe', 'resume', 'writing'].map((id, index) =>
+        ? TEST_SECTION_IDS.map((id, index) =>
             createElement('section', {
               key: id,
               id,
@@ -72,7 +81,7 @@ test('tabs are disabled during loading and recover when sections arrive without 
     tabs[1].dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
     host.querySelector<HTMLButtonElement>('[data-testid="header-open-profile"]')?.click()
   })
-  expect(host.querySelector('output')?.textContent).toBe('home')
+  expect(host.querySelector('output')?.textContent).toBe(ETabID.home)
   expect(host.querySelector('output')?.getAttribute('data-drawer-open')).toBe('true')
   expect(error).not.toHaveBeenCalled()
 
@@ -80,11 +89,11 @@ test('tabs are disabled during loading and recover when sections arrive without 
   for (const tab of tabs) expect(tab.getAttribute('aria-disabled')).toBe('false')
 
   await act(async () => {
-    document.getElementById('portfolio')?.setAttribute('hidden', '')
+    document.getElementById(ETabID.portfolio)?.setAttribute('hidden', '')
   })
   for (const tab of tabs) expect(tab.getAttribute('aria-disabled')).toBe('true')
   await act(async () => {
-    document.getElementById('portfolio')?.removeAttribute('hidden')
+    document.getElementById(ETabID.portfolio)?.removeAttribute('hidden')
   })
   for (const tab of tabs) expect(tab.getAttribute('aria-disabled')).toBe('false')
 
@@ -99,11 +108,11 @@ test('a missing section at click time does not change selection or log an error'
 
   await act(async () => {
     // Remove and click in the same task, before MutationObserver can disable the tab.
-    document.getElementById('portfolio')?.remove()
+    document.getElementById(ETabID.portfolio)?.remove()
     portfolioTab.click()
   })
 
-  expect(host.querySelector('output')?.textContent).toBe('home')
+  expect(host.querySelector('output')?.textContent).toBe(ETabID.home)
   expect(window.scrollTo).not.toHaveBeenCalled()
   expect(error).not.toHaveBeenCalled()
 })
