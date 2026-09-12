@@ -15,11 +15,10 @@ export const createContactPool = (connectionString: string, max = 8) => {
   const pool = new Pool({
     connectionString,
     max,
-    connectionTimeoutMillis: 2_000,
+    connectionTimeoutMillis: 10_000,
     idleTimeoutMillis: 30_000,
     statement_timeout: 4_000,
     query_timeout: 5_000,
-    options: '-c lock_timeout=2000',
   })
   pool.on('error', () => console.error('Contact database pool lost an idle connection'))
   return pool

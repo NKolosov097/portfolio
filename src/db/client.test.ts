@@ -27,4 +27,16 @@ describe('createContactPool', () => {
     expect(JSON.stringify(error.mock.calls)).not.toContain('secret')
     await pool.end()
   })
+
+  it('uses a serverless-safe startup configuration with Neon cold-start headroom', async () => {
+    const pool = createContactPool(
+      'postgres://feedback_test:feedback_test@127.0.0.1:15432/feedback_test',
+      1,
+    )
+    const options = (pool as unknown as { options: Record<string, unknown> }).options
+
+    expect(options.connectionTimeoutMillis).toBe(10_000)
+    expect(options).not.toHaveProperty('options')
+    await pool.end()
+  })
 })
