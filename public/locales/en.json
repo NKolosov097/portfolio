@@ -1,4 +1,8 @@
 {
+  "loading": {
+    "content": "Loading content…"
+  },
+
   "error": {
     "wentWrong": "Something went wrong...",
     "description": "Error",

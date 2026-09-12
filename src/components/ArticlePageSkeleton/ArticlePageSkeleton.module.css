@@ -1,0 +1,42 @@
+.article .breadcrumb {
+  width: min(50%, 12rem);
+  height: 1rem;
+}
+
+.article .title {
+  width: 90%;
+}
+
+.article .titleLine,
+.article .shortTitleLine {
+  height: 0.85em;
+  margin-block: 0.175em;
+}
+
+.article .shortTitleLine {
+  width: 70%;
+  margin-inline: auto;
+}
+
+.article .meta {
+  width: min(60%, 16rem);
+  height: 0.9rem;
+  margin: 0 auto 2.5rem;
+}
+
+.article .paragraph {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding-top: 0.35em;
+  margin-bottom: 1.25em;
+}
+
+.article .line,
+.article .shortLine {
+  height: 1em;
+}
+
+.article .shortLine {
+  width: 65%;
+}

@@ -1,4 +1,5 @@
 import { prefersReducedMotion } from './prefersReducedMotion'
+import { isScrollTargetAvailable } from './isScrollTargetAvailable'
 
 interface IAnimateScrollProps {
   /** Element to scroll to; re-measured on every frame so the animation self-corrects. */
@@ -37,6 +38,10 @@ export function animateScroll({
     activeAnimationFrame = null
   }
 
+  if (!isScrollTargetAvailable(element)) {
+    return
+  }
+
   // respect the user's reduced-motion preference: jump instead of animating
   if (prefersReducedMotion()) {
     window.scrollTo(0, getElementPosition(element) - paddingFromTop)
@@ -46,6 +51,12 @@ export function animateScroll({
   let start: number
 
   function step(timestamp: number) {
+    // Navigation or a loading fallback can remove or hide the section during the animation.
+    if (!isScrollTargetAvailable(element)) {
+      activeAnimationFrame = null
+      return
+    }
+
     if (start === undefined) {
       start = timestamp
     }

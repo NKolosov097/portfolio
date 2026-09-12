@@ -4,4 +4,4 @@
 - [x] Revisit which features belong in "favourite features" - base the picks on the resume/CV content rather than the current placeholder set.
 - [x] Decide whether a link to a profile photo is worth adding to the aside panel.
 - [x] Doom machine: support native fullscreen and a mobile-friendly viewport fallback when the Fullscreen API is missing or rejected, with keyboard navigation, focus restoration, and safe-area-aware controls.
-- [ ] Build proper loading skeletons for the home page and other components, instead of the current placeholder/blank loading state.
+- [x] Build route-specific loading skeletons for the home page, article list, and article pages; preserve the shared shell and support reduced motion and localized loading status.

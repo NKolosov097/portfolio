@@ -13,8 +13,9 @@ import { Person } from '@gravity-ui/icons'
 import { ETabID } from '@/constants/header.constants'
 import { WRITING_ARTICLES } from '@/constants/writing.constants'
 import { getElementPosition, scrollTo } from '@/helpers/scrollTo'
+import { isScrollTargetAvailable } from '@/helpers/isScrollTargetAvailable'
 
-import { IPosition } from '@/layout/Header/types/header.type'
+import { useSectionsReady } from '@/layout/Header/hooks/useSectionsReady'
 
 import { useHeaderStore } from '@/providers/stores/HeaderStore.provider'
 import { useAsideStore } from '@/providers/stores/AsideStore.provider'
@@ -26,7 +27,7 @@ export const HeaderTabs = () => {
   const { currentTab, setCurrentTab, isClicked, setIsClicked } = useHeaderStore((state) => state)
   const { setIsOpenDrawer } = useAsideStore((state) => state)
 
-  const tabs: ITab[] = useMemo(
+  const tabs: (ITab & { id: ETabID })[] = useMemo(
     () => [
       {
         id: ETabID.home,
@@ -57,32 +58,36 @@ export const HeaderTabs = () => {
     [t],
   )
 
-  const handleSelectTab = useCallback((tabId: ETabID) => {
-    setCurrentTab(tabId)
-    setIsClicked(true)
-    scrollTo({ id: tabId })
-  }, [])
+  const sectionIds = useMemo(() => tabs.map(({ id }) => id), [tabs])
+  const hasSections = useSectionsReady(sectionIds)
+
+  const handleSelectTab = useCallback(
+    (tabId: ETabID) => {
+      // A route can remove the target before the observer has disabled the tab.
+      const element = document.getElementById(tabId)
+      if (!hasSections || !isScrollTargetAvailable(element)) {
+        return
+      }
+
+      setCurrentTab(tabId)
+      setIsClicked(true)
+      scrollTo({ id: tabId })
+    },
+    [hasSections, setCurrentTab, setIsClicked],
+  )
 
   useEffect(() => {
-    const sections: IPosition[] = []
-
-    const setSections = () =>
-      tabs?.forEach((tab) => {
-        const element = document.getElementById(tab?.id)
-
-        if (element) {
-          const position = getElementPosition(element)
-          const id = element?.id as ETabID
-
-          sections?.push({ id, position })
-        }
-      })
-    setSections()
+    if (pathname !== '/' || !hasSections) {
+      setIsClicked(false)
+      return
+    }
 
     const handleScroll = () => {
-      if (sections?.length !== tabs?.length) {
-        setSections()
-      }
+      // Measure current elements; cached positions outlive loading swaps and language changes.
+      const sections = tabs.flatMap(({ id }) => {
+        const element = document.getElementById(id)
+        return element ? [{ id, position: getElementPosition(element) }] : []
+      })
 
       // padding from top in percent
       const paddingFromTop = 0.05 * window?.scrollY
@@ -116,19 +121,21 @@ export const HeaderTabs = () => {
     }
 
     window?.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
 
     return () => {
       window?.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
 
       if (rafId !== null) {
         window.cancelAnimationFrame(rafId)
       }
     }
-  }, [isClicked])
+  }, [hasSections, pathname, isClicked, tabs, setCurrentTab, setIsClicked])
 
   const handleOpenDrawer = useCallback(() => {
     setIsOpenDrawer(true)
-  }, [])
+  }, [setIsOpenDrawer])
 
   return (
     <>
@@ -145,7 +152,7 @@ export const HeaderTabs = () => {
 
       {pathname === '/' ? (
         <Tabs
-          items={tabs}
+          items={tabs.map((tab) => ({ ...tab, disabled: !hasSections }))}
           size="l"
           activeTab={currentTab}
           onSelectTab={handleSelectTab}

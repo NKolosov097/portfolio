@@ -1,0 +1,46 @@
+.section .backLink {
+  width: 7rem;
+  height: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.section .title {
+  width: min(65%, 20rem);
+  height: 2.5rem;
+  margin-block: 1rem 0.5rem;
+}
+
+.section .description {
+  width: min(90%, 32rem);
+  height: 1rem;
+  margin-block: 1rem 2rem;
+}
+
+.section .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem 2.5rem 1.5rem 1.5rem;
+  background: #111;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 1rem;
+}
+
+.section .meta {
+  width: 35%;
+  height: 1.3rem;
+}
+
+.section .cardTitle {
+  width: 75%;
+  height: 1.9rem;
+}
+
+.section .line,
+.section .shortLine {
+  height: 0.85rem;
+}
+
+.section .shortLine {
+  width: 65%;
+}

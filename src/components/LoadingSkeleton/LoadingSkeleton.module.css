@@ -1,0 +1,33 @@
+.root,
+.shapes {
+  width: 100%;
+  min-width: 0;
+}
+
+.shapes :global(.g-skeleton) {
+  --g-color-base-generic: rgb(255 255 255 / 6%);
+
+  display: block;
+}
+
+.shapes :global(.g-skeleton)::after {
+  animation-duration: 2s;
+}
+
+.status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shapes :global(.g-skeleton),
+  .shapes :global(.g-skeleton)::after {
+    animation: none;
+  }
+}

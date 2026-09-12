@@ -28,7 +28,7 @@ A production-grade personal portfolio built on the **Next.js App Router** with *
 
 ## Highlights
 
-- **Section-based home SPA + self-hosted articles.** The home page (`/`) composes independent sections - `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D, rendered in an OffscreenCanvas worker where supported and on the main thread otherwise, with a runtime governor scaling particle count and pixel ratio to the device), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) - behind a persistent layout shell rendered inside a `<Suspense>` boundary. Writing cards for self-hosted posts open a dedicated, statically generated `/articles/[slug]` page rather than staying in-page.
+- **Section-based home SPA + self-hosted articles.** The home page (`/`) composes independent sections - `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D, rendered in an OffscreenCanvas worker where supported and on the main thread otherwise, with a runtime governor scaling particle count and pixel ratio to the device), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) - behind a persistent layout shell with route-specific loading skeletons. Writing cards for self-hosted posts open a dedicated, statically generated `/articles/[slug]` page rather than staying in-page.
 - **First-class i18n.** All user-facing copy is translated (`en` / `ru`), resolved from a `lang` query string then a cookie, and served from `public/locales`.
 - **Type-safe, server-first data flow.** Contact submissions run through a `'use server'` action with **Zod** validation, persist to **PostgreSQL** via **Prisma 7**, and trigger a transactional email via **Nodemailer**.
 - **Accessibility & performance built in.** Skip-to-navigation link, zoomable viewport, `prefers-reduced-motion` support, and a `requestAnimationFrame`-throttled scroll-spy.
@@ -63,18 +63,19 @@ The app is a **single-page portfolio plus a small set of statically generated ar
 
 ```
 RootLayout (layout.tsx)
-└─ <Suspense fallback={<LoaderSection />}>
-   └─ Providers            ← i18n, theme, Zustand store providers
-      ├─ SkipToNavigationLink
-      ├─ Header            ← navigation tabs + language switch
-      ├─ Aside             ← mobile drawer
-      ├─ Main
-      │  ├─ HomePage           ← "/" - Home · Portfolio · AboutMe · Resume · Writing
-      │  ├─ ArticlesListContent ← "/articles"
-      │  └─ ArticlePageContent  ← "/articles/[slug]"
-      ├─ Footer
-      └─ ToastContainer
+└─ Providers              ← i18n, theme, Zustand store providers
+   ├─ SkipToNavigationLink
+   ├─ Header              ← navigation tabs + language switch
+   ├─ Aside               ← mobile drawer
+   ├─ Main                ← route loading boundaries stay inside the shell
+   │  ├─ HomePage / HomePageSkeleton                 ← "/"
+   │  ├─ ArticlesListContent / ArticlesListSkeleton  ← "/articles"
+   │  └─ ArticlePageContent / ArticlePageSkeleton    ← "/articles/[slug]"
+   ├─ Footer
+   └─ ToastContainer
 ```
+
+Loading fallbacks use Gravity UI skeletons, shared layout dimensions, a single localized screen-reader status, and reduced-motion support. They appear only while a route suspends; hydration, language switching, decorative effects, and contact submissions do not artificially trigger a page skeleton.
 
 Key architectural decisions:
 
@@ -92,7 +93,7 @@ Key architectural decisions:
 src/
 ├─ app/                 # App Router: layout, root page, /articles + /articles/[slug], /api/health,
 │                        #   robots.ts, sitemap.ts, opengraph-image.tsx, error & not-found
-├─ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Writing, Contact, LoaderSection)
+├─ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Writing, Contact, HomePageSkeleton)
 │  └─ <Section>/
 │     ├─ components/    #   section-local sub-components
 │     ├─ actions/       #   'use server' server actions
@@ -222,6 +223,8 @@ Two runners with deliberately disjoint scopes:
 | Playwright 1.62 | `playwright.config.ts` | `e2e/**/*.spec.ts` - the rendered page, six desktop and mobile projects |
 
 What is covered today:
+
+- **Header loading transitions** - tabs remain disabled until their sections exist, recover without a scroll event, and ignore pointer/keyboard activation or a target removed during a click. Profile controls remain available. Scroll animations stop when navigation removes their target. DOM tests run the actual Gravity UI controls; the DOM project transforms the library's CSS imports through Vite.
 
 - **`getAge`** - birthday boundaries, 29 February in a non-leap year, future and invalid dates.
 - **`getStoredLanguage` / `storeLanguage`** - cookie precedence over `navigator.language`, locale
