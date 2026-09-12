@@ -2,14 +2,20 @@
 
 import styles from './Contact.module.css'
 
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Form } from '@/home-sections/Contact/components/Form/Form'
 import { Tag } from '@/components/Tag/Tag'
 
 import { ETabID } from '@/constants/header.constants'
+import { scrollToLocationHash } from '@/helpers/scrollTo'
 
 export const Contact = () => {
   const { t } = useTranslation()
+
+  useEffect(() => {
+    scrollToLocationHash(ETabID.contact)
+  }, [])
 
   return (
     <section id={ETabID.contact} className={styles.section}>

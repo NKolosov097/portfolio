@@ -17,6 +17,7 @@ const TEST_SECTION_IDS: readonly ETabID[] = [
   ETabID.aboutMe,
   ETabID.resume,
   ETabID.writing,
+  ETabID.contact,
 ]
 
 let root: Root
@@ -69,7 +70,7 @@ afterEach(async () => {
 test('tabs are disabled during loading and recover when sections arrive without a scroll event', async () => {
   await act(async () => root.render(createElement(Harness, { hasSections: false })))
   const tabs = host.querySelectorAll<HTMLElement>('[role="tab"]')
-  expect(tabs.length).toBe(5)
+  expect(tabs.length).toBe(6)
   for (const tab of tabs) {
     expect(tab.getAttribute('aria-disabled')).toBe('true')
     expect(tab.tabIndex).toBe(-1)

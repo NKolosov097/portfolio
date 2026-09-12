@@ -1,0 +1,29 @@
+name: portfolio-feedback-tests
+
+services:
+  postgres:
+    image: postgres:18.3-alpine@sha256:54451ecb8ab38c24c3ec123f2fd501303a3a1856a5c66e98cecf2460d5e1e9d7
+    environment:
+      POSTGRES_USER: feedback_test
+      POSTGRES_PASSWORD: feedback_test
+      POSTGRES_DB: feedback_test
+    ports:
+      - '127.0.0.1:15432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U feedback_test -d feedback_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    tmpfs:
+      - /var/lib/postgresql
+
+  mailpit:
+    image: axllent/mailpit:v1.31.1@sha256:98b916bd3c8d61f7633a52d3ea2f58d00620cb01ca57ab59edde68c347a95365
+    ports:
+      - '127.0.0.1:11025:1025'
+      - '127.0.0.1:18025:8025'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 2s
+      timeout: 3s
+      retries: 30

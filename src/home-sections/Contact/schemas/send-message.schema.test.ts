@@ -1,115 +1,95 @@
 import { describe, expect, it } from 'vitest'
 
-import { CONTACT_ERROR_MESSAGES } from '@tests/fixtures/contact-error-messages'
-import { getContactSchema } from '@/home-sections/Contact/schemas/send-message.schema'
+import {
+  contactSchema,
+  contactSubmissionSchema,
+} from '@/home-sections/Contact/schemas/send-message.schema'
 
-const schema = getContactSchema(CONTACT_ERROR_MESSAGES)
-
-/** Minimal payload that satisfies every rule; individual cases override one field at a time. */
-const validPayload = {
+const valid = {
   name: 'Peter Parker',
-  email: 'peter@example.com',
+  email: 'Peter@Example.com',
   company: 'Daily Bugle',
   profession: 'Photographer',
-  message: 'Hello there',
+  message: 'Hello!',
 }
 
-describe('getContactSchema', () => {
-  it('accepts a complete payload', () => {
-    const parsed = schema.safeParse(validPayload)
-
-    expect(parsed.success).toBe(true)
-  })
-
-  it('trims surrounding whitespace on every field', () => {
-    const parsed = schema.safeParse({
-      name: '  Peter Parker  ',
-      email: '  peter@example.com  ',
-      company: '  Daily Bugle  ',
-      profession: '  Photographer  ',
-      message: '  Hello there  ',
+describe('contactSchema', () => {
+  it('normalizes the accepted five contact fields', () => {
+    expect(
+      contactSchema.parse({
+        name: '  Peter Parker ',
+        email: ' Peter@Example.com ',
+        message: ' Hello! ',
+      }),
+    ).toEqual({
+      name: 'Peter Parker',
+      email: 'peter@example.com',
+      company: '',
+      profession: '',
+      message: 'Hello!',
     })
-
-    expect(parsed.success).toBe(true)
-    expect(parsed.success && parsed.data).toEqual(validPayload)
   })
 
-  it('rejects a missing name with the localised message', () => {
-    const parsed = schema.safeParse({ ...validPayload, name: '' })
+  it.each([
+    ['name', '', 'required'],
+    ['name', 'n'.repeat(101), 'too_long'],
+    ['email', 'invalid', 'invalid_email'],
+    ['email', `${'e'.repeat(244)}@example.com`, 'too_long'],
+    ['company', 'c'.repeat(151), 'too_long'],
+    ['profession', 'p'.repeat(151), 'too_long'],
+    ['message', '12345', 'too_short'],
+    ['message', 'm'.repeat(5001), 'too_long'],
+  ] as const)('rejects %s at its boundary with %s', (field, value, code) => {
+    const parsed = contactSchema.safeParse({ ...valid, [field]: value })
 
     expect(parsed.success).toBe(false)
-    expect(parsed.success === false && parsed.error.flatten().fieldErrors.name).toContain(
-      CONTACT_ERROR_MESSAGES.name.requireName,
-    )
+    expect(parsed.success ? [] : parsed.error.issues.map((issue) => issue.message)).toContain(code)
   })
 
-  it('rejects a whitespace-only name, because trimming happens before the length check', () => {
-    const parsed = schema.safeParse({ ...validPayload, name: '     ' })
+  it.each(['name', 'email', 'company', 'profession', 'message'] as const)(
+    'rejects File values for %s',
+    (field) => {
+      const parsed = contactSchema.safeParse({ ...valid, [field]: new Blob(['file']) })
 
-    expect(parsed.success).toBe(false)
-    expect(parsed.success === false && parsed.error.flatten().fieldErrors.name).toContain(
-      CONTACT_ERROR_MESSAGES.name.requireName,
-    )
+      expect(parsed.success).toBe(false)
+      expect(parsed.success ? '' : parsed.error.issues[0]?.message).toBe('invalid_type')
+    },
+  )
+
+  it('accepts all exact maximum lengths', () => {
+    expect(
+      contactSchema.safeParse({
+        name: 'n'.repeat(100),
+        email: `${'e'.repeat(242)}@example.com`,
+        company: 'c'.repeat(150),
+        profession: 'p'.repeat(150),
+        message: 'm'.repeat(5000),
+      }).success,
+    ).toBe(true)
+  })
+})
+
+describe('contactSubmissionSchema', () => {
+  it('accepts a UUID and empty honeypot', () => {
+    expect(
+      contactSubmissionSchema.safeParse({
+        ...valid,
+        submissionId: 'aa1d1085-6b07-4c18-99fe-dc1ee32179dc',
+        website: '',
+      }).success,
+    ).toBe(true)
   })
 
-  it('rejects a malformed email with the localised message', () => {
-    const parsed = schema.safeParse({ ...validPayload, email: 'peter(at)example.com' })
-
-    expect(parsed.success).toBe(false)
-    expect(parsed.success === false && parsed.error.flatten().fieldErrors.email).toContain(
-      CONTACT_ERROR_MESSAGES.email.incorrectEmail,
-    )
-  })
-
-  it('rejects a message shorter than six characters', () => {
-    const parsed = schema.safeParse({ ...validPayload, message: 'Hi' })
-
-    expect(parsed.success).toBe(false)
-    expect(parsed.success === false && parsed.error.flatten().fieldErrors.message).toContain(
-      CONTACT_ERROR_MESSAGES.message.requireMessage,
-    )
-  })
-
-  it('accepts a message of exactly six characters', () => {
-    const parsed = schema.safeParse({ ...validPayload, message: 'Hello!' })
-
-    expect(parsed.success).toBe(true)
-  })
-
-  it('rejects a message that only reaches six characters through whitespace', () => {
-    const parsed = schema.safeParse({ ...validPayload, message: 'Hi    ' })
-
-    expect(parsed.success).toBe(false)
-  })
-
-  it('accepts empty company and profession, which are optional in the UI', () => {
-    const parsed = schema.safeParse({ ...validPayload, company: '', profession: '' })
-
-    expect(parsed.success).toBe(true)
-  })
-
-  it('rejects a non-string name with the localised type message', () => {
-    const parsed = schema.safeParse({ ...validPayload, name: 42 })
-
-    expect(parsed.success).toBe(false)
-    expect(parsed.success === false && parsed.error.flatten().fieldErrors.name).toContain(
-      CONTACT_ERROR_MESSAGES.name.invalidType,
-    )
-  })
-
-  it('reports every invalid field at once rather than stopping at the first', () => {
-    const parsed = schema.safeParse({
-      name: '',
-      email: 'nope',
-      company: 'Daily Bugle',
-      profession: 'Photographer',
-      message: 'Hi',
+  it('rejects invalid UUIDs and unknown fields', () => {
+    const parsed = contactSubmissionSchema.safeParse({
+      ...valid,
+      submissionId: 'not-a-uuid',
+      admin: 'true',
     })
 
     expect(parsed.success).toBe(false)
-
-    const fieldErrors = parsed.success === false ? parsed.error.flatten().fieldErrors : {}
-
-    expect(Object.keys(fieldErrors).sort()).toEqual(['email', 'message', 'name'])
+    expect(parsed.success ? [] : parsed.error.issues.map((issue) => issue.message)).toEqual(
+      expect.arrayContaining(['submission_id_invalid', 'invalid_type']),
+    )
   })
 })

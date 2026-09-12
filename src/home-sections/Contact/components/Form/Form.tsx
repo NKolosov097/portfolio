@@ -1,183 +1,341 @@
-import { startTransition, useActionState, useEffect, useMemo, useRef } from 'react'
+'use client'
+
+import { startTransition, useActionState, useEffect, useRef, useSyncExternalStore } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { Button, Loader, TextArea, TextInput } from '@gravity-ui/uikit'
-
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Button, Loader, TextArea, TextInput } from '@gravity-ui/uikit'
+import type { z } from 'zod'
 
 import { defaultContactForm } from '@/constants/contact.constants'
+import { sendMessage } from '@/home-sections/Contact/actions/send-message.action'
+import { contactSchema } from '@/home-sections/Contact/schemas/send-message.schema'
+import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
 
-import { getContactSchema } from '@/home-sections/Contact/schemas/send-message.schema'
-import { IContactSchema } from '@/home-sections/Contact/types/contact.type'
-import {
-  ISendMessageFormState,
-  sendMessage,
-} from '@/home-sections/Contact/actions/send-message.action'
+import styles from './Form.module.css'
 
-import styles from '@/home-sections/Contact/Contact.module.css'
+const CONTACT_FIELDS = ['name', 'email', 'company', 'profession', 'message'] as const
+
+const subscribeToHydration = () => () => undefined
+const getHydratedSnapshot = () => true
+const getServerSnapshot = () => false
+
+type ContactFieldName = (typeof CONTACT_FIELDS)[number]
+type ContactFormInput = z.input<typeof contactSchema>
+type ContactFormOutput = z.output<typeof contactSchema>
+
+interface SubmittedPayload {
+  fingerprint: string
+  submissionId: string
+  state?: ContactSubmissionState
+}
+
+const getFingerprint = (payload: FormData) =>
+  JSON.stringify(CONTACT_FIELDS.map((field) => [field, String(payload.get(field) ?? '')]))
+
+const hasReusedSubmissionId = (state: ContactSubmissionState | undefined) =>
+  state?.status === 'validation-error' &&
+  (state.fieldErrors.submissionId?.includes('submission_id_reused') ||
+    state.fieldErrors.form?.includes('submission_id_reused'))
 
 export const Form = () => {
   const { t } = useTranslation()
-  const formRef = useRef<HTMLFormElement>(null)
-
-  const errorsMsgs: IContactSchema = useMemo(
-    () => ({
-      name: {
-        requireName: t('contact.requireName'),
-        invalidType: t('contact.invalidTypeOfName'),
-      },
-      email: {
-        requireEmail: t('contact.requireEmail'),
-        incorrectEmail: t('contact.incorrectEmail'),
-      },
-      company: {
-        invalidType: t('contact.invalidTypeOfcompany'),
-      },
-      profession: {
-        invalidType: t('contact.invalidTypeOfProfession'),
-      },
-      message: {
-        requireMessage: t('contact.requireMessage'),
-        invalidType: t('contact.invalidTypeOfMessage'),
-      },
-    }),
-    [t],
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerSnapshot,
   )
+  const formRef = useRef<HTMLFormElement>(null)
+  const dispatchingRef = useRef(false)
+  const submissionIdRef = useRef<string | null>(null)
+  const activeSubmissionRef = useRef<SubmittedPayload | null>(null)
+  const lastSubmissionRef = useRef<SubmittedPayload | null>(null)
+  const acknowledgedSubmissionRef = useRef<string | null>(null)
 
-  const [formState, formAction] = useActionState(
-    (prevState: ISendMessageFormState, payload: FormData) =>
-      sendMessage(prevState, payload, errorsMsgs),
-    {
-      success: false,
+  const [submissionState, formAction, isPending] = useActionState<ContactSubmissionState, FormData>(
+    async (previousState, payload) => {
+      try {
+        const nextState = await sendMessage(previousState, payload)
+        const activeSubmission = activeSubmissionRef.current
+        if (activeSubmission) lastSubmissionRef.current = { ...activeSubmission, state: nextState }
+        return nextState
+      } catch {
+        const nextState: ContactSubmissionState = {
+          status: 'unavailable',
+          code: 'service_unavailable',
+        }
+        const activeSubmission = activeSubmissionRef.current
+        if (activeSubmission) lastSubmissionRef.current = { ...activeSubmission, state: nextState }
+        return nextState
+      } finally {
+        dispatchingRef.current = false
+      }
     },
+    { status: 'idle' },
   )
 
   const {
     register,
-    formState: { errors, isSubmitSuccessful, isLoading },
+    formState: { errors },
     handleSubmit,
     reset,
-  } = useForm<z.output<ReturnType<typeof getContactSchema>>>({
+    setFocus,
+  } = useForm<ContactFormInput, unknown, ContactFormOutput>({
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
     defaultValues: defaultContactForm,
-    resolver: zodResolver(getContactSchema(errorsMsgs)),
+    resolver: zodResolver(contactSchema),
+    shouldFocusError: false,
   })
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null
+    if (submissionState.status !== 'success') return
+    if (acknowledgedSubmissionRef.current === submissionState.submissionId) return
 
-    if (isSubmitSuccessful && formState.success) {
-      timeoutId = setTimeout(reset, 3500)
+    const submitted = lastSubmissionRef.current
+    if (!submitted || submitted.submissionId !== submissionState.submissionId) return
+
+    acknowledgedSubmissionRef.current = submissionState.submissionId
+
+    const currentForm = formRef.current
+    if (currentForm && getFingerprint(new FormData(currentForm)) === submitted.fingerprint) {
+      reset(defaultContactForm)
     }
 
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
+    submissionIdRef.current = globalThis.crypto.randomUUID()
+  }, [reset, submissionState])
+
+  useEffect(() => {
+    if (submissionState.status !== 'validation-error') return
+
+    const firstInvalidField = CONTACT_FIELDS.find(
+      (field) => submissionState.fieldErrors[field]?.length,
+    )
+    if (firstInvalidField) document.getElementById(`contact-${firstInvalidField}`)?.focus()
+  }, [submissionState])
+
+  const translateFieldError = (
+    field: ContactFieldName,
+    code: string | undefined,
+  ): string | undefined => {
+    if (!code) return undefined
+
+    if (code === 'required') {
+      if (field === 'name') return t('contact.requireName')
+      if (field === 'email') return t('contact.requireEmail')
+      return t('contact.requireMessage')
     }
-  }, [reset, isSubmitSuccessful, formState.success])
+    if (code === 'invalid_email') return t('contact.incorrectEmail')
+    if (code === 'too_short') return t('contact.requireMessage')
+    if (code === 'too_long') return t('contact.tooLong')
+    if (code === 'invalid_type') {
+      if (field === 'name') return t('contact.invalidTypeOfName')
+      if (field === 'company') return t('contact.invalidTypeOfcompany')
+      if (field === 'profession') return t('contact.invalidTypeOfProfession')
+      if (field === 'message') return t('contact.invalidTypeOfMessage')
+      return t('contact.incorrectEmail')
+    }
+
+    return t('contact.validationError')
+  }
+
+  const getFieldError = (field: ContactFieldName) => {
+    const clientMessage = errors[field]?.message
+    const serverCode =
+      submissionState.status === 'validation-error'
+        ? submissionState.fieldErrors[field]?.[0]
+        : undefined
+
+    return translateFieldError(
+      field,
+      typeof clientMessage === 'string' ? clientMessage : serverCode,
+    )
+  }
+
+  const getResultMessage = () => {
+    if (isPending) return t('contact.sending')
+    if (submissionState.status === 'success') return t('contact.successfulSubmitTitle')
+    if (submissionState.status === 'unavailable') return t('contact.serviceUnavailable')
+    if (submissionState.status === 'rate-limited') return t('contact.rateLimited')
+    if (submissionState.status === 'validation-error') {
+      const formCode =
+        submissionState.fieldErrors.form?.[0] ?? submissionState.fieldErrors.submissionId?.[0]
+      if (formCode === 'submission_id_reused') return t('contact.submissionIdReused')
+      if (formCode === 'submission_id_invalid') return t('contact.submissionIdInvalid')
+      return t('contact.validationError')
+    }
+    return undefined
+  }
+
+  const renderField = (
+    field: ContactFieldName,
+    className: string,
+    label: string,
+    placeholder: string,
+  ) => {
+    const id = `contact-${field}`
+    const error = getFieldError(field)
+    const errorId = `${id}-error`
+    const { ref, ...registration } = register(field)
+    const commonProps = {
+      ...registration,
+      id,
+      controlRef: ref,
+      placeholder,
+      disabled: !isHydrated || isPending,
+      error: Boolean(error),
+      view: 'clear' as const,
+      size: 'l' as const,
+    }
+
+    return (
+      <div className={`${styles.field} ${className}`}>
+        <label className={styles.label} htmlFor={id}>
+          {label}
+        </label>
+        {field === 'message' ? (
+          <TextArea
+            {...commonProps}
+            controlProps={{
+              'aria-invalid': Boolean(error),
+              'aria-describedby': error ? errorId : undefined,
+            }}
+          />
+        ) : (
+          <TextInput
+            {...commonProps}
+            type={field === 'email' ? 'email' : 'text'}
+            autoComplete={field === 'email' ? 'email' : field === 'name' ? 'name' : undefined}
+            controlProps={{
+              'aria-invalid': Boolean(error),
+              'aria-describedby': error ? errorId : undefined,
+            }}
+          />
+        )}
+        {error && (
+          <p id={errorId} className={styles.error}>
+            {error}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  const resultMessage = getResultMessage()
 
   return (
     <form
       ref={formRef}
-      onSubmit={(evt) => {
-        evt.preventDefault()
-        handleSubmit(() => {
-          startTransition(() => formAction(new FormData(formRef.current!)))
-        })(evt)
+      data-testid="contact-form"
+      aria-busy={!isHydrated || isPending}
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault()
+        if (!isHydrated || dispatchingRef.current || isPending) return
+
+        dispatchingRef.current = true
+        const payload = new FormData(event.currentTarget)
+
+        void handleSubmit(
+          () => {
+            const fingerprint = getFingerprint(payload)
+            const lastSubmission = lastSubmissionRef.current
+            const currentSubmissionId = submissionIdRef.current ?? globalThis.crypto.randomUUID()
+            submissionIdRef.current = currentSubmissionId
+            if (
+              lastSubmission?.submissionId === currentSubmissionId &&
+              (lastSubmission.fingerprint !== fingerprint ||
+                hasReusedSubmissionId(lastSubmission.state))
+            ) {
+              submissionIdRef.current = globalThis.crypto.randomUUID()
+            }
+
+            payload.set('submissionId', submissionIdRef.current)
+            const website = payload.get('website')
+            payload.set('website', typeof website === 'string' ? website : '')
+            activeSubmissionRef.current = {
+              fingerprint,
+              submissionId: submissionIdRef.current,
+            }
+
+            startTransition(() => formAction(payload))
+          },
+          (invalidFields) => {
+            dispatchingRef.current = false
+            const firstInvalidField = CONTACT_FIELDS.find((field) => invalidFields[field])
+            if (firstInvalidField) setFocus(firstInvalidField)
+          },
+        )(event)
       }}
-      action={formAction}
-      className={styles?.form}
+      className={styles.form}
     >
       <div className={styles.container}>
-        <TextInput
-          {...register('name')}
-          label={t('contact.labelOfName')}
-          className={styles.name}
-          placeholder={t('contact.placeholderOfName')}
-          error={!!errors?.name?.message}
-          errorMessage={errors?.name?.message}
-          disabled={isLoading}
-          errorPlacement="outside"
-          view="clear"
-          size="l"
+        {renderField('name', styles.name, t('contact.labelOfName'), t('contact.placeholderOfName'))}
+        {renderField(
+          'email',
+          styles.email,
+          t('contact.labelOfEmail'),
+          t('contact.placeholderOfEmail'),
+        )}
+        {renderField(
+          'company',
+          styles.company,
+          t('contact.labelOfCompany'),
+          t('contact.placeholderOfcompany'),
+        )}
+        {renderField(
+          'profession',
+          styles.profession,
+          t('contact.labelOfProfession'),
+          t('contact.placeholderOfProfession'),
+        )}
+        {renderField(
+          'message',
+          styles.message,
+          t('contact.labelOfMessage'),
+          t('contact.placeholderOfMessage'),
+        )}
+
+        <input
+          className={styles.honeypot}
+          type="text"
+          name="website"
+          autoComplete="off"
+          tabIndex={-1}
+          aria-hidden="true"
         />
 
-        <TextInput
-          {...register('email')}
-          label={t('contact.labelOfEmail')}
-          className={styles.email}
-          placeholder={t('contact.placeholderOfEmail')}
-          error={!!errors?.email?.message}
-          errorMessage={errors?.email?.message}
-          disabled={isLoading}
-          errorPlacement="outside"
-          view="clear"
-          size="l"
-        />
-
-        <TextInput
-          {...register('company')}
-          label={t('contact.labelOfCompany')}
-          className={styles.company}
-          placeholder={t('contact.placeholderOfcompany')}
-          error={!!errors?.company?.message}
-          errorMessage={errors?.company?.message}
-          disabled={isLoading}
-          errorPlacement="outside"
-          view="clear"
-          size="l"
-        />
-
-        <TextInput
-          {...register('profession')}
-          label={t('contact.labelOfProfession')}
-          className={styles.profession}
-          placeholder={t('contact.placeholderOfProfession')}
-          error={!!errors?.profession?.message}
-          errorMessage={errors?.profession?.message}
-          disabled={isLoading}
-          errorPlacement="outside"
-          view="clear"
-          size="l"
-        />
-
-        <TextArea
-          {...register('message')}
-          note={t('contact.labelOfMessage')}
-          className={styles.message}
-          placeholder={t('contact.placeholderOfMessage')}
-          error={!!errors?.message?.message}
-          errorMessage={errors?.message?.message}
-          disabled={isLoading}
-          errorPlacement="outside"
-          view="clear"
-          size="l"
-        />
-
-        {isLoading && (
-          <div className={styles?.loaderContainer}>
+        {isPending && (
+          <div className={styles.loaderContainer} aria-hidden="true">
             <Loader />
           </div>
         )}
       </div>
 
-      <div className={styles?.footer}>
+      <div className={styles.footer}>
         <Button
           type="submit"
           view="outlined-action"
           size="l"
-          loading={isLoading}
+          loading={isPending}
+          disabled={!isHydrated || isPending}
           className={styles.submitBtn}
         >
           {t('contact.sendMessage')}
         </Button>
 
-        {isSubmitSuccessful && formState.success && (
-          <p className={styles?.successfulSubmitTitle}>{t('contact.successfulSubmitTitle')}</p>
+        {resultMessage && (
+          <p
+            className={
+              submissionState.status === 'success' ? styles.successfulResult : styles.result
+            }
+            data-testid="contact-result"
+            role="status"
+            aria-live="polite"
+          >
+            {resultMessage}
+          </p>
         )}
       </div>
     </form>

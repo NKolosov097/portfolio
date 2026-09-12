@@ -1,5 +1,6 @@
 # TODO
 
+- [x] Restore the feedback section.
 - [ ] Aside panel ghost: make it track the mouse cursor. Figure out under what conditions it should do this (always vs. only on certain sections/breakpoints, idle timeout, etc.) - see the existing ghost animation layers covered by `e2e/aside-ghost.spec.ts`.
 - [x] Revisit which features belong in "favourite features" - base the picks on the resume/CV content rather than the current placeholder set.
 - [x] Decide whether a link to a profile photo is worth adding to the aside panel.
