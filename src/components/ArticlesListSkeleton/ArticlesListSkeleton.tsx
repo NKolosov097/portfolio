@@ -5,7 +5,7 @@ import listStyles from '@/components/ArticlesListContent/ArticlesListContent.mod
 import styles from './ArticlesListSkeleton.module.css'
 
 /** A short preview of the list, independent of the number of published articles. */
-const ARTICLE_SKELETON_KEYS = ['first', 'second', 'third']
+const SKELETON_ARTICLE_COUNT = 3
 
 export const ArticlesListSkeleton = () => (
   <LoadingSkeleton testId="articles-list-skeleton">
@@ -14,8 +14,8 @@ export const ArticlesListSkeleton = () => (
       <Skeleton className={styles.title} />
       <Skeleton className={styles.description} />
       <div className={listStyles.list}>
-        {ARTICLE_SKELETON_KEYS.map((key) => (
-          <div className={styles.card} key={key}>
+        {Array.from({ length: SKELETON_ARTICLE_COUNT }, (_, index) => (
+          <div className={styles.card} key={index}>
             <Skeleton className={styles.meta} />
             <Skeleton className={styles.cardTitle} />
             <Skeleton className={styles.line} />
