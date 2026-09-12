@@ -1,6 +1,6 @@
-import type { ContactFormValues } from '@/home-sections/Contact/types/contact.type'
+import { EContactField, type ContactFormValues } from '@/home-sections/Contact/types/contact.type'
 
-export type ContactField = keyof ContactFormValues | 'submissionId' | 'form'
+export type ContactField = EContactField | 'submissionId' | 'form'
 export type ContactFieldErrorCode =
   | 'invalid_type'
   | 'required'

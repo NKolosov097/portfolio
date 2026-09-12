@@ -3,16 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 import { createSendMessage } from '@/home-sections/Contact/services/send-message'
+import { EContactField } from '@/home-sections/Contact/types/contact.type'
 
 const submissionId = 'aa1d1085-6b07-4c18-99fe-dc1ee32179dc'
 const formData = (overrides: Record<string, FormDataEntryValue> = {}) => {
   const data = new FormData()
   const fields: Record<string, FormDataEntryValue> = {
-    name: 'Peter Parker',
-    email: 'Peter@Example.com',
-    company: '',
-    profession: '',
-    message: 'Hello!',
+    [EContactField.name]: 'Peter Parker',
+    [EContactField.email]: 'Peter@Example.com',
+    [EContactField.company]: '',
+    [EContactField.profession]: '',
+    [EContactField.message]: 'Hello!',
     submissionId,
     website: '',
     ...overrides,
@@ -69,8 +70,8 @@ describe('sendMessage', () => {
 
   it('normalizes omitted optional fields to empty strings', async () => {
     const data = formData()
-    data.delete('company')
-    data.delete('profession')
+    data.delete(EContactField.company)
+    data.delete(EContactField.profession)
     await sendMessage({ status: 'idle' }, data)
     expect(accept).toHaveBeenCalledWith(
       expect.objectContaining({ company: '', profession: '' }),
@@ -86,7 +87,7 @@ describe('sendMessage', () => {
     })
 
     const duplicate = formData()
-    duplicate.append('name', 'Miles Morales')
+    duplicate.append(EContactField.name, 'Miles Morales')
     expect(await sendMessage({ status: 'idle' }, duplicate)).toEqual({
       status: 'validation-error',
       fieldErrors: { name: ['invalid_type'] },

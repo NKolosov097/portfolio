@@ -4,6 +4,7 @@ import {
   contactSchema,
   contactSubmissionSchema,
 } from '@/home-sections/Contact/schemas/send-message.schema'
+import { EContactField } from '@/home-sections/Contact/types/contact.type'
 
 const valid = {
   name: 'Peter Parker',
@@ -31,14 +32,14 @@ describe('contactSchema', () => {
   })
 
   it.each([
-    ['name', '', 'required'],
-    ['name', 'n'.repeat(101), 'too_long'],
-    ['email', 'invalid', 'invalid_email'],
-    ['email', `${'e'.repeat(244)}@example.com`, 'too_long'],
-    ['company', 'c'.repeat(151), 'too_long'],
-    ['profession', 'p'.repeat(151), 'too_long'],
-    ['message', '12345', 'too_short'],
-    ['message', 'm'.repeat(5001), 'too_long'],
+    [EContactField.name, '', 'required'],
+    [EContactField.name, 'n'.repeat(101), 'too_long'],
+    [EContactField.email, 'invalid', 'invalid_email'],
+    [EContactField.email, `${'e'.repeat(244)}@example.com`, 'too_long'],
+    [EContactField.company, 'c'.repeat(151), 'too_long'],
+    [EContactField.profession, 'p'.repeat(151), 'too_long'],
+    [EContactField.message, '12345', 'too_short'],
+    [EContactField.message, 'm'.repeat(5001), 'too_long'],
   ] as const)('rejects %s at its boundary with %s', (field, value, code) => {
     const parsed = contactSchema.safeParse({ ...valid, [field]: value })
 
@@ -46,15 +47,18 @@ describe('contactSchema', () => {
     expect(parsed.success ? [] : parsed.error.issues.map((issue) => issue.message)).toContain(code)
   })
 
-  it.each(['name', 'email', 'company', 'profession', 'message'] as const)(
-    'rejects File values for %s',
-    (field) => {
-      const parsed = contactSchema.safeParse({ ...valid, [field]: new Blob(['file']) })
+  it.each([
+    EContactField.name,
+    EContactField.email,
+    EContactField.company,
+    EContactField.profession,
+    EContactField.message,
+  ] as const)('rejects File values for %s', (field) => {
+    const parsed = contactSchema.safeParse({ ...valid, [field]: new Blob(['file']) })
 
-      expect(parsed.success).toBe(false)
-      expect(parsed.success ? '' : parsed.error.issues[0]?.message).toBe('invalid_type')
-    },
-  )
+    expect(parsed.success).toBe(false)
+    expect(parsed.success ? '' : parsed.error.issues[0]?.message).toBe('invalid_type')
+  })
 
   it('accepts all exact maximum lengths', () => {
     expect(

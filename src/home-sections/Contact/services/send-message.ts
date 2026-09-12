@@ -2,6 +2,7 @@ import 'server-only'
 
 import { contactSubmissionSchema } from '@/home-sections/Contact/schemas/send-message.schema'
 import type { SubmissionAcceptance } from '@/home-sections/Contact/services/submission-policy'
+import { EContactField } from '@/home-sections/Contact/types/contact.type'
 import type {
   ContactField,
   ContactFieldErrorCode,
@@ -16,20 +17,20 @@ interface SendMessageDependencies {
 }
 
 const knownFields = [
-  'name',
-  'email',
-  'company',
-  'profession',
-  'message',
+  EContactField.name,
+  EContactField.email,
+  EContactField.company,
+  EContactField.profession,
+  EContactField.message,
   'submissionId',
   'website',
 ] as const
 const contactFields: Record<string, ContactField> = {
-  name: 'name',
-  email: 'email',
-  company: 'company',
-  profession: 'profession',
-  message: 'message',
+  [EContactField.name]: EContactField.name,
+  [EContactField.email]: EContactField.email,
+  [EContactField.company]: EContactField.company,
+  [EContactField.profession]: EContactField.profession,
+  [EContactField.message]: EContactField.message,
   submissionId: 'submissionId',
   website: 'form',
   form: 'form',

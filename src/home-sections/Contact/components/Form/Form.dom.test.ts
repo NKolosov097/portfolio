@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Form } from './Form'
 import { ELanguage } from '@/constants/header.constants'
 import { I18nContext } from '@/contexts/i18'
+import { EContactField } from '@/home-sections/Contact/types/contact.type'
 import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
 import { Providers } from '@/providers/Providers'
 
@@ -218,7 +219,7 @@ describe('contact form action state', () => {
 
     expect(event?.defaultPrevented).toBe(true)
     expect(sendMessageMock).toHaveBeenCalledTimes(1)
-    expect(submittedPayload(0).get('message')).toBe('Hello there')
+    expect(submittedPayload(0).get(EContactField.message)).toBe('Hello there')
   })
 
   it('keeps Shift+Enter available for a message line break', async () => {
@@ -287,8 +288,8 @@ describe('contact form action state', () => {
     })
 
     await vi.waitFor(() => expect(sendMessageMock).toHaveBeenCalledTimes(1))
-    expect(submittedPayload(0).get('name')).toBe('Peter Parker')
-    expect(submittedPayload(0).get('message')).toBe('Hello there')
+    expect(submittedPayload(0).get(EContactField.name)).toBe('Peter Parker')
+    expect(submittedPayload(0).get(EContactField.message)).toBe('Hello there')
     expect(submittedPayload(0).get('website')).toBe('')
     expect(submittedId(0)).toMatch(/^[0-9a-f-]{36}$/)
     expect(getForm().getAttribute('aria-busy')).toBe('true')

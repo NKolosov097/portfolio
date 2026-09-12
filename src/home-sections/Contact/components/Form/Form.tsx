@@ -18,11 +18,18 @@ import type { z } from 'zod'
 import { defaultContactForm } from '@/constants/contact.constants'
 import { sendMessage } from '@/home-sections/Contact/actions/send-message.action'
 import { contactSchema } from '@/home-sections/Contact/schemas/send-message.schema'
+import { EContactField } from '@/home-sections/Contact/types/contact.type'
 import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
 
 import styles from './Form.module.css'
 
-const CONTACT_FIELDS = ['name', 'email', 'company', 'profession', 'message'] as const
+const CONTACT_FIELDS = [
+  EContactField.name,
+  EContactField.email,
+  EContactField.company,
+  EContactField.profession,
+  EContactField.message,
+] as const
 
 const subscribeToHydration = () => () => undefined
 const getHydratedSnapshot = () => true
@@ -134,18 +141,18 @@ export const Form = () => {
     if (!code) return undefined
 
     if (code === 'required') {
-      if (field === 'name') return t('contact.requireName')
-      if (field === 'email') return t('contact.requireEmail')
+      if (field === EContactField.name) return t('contact.requireName')
+      if (field === EContactField.email) return t('contact.requireEmail')
       return t('contact.requireMessage')
     }
     if (code === 'invalid_email') return t('contact.incorrectEmail')
     if (code === 'too_short') return t('contact.requireMessage')
     if (code === 'too_long') return t('contact.tooLong')
     if (code === 'invalid_type') {
-      if (field === 'name') return t('contact.invalidTypeOfName')
-      if (field === 'company') return t('contact.invalidTypeOfcompany')
-      if (field === 'profession') return t('contact.invalidTypeOfProfession')
-      if (field === 'message') return t('contact.invalidTypeOfMessage')
+      if (field === EContactField.name) return t('contact.invalidTypeOfName')
+      if (field === EContactField.company) return t('contact.invalidTypeOfcompany')
+      if (field === EContactField.profession) return t('contact.invalidTypeOfProfession')
+      if (field === EContactField.message) return t('contact.invalidTypeOfMessage')
       return t('contact.incorrectEmail')
     }
 
@@ -217,7 +224,7 @@ export const Form = () => {
         <label className={styles.label} htmlFor={id}>
           {label}
         </label>
-        {field === 'message' ? (
+        {field === EContactField.message ? (
           <TextArea
             {...commonProps}
             onKeyDown={(event) => {
@@ -234,8 +241,14 @@ export const Form = () => {
         ) : (
           <TextInput
             {...commonProps}
-            type={field === 'email' ? 'email' : 'text'}
-            autoComplete={field === 'email' ? 'email' : field === 'name' ? 'name' : undefined}
+            type={field === EContactField.email ? 'email' : 'text'}
+            autoComplete={
+              field === EContactField.email
+                ? 'email'
+                : field === EContactField.name
+                  ? 'name'
+                  : undefined
+            }
             controlProps={{
               'aria-invalid': Boolean(error),
               'aria-describedby': error ? errorId : undefined,
@@ -300,27 +313,32 @@ export const Form = () => {
       className={styles.form}
     >
       <div className={styles.container}>
-        {renderField('name', styles.name, t('contact.labelOfName'), t('contact.placeholderOfName'))}
         {renderField(
-          'email',
+          EContactField.name,
+          styles.name,
+          t('contact.labelOfName'),
+          t('contact.placeholderOfName'),
+        )}
+        {renderField(
+          EContactField.email,
           styles.email,
           t('contact.labelOfEmail'),
           t('contact.placeholderOfEmail'),
         )}
         {renderField(
-          'company',
+          EContactField.company,
           styles.company,
           t('contact.labelOfCompany'),
           t('contact.placeholderOfcompany'),
         )}
         {renderField(
-          'profession',
+          EContactField.profession,
           styles.profession,
           t('contact.labelOfProfession'),
           t('contact.placeholderOfProfession'),
         )}
         {renderField(
-          'message',
+          EContactField.message,
           styles.message,
           t('contact.labelOfMessage'),
           t('contact.placeholderOfMessage'),
