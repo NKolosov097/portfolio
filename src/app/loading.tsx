@@ -1,5 +1,5 @@
-import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
+import { HomePageSkeleton } from '@/home-sections/HomePageSkeleton/HomePageSkeleton'
 
 export default function Loading() {
-  return <LoaderSection />
+  return <HomePageSkeleton />
 }

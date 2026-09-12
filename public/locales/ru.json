@@ -1,4 +1,8 @@
 {
+  "loading": {
+    "content": "Загрузка содержимого…"
+  },
+
   "error": {
     "wentWrong": "Что-то пошло не так...",
     "description": "Ошибка",

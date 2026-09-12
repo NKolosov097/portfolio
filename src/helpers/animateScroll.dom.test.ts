@@ -8,10 +8,13 @@ const stubAnimationFrame = () => {
   let nextId = 1
   const cancelled = new Set<number>()
 
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-    queued = callback
-    return nextId++
-  })
+  vi.stubGlobal(
+    'requestAnimationFrame',
+    vi.fn((callback: FrameRequestCallback) => {
+      queued = callback
+      return nextId++
+    }),
+  )
   vi.stubGlobal('cancelAnimationFrame', (id: number) => {
     cancelled.add(id)
   })
@@ -51,12 +54,14 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  document.body.replaceChildren()
   vi.unstubAllGlobals()
 })
 
 test('re-measures the target every frame instead of freezing it at the start', () => {
   const { runFrame } = stubAnimationFrame()
   const section = document.createElement('section')
+  document.body.append(section)
   setOffsetTop(section, 500)
 
   animateScroll({ element: section, initialPosition: 0, duration: 100 })
@@ -77,6 +82,7 @@ test('re-measures the target every frame instead of freezing it at the start', (
 test('clamps the target to the document max scroll instead of overshooting', () => {
   const { runFrame } = stubAnimationFrame()
   const section = document.createElement('section')
+  document.body.append(section)
   setOffsetTop(section, 10_000)
   setScrollBounds(4_200, 800)
 
@@ -93,6 +99,7 @@ test('cancels a still-running animation before starting a new one', () => {
   const { isCancelled } = stubAnimationFrame()
   const first = document.createElement('section')
   const second = document.createElement('section')
+  document.body.append(first, second)
   setOffsetTop(first, 500)
   setOffsetTop(second, 900)
 
@@ -105,9 +112,48 @@ test('cancels a still-running animation before starting a new one', () => {
 test('jumps straight to the target under prefers-reduced-motion, without animating', () => {
   stubMatchMedia(true)
   const section = document.createElement('section')
+  document.body.append(section)
   setOffsetTop(section, 640)
 
   animateScroll({ element: section, initialPosition: 0, duration: 750, paddingFromTop: 40 })
 
   expect(window.scrollTo).toHaveBeenCalledExactlyOnceWith(0, 600)
 })
+
+test('stops scrolling when navigation removes the target mid-animation', () => {
+  const { runFrame } = stubAnimationFrame()
+  const section = document.createElement('section')
+  document.body.append(section)
+  setOffsetTop(section, 900)
+  animateScroll({ element: section, initialPosition: 0, duration: 750 })
+  runFrame(0)
+  vi.mocked(window.scrollTo).mockClear()
+  vi.mocked(window.requestAnimationFrame).mockClear()
+
+  section.remove()
+  runFrame(50)
+
+  expect(window.scrollTo).not.toHaveBeenCalled()
+  expect(window.requestAnimationFrame).not.toHaveBeenCalled()
+})
+
+test.each(['hidden', 'display'])(
+  'stops scrolling when a loading fallback hides the target with %s',
+  (mode) => {
+    const { runFrame } = stubAnimationFrame()
+    const section = document.createElement('section')
+    document.body.append(section)
+    setOffsetTop(section, 900)
+    animateScroll({ element: section, initialPosition: 0, duration: 750 })
+    runFrame(0)
+    vi.mocked(window.scrollTo).mockClear()
+    vi.mocked(window.requestAnimationFrame).mockClear()
+
+    if (mode === 'hidden') section.hidden = true
+    else section.style.display = 'none'
+    runFrame(50)
+
+    expect(window.scrollTo).not.toHaveBeenCalled()
+    expect(window.requestAnimationFrame).not.toHaveBeenCalled()
+  },
+)

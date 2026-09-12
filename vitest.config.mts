@@ -37,6 +37,7 @@ export default defineConfig({
         test: {
           name: 'dom',
           environment: 'jsdom',
+          server: { deps: { inline: [/@gravity-ui\/uikit/] } },
           include: [DOM_TEST_GLOB],
         },
       },

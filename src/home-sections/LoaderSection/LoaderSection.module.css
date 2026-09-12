@@ -1,8 +1,0 @@
-.section {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: var(--min-height-section);
-  text-align: center;
-}

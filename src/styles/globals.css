@@ -195,6 +195,8 @@ aside {
 
 main {
   position: sticky;
+  width: 100%;
+  min-width: 0;
   left: calc(var(--aside-width) + 4 * var(--body-padding) + 1px + 1px);
   max-width: calc(var(--max-width) - var(--aside-width) - 4 * var(--body-padding));
   min-height: calc(100vh - var(--min-height-footer));

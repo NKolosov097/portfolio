@@ -1,0 +1,55 @@
+.hero {
+  width: 100%;
+}
+
+.hero .tag {
+  width: 5rem;
+  height: 1.75rem;
+  border-radius: 999px;
+}
+
+.hero .heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.2em;
+  width: 100%;
+}
+
+.hero .name,
+.hero .surname,
+.hero .software,
+.hero .engineer {
+  height: 0.72em;
+  margin-block: 0.14em;
+}
+
+.hero .name {
+  width: min(100%, 5ch);
+}
+
+.hero .surname {
+  width: min(100%, 7ch);
+}
+
+.hero .profession {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.2em;
+  width: 100%;
+}
+
+.hero .software {
+  width: min(100%, 8ch);
+}
+
+.hero .engineer {
+  width: min(100%, 8ch);
+}
+
+@media screen and (width <= 1024px) {
+  .hero .heading,
+  .hero .profession {
+    justify-content: center;
+  }
+}

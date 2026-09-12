@@ -1,4 +1,4 @@
-import { PropsWithChildren, Suspense } from 'react'
+import { PropsWithChildren } from 'react'
 import { cookies, headers } from 'next/headers'
 import { ToastContainer } from 'react-toastify'
 import type { Metadata, Viewport } from 'next'
@@ -16,7 +16,6 @@ import { Main } from '@/layout/Main/Main'
 import { Footer } from '@/layout/Footer/Footer'
 
 import { SkipToNavigationLink } from '@/components/SkipToNavigationLink/SkipToNavigationLink'
-import { LoaderSection } from '@/home-sections/LoaderSection/LoaderSection'
 import { LANG_COOKIE_KEY, resolveRequestLanguage } from '@/helpers/language'
 
 import {
@@ -104,16 +103,14 @@ export default async function RootLayout({ children }: PropsWithChildren) {
             __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, '\\u003c'),
           }}
         />
-        <Suspense fallback={<LoaderSection />}>
-          <Providers initialLanguage={initialLanguage}>
-            <SkipToNavigationLink />
-            <Header />
-            <Aside />
-            <Main>{children}</Main>
-            <Footer />
-            <ToastContainer />
-          </Providers>
-        </Suspense>
+        <Providers initialLanguage={initialLanguage}>
+          <SkipToNavigationLink />
+          <Header />
+          <Aside />
+          <Main>{children}</Main>
+          <Footer />
+          <ToastContainer />
+        </Providers>
       </body>
     </html>
   )
