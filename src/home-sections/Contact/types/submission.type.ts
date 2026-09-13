@@ -1,6 +1,10 @@
 import { EContactField, type ContactFormValues } from '@/home-sections/Contact/types/contact.type'
+import type {
+  AttachmentErrorCode,
+  AttachmentManifestItem,
+} from '@/home-sections/Contact/attachments'
 
-export type ContactField = EContactField | 'submissionId' | 'form'
+export type ContactField = EContactField | 'attachments' | 'submissionId' | 'form'
 export type ContactFieldErrorCode =
   | 'invalid_type'
   | 'required'
@@ -9,6 +13,7 @@ export type ContactFieldErrorCode =
   | 'too_short'
   | 'submission_id_invalid'
   | 'submission_id_reused'
+  | AttachmentErrorCode
 
 export type ContactSubmissionState =
   | { status: 'idle' }
@@ -23,4 +28,5 @@ export type ContactSubmissionState =
 export type ValidatedContactSubmission = ContactFormValues & {
   submissionId: string
   website: string
+  attachments: AttachmentManifestItem[]
 }

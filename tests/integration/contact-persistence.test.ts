@@ -47,6 +47,7 @@ const submission = (suffix: string, overrides = {}) => ({
   profession: `Profession ${suffix}`,
   message: `Message ${suffix}`,
   website: '',
+  attachments: [],
   ...overrides,
 })
 const accept = (input: ReturnType<typeof submission>, identity: string) => {
