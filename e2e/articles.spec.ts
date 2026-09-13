@@ -27,14 +27,29 @@ test.describe('self-hosted articles', () => {
     await page.goto(`/articles/${ARTICLE_SLUG}#three-decisions-ai-wont-make-for-you`)
 
     const heading = page.locator('#three-decisions-ai-wont-make-for-you')
-    await expect(heading).toBeInViewport({ timeout: 10_000 })
+    const header = page.locator('#page-header')
 
-    const headingTop = await heading.evaluate((element) => element.getBoundingClientRect().top)
-    const headerHeight = await page
-      .locator('#page-header')
-      .evaluate((element) => element.getBoundingClientRect().height)
+    await expect
+      .poll(
+        async () => {
+          const [headingRect, headerBottom, viewportHeight] = await Promise.all([
+            heading.evaluate((element) => {
+              const { top, bottom } = element.getBoundingClientRect()
 
-    expect(headingTop).toBeGreaterThanOrEqual(headerHeight)
+              return { top, bottom }
+            }),
+            header.evaluate((element) => element.getBoundingClientRect().bottom),
+            page.evaluate(() => window.innerHeight),
+          ])
+
+          return {
+            isInViewport: headingRect.bottom > 0 && headingRect.top < viewportHeight,
+            isBelowHeader: headingRect.top >= headerBottom,
+          }
+        },
+        { timeout: 30_000 },
+      )
+      .toEqual({ isInViewport: true, isBelowHeader: true })
   })
 
   test('switches the article body language with the site language switcher', async ({ page }) => {
