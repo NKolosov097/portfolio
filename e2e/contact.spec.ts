@@ -34,6 +34,20 @@ test.describe('contact form', () => {
     await expect(page.locator('#contact-name')).toHaveAttribute('aria-invalid', 'true')
   })
 
+  test('shows attachment limits in the desktop paperclip tooltip', async ({ page }) => {
+    await page.goto('/?lang=en#contact')
+    const attach = page.locator(`button[aria-label="${en.contact.attachFiles}"]`)
+
+    await expect(page.locator('#contact-attachments-hint')).toBeHidden()
+    await expect(attach).toBeEnabled()
+    await attach.hover()
+    await expect(page.getByRole('tooltip')).toHaveText(en.contact.attachmentHint)
+    await page.mouse.move(0, 0)
+    await expect(page.getByRole('tooltip')).toBeHidden()
+    await attach.focus()
+    await expect(page.getByRole('tooltip')).toHaveText(en.contact.attachmentHint)
+  })
+
   test('selects and removes multiple files and rejects a fourth before upload', async ({
     page,
   }) => {
@@ -43,6 +57,7 @@ test.describe('contact form', () => {
     await expect(input).toBeEnabled()
     await expect(input).toHaveAttribute('multiple', '')
     await expect(input).toHaveAttribute('accept', 'application/pdf,image/jpeg,image/png')
+    await expect(page.locator('#contact-attachments-hint')).toBeVisible()
     const fileChooser = page.waitForEvent('filechooser')
     await page.locator(`button[aria-label="${en.contact.attachFiles}"]`).click()
     await fileChooser

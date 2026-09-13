@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleXmark, Paperclip, Xmark } from '@gravity-ui/icons'
-import { Button, Loader, Modal, TextArea, TextInput } from '@gravity-ui/uikit'
+import { Button, Loader, Modal, TextArea, TextInput, Tooltip } from '@gravity-ui/uikit'
 import { upload } from '@vercel/blob/client'
 import type { z } from 'zod'
 
@@ -320,16 +320,18 @@ export const Form = () => {
                 'aria-describedby': error ? errorId : undefined,
               }}
             />
-            <button
-              ref={attachButtonRef}
-              type="button"
-              className={styles.attachButton}
-              disabled={!isHydrated || isBusy}
-              aria-label={t('contact.attachFiles')}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Paperclip />
-            </button>
+            <Tooltip content={t('contact.attachmentHint')} placement="top" openDelay={300}>
+              <button
+                ref={attachButtonRef}
+                type="button"
+                className={styles.attachButton}
+                disabled={!isHydrated || isBusy}
+                aria-label={t('contact.attachFiles')}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip />
+              </button>
+            </Tooltip>
           </div>
         ) : (
           <TextInput

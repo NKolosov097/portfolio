@@ -300,3 +300,9 @@
       'attachments' / minmax(0, 1fr);
   }
 }
+
+@media (width > 900px) and (hover: hover) and (pointer: fine) {
+  .attachmentHint {
+    display: none;
+  }
+}
