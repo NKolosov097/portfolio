@@ -44,6 +44,8 @@ describe('contact notification cron handler', () => {
       requeued: 1,
       lostLease: 0,
       stoppedByDeadline: false,
+      attachmentsDeleted: 3,
+      orphansDeleted: 2,
     })
     const response = await handleContactNotificationCron(request('Bearer expected'), {
       secret: 'expected',
@@ -51,7 +53,8 @@ describe('contact notification cron handler', () => {
     })
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({
+    const body = await response.json()
+    expect(body).toEqual({
       ok: true,
       status: 'completed',
       claimed: 2,
@@ -59,7 +62,10 @@ describe('contact notification cron handler', () => {
       requeued: 1,
       lostLease: 0,
       stoppedByDeadline: false,
+      attachmentsDeleted: 3,
+      orphansDeleted: 2,
     })
+    expect(JSON.stringify(body)).not.toMatch(/url|pathname|filename/i)
   })
 
   it('returns a stable error without leaking the database failure', async () => {

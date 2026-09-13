@@ -2,7 +2,8 @@ import 'server-only'
 
 import { Readable } from 'node:stream'
 
-import { del, get, head } from '@vercel/blob'
+import { del, get, head, list } from '@vercel/blob'
+import type { Pool } from 'pg'
 
 import { getContactPool } from '@/db/client'
 import {
@@ -112,16 +113,62 @@ export const openContactAttachment = async (pathname: string) => {
   )
 }
 
-export const deleteDeliveredContactAttachments = async (
+const deleteDeliveredAttachments = async (
+  pool: Pool,
   messageId: number,
   attachments: VerifiedContactAttachment[],
 ) => {
   const urls = attachments.map(({ url }) => url)
   if (!urls.length) return
   await del(urls)
-  await getContactPool().query(
+  await pool.query(
     `UPDATE contact_attachments SET deleted_at = clock_timestamp()
      WHERE message_id = $1 AND blob_url = ANY($2::text[]) AND deleted_at IS NULL`,
     [messageId, urls],
   )
+}
+
+export const deleteDeliveredContactAttachments = (
+  messageId: number,
+  attachments: VerifiedContactAttachment[],
+) => deleteDeliveredAttachments(getContactPool(), messageId, attachments)
+
+export const cleanupContactAttachments = async (pool: Pool, now = new Date()) => {
+  const deliveredRows = await pool.query<VerifiedContactAttachment & { messageId: number }>(
+    `SELECT attachment.message_id AS "messageId", attachment.blob_url AS "url",
+      attachment.pathname, attachment.original_name AS "name",
+      attachment.content_type AS "contentType", attachment.byte_size AS "size", attachment.etag
+     FROM contact_attachments AS attachment
+     JOIN messages ON messages.id = attachment.message_id
+     WHERE messages.notification_state = 'sent' AND attachment.deleted_at IS NULL
+     ORDER BY attachment.id LIMIT 25`,
+  )
+  const byMessage = new Map<number, VerifiedContactAttachment[]>()
+  for (const { messageId, ...attachment } of deliveredRows.rows)
+    byMessage.set(messageId, [...(byMessage.get(messageId) ?? []), attachment])
+
+  let delivered = 0
+  for (const [messageId, attachments] of byMessage)
+    try {
+      await deleteDeliveredAttachments(pool, messageId, attachments)
+      delivered += attachments.length
+    } catch {
+      // Best-effort cleanup is retried by the next cron run.
+    }
+
+  // ponytail: scan the first 1,000 portfolio blobs; add pagination if backlog metrics require it.
+  const stored = await list({ prefix: 'contact/', limit: 1_000 })
+  const staleUrls = stored.blobs
+    .filter(({ uploadedAt }) => uploadedAt.getTime() <= now.getTime() - 24 * 60 * 60_000)
+    .map(({ url }) => url)
+  if (!staleUrls.length) return { delivered, orphaned: 0 }
+
+  const bound = await pool.query<{ url: string }>(
+    `SELECT blob_url AS "url" FROM contact_attachments WHERE blob_url = ANY($1::text[])`,
+    [staleUrls],
+  )
+  const boundUrls = new Set(bound.rows.map(({ url }) => url))
+  const orphanUrls = staleUrls.filter((url) => !boundUrls.has(url)).slice(0, 25)
+  if (orphanUrls.length) await del(orphanUrls)
+  return { delivered, orphaned: orphanUrls.length }
 }

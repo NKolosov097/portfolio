@@ -5,7 +5,11 @@ import type { Pool } from 'pg'
 
 import { getContactPool } from '@/db/client'
 import { sendMail } from '@/lib/mail'
-import { deleteDeliveredContactAttachments, openContactAttachment } from './contact-attachments'
+import {
+  cleanupContactAttachments,
+  deleteDeliveredContactAttachments,
+  openContactAttachment,
+} from './contact-attachments'
 import {
   acquireNotificationJob,
   completeNotificationJob,
@@ -36,6 +40,8 @@ export const runContactNotificationRetry = async (pool: Pool = getContactPool())
       requeued: 0,
       lostLease: 0,
       stoppedByDeadline: false,
+      attachmentsDeleted: 0,
+      orphansDeleted: 0,
     }
   }
 
@@ -61,16 +67,22 @@ export const runContactNotificationRetry = async (pool: Pool = getContactPool())
       },
     })
     latest = result
+    const cleanup = await cleanupContactAttachments(pool)
+    const completed = {
+      ...result,
+      attachmentsDeleted: cleanup.delivered,
+      orphansDeleted: cleanup.orphaned,
+    }
     await completeNotificationJob(pool, token, { status: 'completed', ...result })
     console.info(
       JSON.stringify({
         event: 'contact_notification_retry',
         status: 'completed',
-        ...result,
+        ...completed,
         durationMs: Date.now() - startedAt,
       }),
     )
-    return { status: 'completed' as const, ...result }
+    return { status: 'completed' as const, ...completed }
   } catch (error) {
     await completeNotificationJob(pool, token, { status: 'failed', ...latest })
     console.error(

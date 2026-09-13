@@ -1,11 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ get: vi.fn(), head: vi.fn() }))
+const mocks = vi.hoisted(() => ({
+  del: vi.fn(),
+  get: vi.fn(),
+  head: vi.fn(),
+  list: vi.fn(),
+  query: vi.fn(),
+}))
 
 vi.mock('server-only', () => ({}))
 vi.mock('@vercel/blob', () => mocks)
+vi.mock('@/db/client', () => ({ getContactPool: () => ({ query: mocks.query }) }))
 
 import {
+  cleanupContactAttachments,
+  deleteDeliveredContactAttachments,
   InvalidContactAttachmentError,
   verifyContactAttachments,
 } from '@/home-sections/Contact/services/contact-attachments'
@@ -40,6 +49,7 @@ const blob = (bytes: number[]) => ({
 
 describe('verifyContactAttachments', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     mocks.head.mockResolvedValue(details)
     mocks.get.mockImplementation(async () => blob([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]))
   })
@@ -118,4 +128,81 @@ describe('verifyContactAttachments', () => {
       )
     },
   )
+})
+
+describe('contact attachment cleanup', () => {
+  const attachment = {
+    ...manifest[0]!,
+    name: 'brief.pdf',
+    contentType: 'application/pdf' as const,
+    size: 1_024,
+    etag: 'etag-1',
+  }
+
+  beforeEach(() => vi.clearAllMocks())
+
+  it('marks delivered rows deleted only after one successful Blob batch', async () => {
+    mocks.del.mockResolvedValue(undefined)
+    mocks.query.mockResolvedValue({ rowCount: 1, rows: [] })
+
+    await deleteDeliveredContactAttachments(42, [attachment])
+
+    expect(mocks.del).toHaveBeenCalledWith([privateUrl])
+    expect(mocks.del.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.query.mock.invocationCallOrder[0]!,
+    )
+  })
+
+  it('leaves deleted_at null when Blob deletion fails', async () => {
+    mocks.del.mockRejectedValue(new Error('blob down'))
+    await expect(deleteDeliveredContactAttachments(42, [attachment])).rejects.toThrow('blob down')
+    expect(mocks.query).not.toHaveBeenCalled()
+  })
+
+  it('retries sent rows and deletes at most 25 stale unbound blobs', async () => {
+    const now = new Date('2026-09-13T12:00:00.000Z')
+    const deliveredUrl = `${privateUrl}-delivered`
+    const boundUrl = `${privateUrl}-bound`
+    const youngUrl = `${privateUrl}-young`
+    const orphanUrls = Array.from({ length: 30 }, (_, index) => `${privateUrl}-orphan-${index}`)
+    const query = vi.fn(async (statement: string) => {
+      if (statement.includes('JOIN messages'))
+        return {
+          rows: [
+            {
+              messageId: 42,
+              url: deliveredUrl,
+              pathname,
+              name: 'delivered.pdf',
+              contentType: 'application/pdf',
+              size: 100,
+              etag: 'delivered-etag',
+            },
+          ],
+          rowCount: 1,
+        }
+      if (statement.includes('SELECT blob_url')) return { rows: [{ url: boundUrl }], rowCount: 1 }
+      return { rows: [], rowCount: 1 }
+    })
+    mocks.list.mockResolvedValue({
+      blobs: [
+        { url: youngUrl, uploadedAt: new Date(now.getTime() - 60_000) },
+        { url: boundUrl, uploadedAt: new Date(now.getTime() - 25 * 60 * 60_000) },
+        ...orphanUrls.map((url) => ({
+          url,
+          uploadedAt: new Date(now.getTime() - 25 * 60 * 60_000),
+        })),
+      ],
+      hasMore: false,
+    })
+    mocks.del.mockResolvedValue(undefined)
+
+    await expect(cleanupContactAttachments({ query } as never, now)).resolves.toEqual({
+      delivered: 1,
+      orphaned: 25,
+    })
+    expect(mocks.del.mock.calls[0]?.[0]).toEqual([deliveredUrl])
+    expect(mocks.del.mock.calls[1]?.[0]).toEqual(orphanUrls.slice(0, 25))
+    expect(mocks.list).toHaveBeenCalledWith({ prefix: 'contact/', limit: 1_000 })
+  })
 })

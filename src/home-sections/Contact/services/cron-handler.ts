@@ -9,6 +9,8 @@ export type ContactCronRunResult = {
   requeued: number
   lostLease: number
   stoppedByDeadline: boolean
+  attachmentsDeleted: number
+  orphansDeleted: number
 }
 
 interface ContactCronDependencies {
