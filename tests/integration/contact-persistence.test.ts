@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   acceptContactSubmission,
+  consumeContactUploadLimit,
   hashRateIdentity,
 } from '@/home-sections/Contact/services/submission-policy'
 import {
@@ -34,6 +35,7 @@ const run = randomUUID()
 const secret = 'integration-contact-rate-secret'
 const usedEmails = new Set<string>()
 const usedIdentities = new Set<string>()
+const usedUploadIdentities = new Set<string>()
 const email = (suffix: string) => {
   const value = `${run}-${suffix}@example.test`
   usedEmails.add(value)
@@ -64,6 +66,7 @@ beforeAll(async () => {
 afterAll(async () => {
   const hashes = [
     ...[...usedIdentities].map((value) => hashRateIdentity(secret, 'identity', value)),
+    ...[...usedUploadIdentities].map((value) => hashRateIdentity(secret, 'upload', value)),
     ...[...usedEmails].map((value) => hashRateIdentity(secret, 'email', value)),
   ]
   if (hashes.length)
@@ -274,6 +277,20 @@ describe('contact persistence on PostgreSQL', () => {
     await expect(accept(submission('limit-reset'), identity)).resolves.toEqual(
       expect.objectContaining({ kind: 'accepted' }),
     )
+  })
+
+  it('issues exactly twenty upload tokens per identity and fixed window', async () => {
+    const identity = `test:${run}:upload-limited`
+    usedUploadIdentities.add(identity)
+
+    const results = await Promise.all(
+      Array.from({ length: 21 }, () =>
+        consumeContactUploadLimit(identity, { pool, rateLimitSecret: secret }),
+      ),
+    )
+
+    expect(results.filter(Boolean)).toHaveLength(20)
+    expect(results.filter((allowed) => !allowed)).toHaveLength(1)
   })
 
   it('allows only one worker to claim a pending notification and recovers failed work', async () => {

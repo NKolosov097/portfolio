@@ -21,6 +21,7 @@ export type SubmissionAcceptance =
   | { kind: 'rate-limited' }
 
 class RateLimitedError extends Error {}
+const CONTACT_UPLOAD_LIMIT = 20
 
 export const hashRateIdentity = (secret: string, scope: string, value: string) =>
   createHmac('sha256', secret).update(`${scope}:${value}`).digest('hex')
@@ -41,7 +42,7 @@ const consumeRateLimit = async (
   transaction: Parameters<
     Parameters<ReturnType<typeof drizzle<typeof schema>>['transaction']>[0]
   >[0],
-  scope: 'identity' | 'email',
+  scope: 'identity' | 'email' | 'upload',
   valueHash: string,
   limit: number,
 ) => {
@@ -55,6 +56,24 @@ const consumeRateLimit = async (
     RETURNING count
   `)
   return result.rows.length === 1
+}
+
+export const consumeContactUploadLimit = async (
+  trustedIdentity: string,
+  dependencies: { pool?: Pool; rateLimitSecret?: string } = {},
+) => {
+  const secret = dependencies.rateLimitSecret ?? process.env.CONTACT_RATE_LIMIT_SECRET
+  if (!secret) throw new Error('contact persistence unavailable')
+  const database = drizzle(dependencies.pool ?? getContactPool(), { schema })
+
+  return database.transaction((transaction) =>
+    consumeRateLimit(
+      transaction,
+      'upload',
+      hashRateIdentity(secret, 'upload', trustedIdentity),
+      CONTACT_UPLOAD_LIMIT,
+    ),
+  )
 }
 
 const samePayload = (row: typeof messages.$inferSelect, input: ValidatedContactSubmission) =>
