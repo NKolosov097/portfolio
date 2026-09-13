@@ -41,11 +41,21 @@ test.describe('contact form', () => {
     await expect(page.locator('#contact-attachments-hint')).toBeHidden()
     await expect(attach).toBeEnabled()
     await attach.hover()
-    await expect(page.getByRole('tooltip')).toHaveText(en.contact.attachmentHint)
+    await expect(
+      page.getByRole('tooltip').getByText('Up to 3 PDF, JPG or PNG files.', { exact: true }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('tooltip').getByText('5 MB each, 10 MB total.', { exact: true }),
+    ).toBeVisible()
     await page.mouse.move(0, 0)
     await expect(page.getByRole('tooltip')).toBeHidden()
     await attach.focus()
-    await expect(page.getByRole('tooltip')).toHaveText(en.contact.attachmentHint)
+    await expect(
+      page.getByRole('tooltip').getByText('Up to 3 PDF, JPG or PNG files.', { exact: true }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('tooltip').getByText('5 MB each, 10 MB total.', { exact: true }),
+    ).toBeVisible()
   })
 
   test('selects and removes multiple files and rejects a fourth before upload', async ({

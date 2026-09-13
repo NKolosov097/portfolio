@@ -320,7 +320,16 @@ export const Form = () => {
                 'aria-describedby': error ? errorId : undefined,
               }}
             />
-            <Tooltip content={t('contact.attachmentHint')} placement="top" openDelay={300}>
+            <Tooltip
+              content={
+                <span className={styles.attachmentTooltip}>
+                  <span>{t('contact.attachmentHintFiles')}</span>
+                  <span>{t('contact.attachmentHintLimits')}</span>
+                </span>
+              }
+              placement="top"
+              openDelay={300}
+            >
               <button
                 ref={attachButtonRef}
                 type="button"
@@ -568,7 +577,7 @@ export const Form = () => {
             </ul>
           )}
           <p id="contact-attachments-hint" className={styles.attachmentHint}>
-            {t('contact.attachmentHint')}
+            {t('contact.attachmentHintFiles')} {t('contact.attachmentHintLimits')}
           </p>
           {attachmentErrorMessage && (
             <p id="contact-attachment-error" className={styles.error}>
