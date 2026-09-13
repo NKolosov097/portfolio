@@ -220,8 +220,9 @@ The smallest meaningful coverage includes:
   retryable when Blob is unavailable;
 - cleanup tests proving pending/failed files are retained while sent and stale
   unbound files are deleted;
-- E2E coverage for a successful multi-file submission and visible client-side
-  limit errors with the upload boundary mocked;
+- DOM coverage for a successful multi-file submission with the Blob client
+  mocked, plus Playwright coverage for the real selection UI and visible
+  client-side limit errors;
 - repository format, lint, type, unit, integration, infrastructure, and E2E
   commands already defined in `package.json`.
 
