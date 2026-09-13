@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { createConnection, type Socket } from 'node:net'
+import type { Readable } from 'node:stream'
 
 import nodemailer from 'nodemailer'
 import { z } from 'zod'
@@ -8,12 +9,19 @@ import { z } from 'zod'
 export type MailFailureCode = 'configuration' | 'rejected' | 'timeout' | 'transport_failed'
 export type MailResult = { ok: true; transportId?: string } | { ok: false; code: MailFailureCode }
 
+export interface MailAttachment {
+  filename: string
+  content: Readable
+  contentType: string
+}
+
 export interface MailInput {
   to: string
   replyTo?: string
   subject: string
   text: string
   html?: string
+  attachments?: MailAttachment[]
 }
 
 const getTransportConfig = () => {
@@ -106,6 +114,7 @@ export const sendMail = async (input: MailInput): Promise<MailResult> => {
         subject: input.subject,
         text: input.text,
         html: input.html,
+        attachments: input.attachments,
       }),
       new Promise<never>((_, reject) => {
         timeout = setTimeout(() => {

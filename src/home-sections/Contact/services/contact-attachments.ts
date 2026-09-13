@@ -2,8 +2,9 @@ import 'server-only'
 
 import { Readable } from 'node:stream'
 
-import { get, head } from '@vercel/blob'
+import { del, get, head } from '@vercel/blob'
 
+import { getContactPool } from '@/db/client'
 import {
   CONTACT_ATTACHMENT_TYPES,
   detectAttachmentContentType,
@@ -108,5 +109,19 @@ export const openContactAttachment = async (pathname: string) => {
   if (!result || result.statusCode !== 200) throw unavailable()
   return Readable.fromWeb(
     result.stream as unknown as import('node:stream/web').ReadableStream<Uint8Array>,
+  )
+}
+
+export const deleteDeliveredContactAttachments = async (
+  messageId: number,
+  attachments: VerifiedContactAttachment[],
+) => {
+  const urls = attachments.map(({ url }) => url)
+  if (!urls.length) return
+  await del(urls)
+  await getContactPool().query(
+    `UPDATE contact_attachments SET deleted_at = clock_timestamp()
+     WHERE message_id = $1 AND blob_url = ANY($2::text[]) AND deleted_at IS NULL`,
+    [messageId, urls],
   )
 }

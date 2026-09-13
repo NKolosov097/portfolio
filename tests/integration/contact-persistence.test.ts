@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { Readable } from 'node:stream'
 
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
@@ -490,8 +491,16 @@ describe('contact persistence on PostgreSQL', () => {
   })
 
   it('recovers a failed notification through Mailpit without another database message', async () => {
-    const input = submission('mailpit', { name: `Mailpit ${run}`, message: `<b>hello</b>&"'` })
-    const accepted = await accept(input, `test:${run}:mailpit`)
+    const manifest = attachmentManifest('mailpit')
+    manifest[0]!.name = 'brief.pdf'
+    const input = submission('mailpit', {
+      name: `Mailpit ${run}`,
+      message: `<b>hello</b>&"'`,
+      attachments: manifest,
+    })
+    const accepted = await acceptWithVerifier(input, `test:${run}:mailpit`, async () =>
+      verifiedAttachments(manifest),
+    )
     if (accepted.kind !== 'accepted') throw new Error('setup did not persist a message')
     const failedClaim = await claimContactNotification(pool, accepted.messageId)
     if (!failedClaim) throw new Error('setup did not claim notification')
@@ -501,6 +510,8 @@ describe('contact persistence on PostgreSQL', () => {
       markSent: (id, token) => markNotificationSent(pool, id, token),
       markFailed: (id, token, code, attempts) =>
         markNotificationFailed(pool, id, token, code, attempts, new Date(Date.now() - 31_000)),
+      openAttachment: async () => Readable.from(Buffer.from('%PDF-test')),
+      deleteDeliveredAttachments: async () => undefined,
     })
 
     process.env.SMTP_SERVER_HOST = '127.0.0.1'
@@ -518,6 +529,8 @@ describe('contact persistence on PostgreSQL', () => {
         markSent: (id, token) => markNotificationSent(pool, id, token),
         markFailed: (id, token, code, attempts) =>
           markNotificationFailed(pool, id, token, code, attempts),
+        openAttachment: async () => Readable.from(Buffer.from('%PDF-test')),
+        deleteDeliveredAttachments: async () => undefined,
       }),
     ).resolves.toEqual({ status: 'sent' })
 
@@ -538,11 +551,11 @@ describe('contact persistence on PostgreSQL', () => {
     const detail = (await detailResponse.json()) as {
       HTML: string
       ReplyTo: Array<{ Address: string }>
-      Attachments: unknown[]
+      Attachments: Array<{ FileName: string }>
     }
     expect(detail.ReplyTo.map((recipient) => recipient.Address)).toEqual([input.email])
     expect(detail.HTML).toContain('&lt;b&gt;hello&lt;/b&gt;&amp;&quot;&#39;')
-    expect(detail.Attachments).toHaveLength(0)
+    expect(detail.Attachments.map((attachment) => attachment.FileName)).toEqual(['brief.pdf'])
     const count = await pool.query(
       `SELECT count(*)::int AS count FROM messages WHERE submission_id = $1`,
       [input.submissionId],

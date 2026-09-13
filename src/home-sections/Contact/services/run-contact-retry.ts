@@ -5,6 +5,7 @@ import type { Pool } from 'pg'
 
 import { getContactPool } from '@/db/client'
 import { sendMail } from '@/lib/mail'
+import { deleteDeliveredContactAttachments, openContactAttachment } from './contact-attachments'
 import {
   acquireNotificationJob,
   completeNotificationJob,
@@ -53,6 +54,8 @@ export const runContactNotificationRetry = async (pool: Pool = getContactPool())
           markSent: (id, claimToken) => markNotificationSent(pool, id, claimToken),
           markFailed: (id, claimToken, code, attempts) =>
             markNotificationFailed(pool, id, claimToken, code, attempts),
+          openAttachment: openContactAttachment,
+          deleteDeliveredAttachments: deleteDeliveredContactAttachments,
         })
         return outcome.status
       },
