@@ -80,8 +80,37 @@ export const messages = pgTable(
     ),
     check(
       'messages_notification_error_code_check',
-      sql`${table.notificationErrorCode} is null or ${table.notificationErrorCode} in ('configuration', 'rejected', 'timeout', 'transport_failed')`,
+      sql`${table.notificationErrorCode} is null or ${table.notificationErrorCode} in ('configuration', 'rejected', 'timeout', 'transport_failed', 'attachment_unavailable')`,
     ),
+  ],
+)
+
+export const contactAttachments = pgTable(
+  'contact_attachments',
+  {
+    id: serial('id').primaryKey(),
+    messageId: integer('message_id')
+      .notNull()
+      .references(() => messages.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull(),
+    blobUrl: text('blob_url').notNull(),
+    pathname: text('pathname').notNull(),
+    originalName: varchar('original_name', { length: 255 }).notNull(),
+    contentType: varchar('content_type', { length: 32 }).notNull(),
+    byteSize: integer('byte_size').notNull(),
+    etag: varchar('etag', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('contact_attachments_message_position_unique').on(table.messageId, table.position),
+    uniqueIndex('contact_attachments_blob_url_unique').on(table.blobUrl),
+    check('contact_attachments_position_check', sql`${table.position} between 0 and 2`),
+    check(
+      'contact_attachments_content_type_check',
+      sql`${table.contentType} in ('application/pdf', 'image/jpeg', 'image/png')`,
+    ),
+    check('contact_attachments_byte_size_check', sql`${table.byteSize} between 1 and 5242880`),
   ],
 )
 

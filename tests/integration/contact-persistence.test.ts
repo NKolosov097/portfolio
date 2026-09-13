@@ -99,10 +99,23 @@ describe('contact persistence on PostgreSQL', () => {
         migrationsSchema: schemaName,
       })
       const tables = await isolated.query(
-        `SELECT count(*)::int AS count FROM information_schema.tables WHERE table_schema = $1 AND table_name IN ('users', 'messages', 'contact_submission_keys', 'contact_rate_limits', 'contact_notification_jobs')`,
+        `SELECT count(*)::int AS count FROM information_schema.tables WHERE table_schema = $1 AND table_name IN ('users', 'messages', 'contact_submission_keys', 'contact_rate_limits', 'contact_notification_jobs', 'contact_attachments')`,
         [schemaName],
       )
-      expect(tables.rows[0].count).toBe(5)
+      expect(tables.rows[0].count).toBe(6)
+      const attachmentForeignKey = await isolated.query(
+        `SELECT referenced_namespace.nspname AS "referencedSchema"
+         FROM pg_constraint
+         JOIN pg_class source_table ON source_table.oid = conrelid
+         JOIN pg_namespace source_namespace ON source_namespace.oid = source_table.relnamespace
+         JOIN pg_class referenced_table ON referenced_table.oid = confrelid
+         JOIN pg_namespace referenced_namespace ON referenced_namespace.oid = referenced_table.relnamespace
+         WHERE contype = 'f' AND source_namespace.nspname = $1
+           AND source_table.relname = 'contact_attachments'
+           AND referenced_table.relname = 'messages'`,
+        [schemaName],
+      )
+      expect(attachmentForeignKey.rows).toEqual([{ referencedSchema: schemaName }])
     } finally {
       await isolated.end()
       await pool.query(`DROP SCHEMA "${schemaName}" CASCADE`)
@@ -136,6 +149,39 @@ describe('contact persistence on PostgreSQL', () => {
     ])
     expect(users.rows[0].count).toBe(1)
     expect(messages.rows.map((row) => row.name)).toEqual(['First', 'Second'])
+  })
+
+  it('stores only three bounded attachment positions', async () => {
+    const accepted = await accept(
+      submission('attachment-boundary'),
+      `test:${run}:attachment-boundary`,
+    )
+    if (accepted.kind !== 'accepted') throw new Error('setup did not persist a message')
+    const pathname = `contact/${run}/brief.pdf`
+    const url = `https://store.private.blob.vercel-storage.com/${pathname}`
+
+    await pool.query(
+      `INSERT INTO contact_attachments
+        (message_id, position, blob_url, pathname, original_name, content_type, byte_size, etag)
+       VALUES ($1, 0, $2, $3, 'brief.pdf', 'application/pdf', 5242880, 'etag-valid')`,
+      [accepted.messageId, url, pathname],
+    )
+    await expect(
+      pool.query(
+        `INSERT INTO contact_attachments
+          (message_id, position, blob_url, pathname, original_name, content_type, byte_size, etag)
+         VALUES ($1, 3, $2, $3, 'fourth.pdf', 'application/pdf', 1, 'etag-position')`,
+        [accepted.messageId, `${url}-position`, `${pathname}-position`],
+      ),
+    ).rejects.toThrow()
+    await expect(
+      pool.query(
+        `INSERT INTO contact_attachments
+          (message_id, position, blob_url, pathname, original_name, content_type, byte_size, etag)
+         VALUES ($1, 1, $2, $3, 'large.pdf', 'application/pdf', 5242881, 'etag-size')`,
+        [accepted.messageId, `${url}-size`, `${pathname}-size`],
+      ),
+    ).rejects.toThrow()
   })
 
   it('rolls back a user update when the message insert violates a database check', async () => {
