@@ -8,11 +8,13 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react'
+import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Loader, TextArea, TextInput } from '@gravity-ui/uikit'
+import { CircleXmark, Paperclip, Xmark } from '@gravity-ui/icons'
+import { Button, Loader, Modal, TextArea, TextInput } from '@gravity-ui/uikit'
 import { upload } from '@vercel/blob/client'
 import type { z } from 'zod'
 
@@ -59,6 +61,11 @@ interface UploadedAttachments {
   manifest: AttachmentManifestItem[]
 }
 
+interface SelectedAttachment {
+  file: File
+  url: string
+}
+
 const getFingerprint = (payload: FormData, files: File[] = []) =>
   JSON.stringify([
     ...CONTACT_FIELDS.map((field) => [field, String(payload.get(field) ?? '')]),
@@ -79,16 +86,28 @@ export const Form = () => {
   )
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const attachButtonRef = useRef<HTMLButtonElement>(null)
+  const selectedAttachmentsRef = useRef<SelectedAttachment[]>([])
   const dispatchingRef = useRef(false)
   const submissionIdRef = useRef<string | null>(null)
   const activeSubmissionRef = useRef<SubmittedPayload | null>(null)
   const lastSubmissionRef = useRef<SubmittedPayload | null>(null)
   const acknowledgedSubmissionRef = useRef<string | null>(null)
   const uploadedAttachmentsRef = useRef<UploadedAttachments | null>(null)
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [selectedAttachments, setSelectedAttachments] = useState<SelectedAttachment[]>([])
+  const [previewAttachment, setPreviewAttachment] = useState<SelectedAttachment | null>(null)
   const [attachmentError, setAttachmentError] = useState<AttachmentErrorCode | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
+  const selectedFiles = selectedAttachments.map(({ file }) => file)
+
+  const replaceSelectedFiles = (files: File[]) => {
+    selectedAttachmentsRef.current.forEach(({ url }) => URL.revokeObjectURL(url))
+    const next = files.map((file) => ({ file, url: URL.createObjectURL(file) }))
+    selectedAttachmentsRef.current = next
+    setSelectedAttachments(next)
+    setPreviewAttachment(null)
+  }
 
   const [submissionState, formAction, isPending] = useActionState<ContactSubmissionState, FormData>(
     async (previousState, payload) => {
@@ -147,7 +166,7 @@ export const Form = () => {
       getFingerprint(new FormData(currentForm), selectedFiles) === submitted.fingerprint
     ) {
       reset(defaultContactForm)
-      setSelectedFiles([])
+      replaceSelectedFiles([])
       setAttachmentError(null)
       setUploadProgress(0)
       uploadedAttachmentsRef.current = null
@@ -164,8 +183,13 @@ export const Form = () => {
       (field) => submissionState.fieldErrors[field]?.length,
     )
     if (firstInvalidField) document.getElementById(`contact-${firstInvalidField}`)?.focus()
-    else if (submissionState.fieldErrors.attachments?.length) fileInputRef.current?.focus()
+    else if (submissionState.fieldErrors.attachments?.length) attachButtonRef.current?.focus()
   }, [submissionState])
+
+  useEffect(
+    () => () => selectedAttachmentsRef.current.forEach(({ url }) => URL.revokeObjectURL(url)),
+    [],
+  )
 
   const translateAttachmentError = (code: AttachmentErrorCode | null) => {
     if (code === 'too_many_files') return t('contact.tooManyFiles')
@@ -178,7 +202,7 @@ export const Form = () => {
   }
 
   const selectFiles = (files: File[]) => {
-    setSelectedFiles(files)
+    replaceSelectedFiles(files)
     setAttachmentError(validateAttachmentFiles(files))
     setEditedServerErrors((current) => ({
       source: submissionState,
@@ -281,19 +305,31 @@ export const Form = () => {
           {label}
         </label>
         {field === EContactField.message ? (
-          <TextArea
-            {...commonProps}
-            onKeyDown={(event) => {
-              if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
+          <div className={styles.messageControl}>
+            <TextArea
+              {...commonProps}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
 
-              event.preventDefault()
-              formRef.current?.requestSubmit()
-            }}
-            controlProps={{
-              'aria-invalid': Boolean(error),
-              'aria-describedby': error ? errorId : undefined,
-            }}
-          />
+                event.preventDefault()
+                formRef.current?.requestSubmit()
+              }}
+              controlProps={{
+                'aria-invalid': Boolean(error),
+                'aria-describedby': error ? errorId : undefined,
+              }}
+            />
+            <button
+              ref={attachButtonRef}
+              type="button"
+              className={styles.attachButton}
+              disabled={!isHydrated || isBusy}
+              aria-label={t('contact.attachFiles')}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Paperclip />
+            </button>
+          </div>
         ) : (
           <TextInput
             {...commonProps}
@@ -349,7 +385,7 @@ export const Form = () => {
             if (selectionError) {
               setAttachmentError(selectionError)
               dispatchingRef.current = false
-              fileInputRef.current?.focus()
+              attachButtonRef.current?.focus()
               return
             }
 
@@ -445,42 +481,62 @@ export const Form = () => {
         )}
 
         <div className={styles.attachments}>
-          <label className={styles.label} htmlFor="contact-attachments">
-            {t('contact.attachments')}
-          </label>
           <input
             ref={fileInputRef}
+            className={styles.fileInput}
             id="contact-attachments"
             type="file"
             multiple
             accept={CONTACT_ATTACHMENT_TYPES.join(',')}
             disabled={!isHydrated || isBusy}
+            aria-label={t('contact.attachFiles')}
             aria-describedby={`contact-attachments-hint${attachmentErrorMessage ? ' contact-attachment-error' : ''}`}
             aria-invalid={Boolean(attachmentErrorMessage)}
             onChange={(event) => selectFiles([...(event.currentTarget.files ?? [])])}
           />
-          <p id="contact-attachments-hint" className={styles.attachmentHint}>
-            {t('contact.attachmentHint')}
-          </p>
-          {selectedFiles.length > 0 && (
+          {selectedAttachments.length > 0 && (
             <ul className={styles.attachmentList}>
-              {selectedFiles.map((file, index) => (
-                <li key={`${file.name}-${file.size}-${file.lastModified}`}>
-                  <span>
-                    {file.name} ({Math.ceil(file.size / 1024)} KB)
-                  </span>
+              {selectedAttachments.map((attachment, index) => (
+                <li
+                  key={`${attachment.file.name}-${attachment.file.size}-${attachment.file.lastModified}`}
+                >
                   <button
                     type="button"
+                    className={styles.previewButton}
+                    aria-label={t('contact.previewAttachment', { name: attachment.file.name })}
+                    onClick={() => setPreviewAttachment(attachment)}
+                  >
+                    {attachment.file.type.startsWith('image/') ? (
+                      <Image
+                        src={attachment.url}
+                        alt={attachment.file.name}
+                        width={88}
+                        height={88}
+                        unoptimized
+                      />
+                    ) : (
+                      <span className={styles.pdfPreview}>
+                        <strong>PDF</strong>
+                        <span>{attachment.file.name}</span>
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.removeAttachment}
                     disabled={isBusy}
-                    aria-label={t('contact.removeAttachment', { name: file.name })}
+                    aria-label={t('contact.removeAttachment', { name: attachment.file.name })}
                     onClick={() => selectFiles(selectedFiles.filter((_, item) => item !== index))}
                   >
-                    ×
+                    <Xmark />
                   </button>
                 </li>
               ))}
             </ul>
           )}
+          <p id="contact-attachments-hint" className={styles.attachmentHint}>
+            {t('contact.attachmentHint')}
+          </p>
           {attachmentErrorMessage && (
             <p id="contact-attachment-error" className={styles.error}>
               {attachmentErrorMessage}
@@ -553,6 +609,41 @@ export const Form = () => {
           </p>
         )}
       </div>
+      {previewAttachment && (
+        <Modal
+          open
+          onOpenChange={(open) => !open && setPreviewAttachment(null)}
+          disableBodyScrollLock
+          contentClassName={styles.previewModalSurface}
+        >
+          <div className={styles.previewModal}>
+            <Button
+              view="flat"
+              pin="circle-circle"
+              size="m"
+              className={styles.previewClose}
+              aria-label={t('contact.closeAttachmentPreview')}
+              onClick={() => setPreviewAttachment(null)}
+            >
+              <CircleXmark />
+            </Button>
+            {previewAttachment.file.type.startsWith('image/') ? (
+              <Image
+                src={previewAttachment.url}
+                alt={previewAttachment.file.name}
+                width={1200}
+                height={900}
+                unoptimized
+              />
+            ) : (
+              <iframe
+                src={previewAttachment.url}
+                title={t('contact.previewAttachment', { name: previewAttachment.file.name })}
+              />
+            )}
+          </div>
+        </Modal>
+      )}
     </form>
   )
 }

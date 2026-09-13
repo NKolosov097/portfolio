@@ -217,22 +217,53 @@ describe('contact form accessibility', () => {
     expect(getControl('contact-email').getAttribute('autocomplete')).toBe('email')
   })
 
-  it('uses an accessible native multiple-file input and removable file list', async () => {
+  it('opens the native picker and previews selected images and PDFs', async () => {
     const input = getAttachmentInput()
     expect(input.multiple).toBe(true)
     expect(input.accept).toBe('application/pdf,image/jpeg,image/png')
-    expect(host.querySelector('label[for="contact-attachments"]')?.textContent).toBe('Attachments')
+
+    const picker = host.querySelector<HTMLButtonElement>('button[aria-label="Attach files"]')
+    const openPicker = vi.spyOn(input, 'click').mockImplementation(() => undefined)
+    await act(async () => picker?.click())
+    expect(openPicker).toHaveBeenCalledOnce()
+
+    const createObjectURL = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockImplementation((blob) => `blob:${(blob as File).name}`)
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
 
     await act(async () =>
       selectFiles([file('brief.pdf', 'application/pdf'), file('screen.png', 'image/png', 2_048)]),
     )
-    expect(host.textContent).toContain('brief.pdf')
-    expect(host.textContent).toContain('2 KB')
+
+    expect(createObjectURL).toHaveBeenCalledTimes(2)
+    expect(host.querySelector('img[alt="screen.png"]')?.getAttribute('src')).toBe('blob:screen.png')
+
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: false,
+        media: '',
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }),
+    )
+    const pdfPreview = host.querySelector<HTMLButtonElement>(
+      'button[aria-label="Preview brief.pdf"]',
+    )
+    await act(async () => pdfPreview?.click())
+    expect(
+      document.body.querySelector('iframe[title="Preview brief.pdf"]')?.getAttribute('src'),
+    ).toBe('blob:brief.pdf')
 
     const remove = host.querySelector<HTMLButtonElement>('button[aria-label="Remove brief.pdf"]')
     await act(async () => remove?.click())
-    expect(host.textContent).not.toContain('brief.pdf')
-    expect(host.textContent).toContain('screen.png')
+    expect(host.querySelector('button[aria-label="Preview brief.pdf"]')).toBeNull()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:brief.pdf')
   })
 
   it('focuses and associates the first invalid field without losing a later draft', async () => {
@@ -395,7 +426,9 @@ describe('contact form action state', () => {
     })
     await act(async () => fillValidForm())
     await act(async () => submit())
-    expect(document.activeElement).toBe(getAttachmentInput())
+    expect(document.activeElement).toBe(
+      host.querySelector<HTMLButtonElement>('button[aria-label="Attach files"]'),
+    )
     expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(
       'One of the uploaded files is invalid. Select it again.',
     )

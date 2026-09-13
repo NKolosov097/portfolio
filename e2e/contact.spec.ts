@@ -43,6 +43,9 @@ test.describe('contact form', () => {
     await expect(input).toBeEnabled()
     await expect(input).toHaveAttribute('multiple', '')
     await expect(input).toHaveAttribute('accept', 'application/pdf,image/jpeg,image/png')
+    const fileChooser = page.waitForEvent('filechooser')
+    await page.locator(`button[aria-label="${en.contact.attachFiles}"]`).click()
+    await fileChooser
 
     await input.setInputFiles([
       { name: 'brief.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-test') },
@@ -52,12 +55,18 @@ test.describe('contact form', () => {
         buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
       },
     ])
-    await expect(page.getByText('brief.pdf', { exact: false })).toBeVisible()
-    await expect(page.getByText('screen.png', { exact: false })).toBeVisible()
+    const pdfPreview = page.getByRole('button', {
+      name: en.contact.previewAttachment.replace('{{name}}', 'brief.pdf'),
+    })
+    await expect(pdfPreview).toBeVisible()
+    await expect(page.getByRole('img', { name: 'screen.png' })).toBeVisible()
+    await pdfPreview.click()
+    await expect(page.locator('iframe[title="Preview brief.pdf"]')).toBeVisible()
+    await page.getByRole('button', { name: en.contact.closeAttachmentPreview }).click()
     await page
       .getByRole('button', { name: en.contact.removeAttachment.replace('{{name}}', 'brief.pdf') })
       .click()
-    await expect(page.getByText('brief.pdf', { exact: false })).toBeHidden()
+    await expect(pdfPreview).toBeHidden()
 
     let uploadRequests = 0
     page.on('request', (request) => {
