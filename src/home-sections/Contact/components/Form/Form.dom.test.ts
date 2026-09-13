@@ -266,6 +266,17 @@ describe('contact form accessibility', () => {
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:brief.pdf')
   })
 
+  it('adds files from a later picker selection instead of replacing the current selection', async () => {
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => `blob:${(blob as File).name}`)
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+
+    await act(async () => selectFiles([file('brief.pdf', 'application/pdf')]))
+    await act(async () => selectFiles([file('screen.png', 'image/png')]))
+
+    expect(host.querySelector('button[aria-label="Preview brief.pdf"]')).not.toBeNull()
+    expect(host.querySelector('button[aria-label="Preview screen.png"]')).not.toBeNull()
+  })
+
   it('focuses and associates the first invalid field without losing a later draft', async () => {
     await act(async () => {
       changeControl('contact-message', 'Please keep my draft')
@@ -311,7 +322,10 @@ describe('contact form action state', () => {
     ],
   ])('rejects %s before upload or submission', async (_case, makeFiles, error) => {
     await act(async () => fillValidForm())
-    await act(async () => selectFiles(makeFiles()))
+    const files = makeFiles()
+    await act(async () => selectFiles(files))
+    expect(host.querySelectorAll('button[aria-label^="Preview "]')).toHaveLength(files.length)
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(error)
     await act(async () => submit())
 
     expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(error)
@@ -404,7 +418,7 @@ describe('contact form action state', () => {
     expect(submittedPayload(1).get('submissionId')).toBe(submittedPayload(0).get('submissionId'))
   })
 
-  it('allocates a new submission ID and upload when the selected files change', async () => {
+  it('allocates a new submission ID and uploads the combined selection when files are added', async () => {
     sendMessageMock.mockResolvedValue({
       status: 'validation-error',
       fieldErrors: { email: ['invalid_email'] },
@@ -415,7 +429,12 @@ describe('contact form action state', () => {
     await act(async () => selectFiles([file('second.pdf', 'application/pdf')]))
     await act(async () => submit())
 
-    expect(uploadMock).toHaveBeenCalledTimes(2)
+    expect(uploadMock).toHaveBeenCalledTimes(3)
+    expect(
+      JSON.parse(String(submittedPayload(1).get('attachments'))).map(
+        ({ name }: { name: string }) => name,
+      ),
+    ).toEqual(['first.pdf', 'second.pdf'])
     expect(submittedId(1)).not.toBe(submittedId(0))
   })
 

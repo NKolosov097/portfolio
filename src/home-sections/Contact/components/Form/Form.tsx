@@ -201,9 +201,10 @@ export const Form = () => {
     return undefined
   }
 
-  const selectFiles = (files: File[]) => {
-    replaceSelectedFiles(files)
-    setAttachmentError(validateAttachmentFiles(files))
+  const selectFiles = (files: File[], append = false) => {
+    const nextFiles = append ? [...selectedFiles, ...files] : files
+    replaceSelectedFiles(nextFiles)
+    setAttachmentError(validateAttachmentFiles(nextFiles))
     setEditedServerErrors((current) => ({
       source: submissionState,
       fields: new Set(current.source === submissionState ? current.fields : []).add('attachments'),
@@ -480,6 +481,31 @@ export const Form = () => {
           t('contact.placeholderOfName'),
         )}
 
+        {renderField(
+          EContactField.email,
+          styles.email,
+          t('contact.labelOfEmail'),
+          t('contact.placeholderOfEmail'),
+        )}
+        {renderField(
+          EContactField.company,
+          styles.company,
+          t('contact.labelOfCompany'),
+          t('contact.placeholderOfcompany'),
+        )}
+        {renderField(
+          EContactField.profession,
+          styles.profession,
+          t('contact.labelOfProfession'),
+          t('contact.placeholderOfProfession'),
+        )}
+        {renderField(
+          EContactField.message,
+          styles.message,
+          t('contact.labelOfMessage'),
+          t('contact.placeholderOfMessage'),
+        )}
+
         <div className={styles.attachments}>
           <input
             ref={fileInputRef}
@@ -487,12 +513,17 @@ export const Form = () => {
             id="contact-attachments"
             type="file"
             multiple
+            tabIndex={-1}
             accept={CONTACT_ATTACHMENT_TYPES.join(',')}
             disabled={!isHydrated || isBusy}
             aria-label={t('contact.attachFiles')}
             aria-describedby={`contact-attachments-hint${attachmentErrorMessage ? ' contact-attachment-error' : ''}`}
             aria-invalid={Boolean(attachmentErrorMessage)}
-            onChange={(event) => selectFiles([...(event.currentTarget.files ?? [])])}
+            onChange={(event) => {
+              const files = [...(event.currentTarget.files ?? [])]
+              event.currentTarget.value = ''
+              selectFiles(files, true)
+            }}
           />
           {selectedAttachments.length > 0 && (
             <ul className={styles.attachmentList}>
@@ -543,30 +574,6 @@ export const Form = () => {
             </p>
           )}
         </div>
-        {renderField(
-          EContactField.email,
-          styles.email,
-          t('contact.labelOfEmail'),
-          t('contact.placeholderOfEmail'),
-        )}
-        {renderField(
-          EContactField.company,
-          styles.company,
-          t('contact.labelOfCompany'),
-          t('contact.placeholderOfcompany'),
-        )}
-        {renderField(
-          EContactField.profession,
-          styles.profession,
-          t('contact.labelOfProfession'),
-          t('contact.placeholderOfProfession'),
-        )}
-        {renderField(
-          EContactField.message,
-          styles.message,
-          t('contact.labelOfMessage'),
-          t('contact.placeholderOfMessage'),
-        )}
 
         <input
           className={styles.honeypot}
