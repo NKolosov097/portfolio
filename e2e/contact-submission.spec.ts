@@ -109,6 +109,13 @@ test('retains a failed draft, then saves and notifies once after pending, rapid 
       return result.rows[0]?.count
     }
     await expect.poll(countMessages).toBe(1)
+    const attachmentRows = await pool.query<{ count: number }>(
+      `SELECT count(*)::integer AS count FROM contact_attachments
+       JOIN messages ON messages.id = contact_attachments.message_id
+       WHERE messages.email = $1`,
+      [email],
+    )
+    expect(attachmentRows.rows[0]?.count).toBe(0)
 
     const payload = actionRequest.postDataBuffer()
     if (!payload) throw new Error('Expected the real Server Action request body')

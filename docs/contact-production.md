@@ -4,6 +4,7 @@
 
 - Vercel runs the Next.js application.
 - Neon PostgreSQL supplies a pooled runtime URL and a direct migration URL.
+- Separate private Vercel Blob stores hold preview and production attachments.
 - Gmail n.kolosov097@gmail.com sends owner notifications to the same address using an App Password.
 - Every valid submission is committed before SMTP is attempted. A database failure remains visible to the visitor; an SMTP failure is acknowledged because the message is durable and queued.
 - GitHub Actions invokes the protected retry endpoint every 15 minutes. Vercel Cron invokes it daily as a Hobby-compatible fallback.
@@ -27,11 +28,14 @@ Configure Production and a separate Preview database:
     CONTACT_RATE_LIMIT_SECRET
     CONTACT_EMAIL_RATE_LIMIT=20
     CONTACT_TRUSTED_IP_HEADER=x-vercel-forwarded-for
+    BLOB_READ_WRITE_TOKEN=<private Vercel Blob store token>
     CRON_SECRET
     OPERATIONS_SECRET
     CONTACT_RETRY_LIMIT=25
 
 The application prefers the `CONTACT_DB_` Neon variables, allowing a stale legacy `DATABASE_URL` to remain untouched during rollout. The Gmail account must have two-step verification before Google offers App Passwords. Do not use the normal Google password.
+
+Connect different private Blob stores to Preview and Production. Keep `@vercel/blob` access private, retain the trusted proxy IP header above, and never copy the production Blob token into preview or local test fixtures. The form accepts at most 3 PDF, JPEG, or PNG files, 5 MiB each and 10 MiB total.
 
 ## GitHub environments
 
@@ -48,10 +52,11 @@ Protect the production environment with required review if the repository plan s
 
 1. Apply migrations with Contact database migration -> preview against the preview database and enter the exact 40-character reviewed commit SHA.
 2. Deploy the PR preview with preview-only variables.
-3. Submit a unique synthetic message and verify one database row and one Gmail owner notification.
-4. Disable SMTP temporarily. Confirm the visitor still sees success, the row is queued, and an authenticated retry sends it after SMTP is restored.
+3. Submit a unique synthetic message with one PDF and one PNG. Verify one message row, two ordered `contact_attachments` rows, and one Gmail notification containing both usable files with their original names. Confirm the Blob objects are deleted after the notification is recorded as sent.
+4. Disable SMTP temporarily. Submit another attachment, confirm the visitor still sees success and the row is queued, then restore SMTP and invoke the authenticated retry. Verify Gmail receives the file and sent cleanup deletes its Blob.
 5. Use a closed database port in the isolated test suite. Confirm the draft remains and the visitor sees a recoverable failure.
 6. Check English/Russian copy, keyboard focus, responsive layout, and the Chromium/Firefox/WebKit matrix.
+7. Upload an object under `contact/` without submitting it. In the disposable preview store only, make it older than 24 hours and confirm the protected cron removes it while preserving newer and database-bound objects.
 
 Vercel Cron invokes production only. Exercise preview by calling the protected route manually with the preview CRON_SECRET.
 
@@ -73,6 +78,7 @@ Vercel Cron invokes production only. Exercise preview by calling the protected r
 - Each retry run has a database lease and a 45-second processing budget. It stops claiming work unless at least 22 seconds remain. Individual SMTP connections have a 15-second timeout.
 - A failed GitHub Actions Contact operations run means the endpoint, database, retry worker, or terminal queue needs inspection.
 - If a notification reaches five failed attempts, fix the delivery cause and dispatch Requeue contact notification with its submission UUID. The command only resets one terminal row and fails if that row is absent or no longer terminal.
+- Before requeueing `attachment_unavailable`, verify the private Blob token/store connection and that every referenced object still exists. Then use the existing single-submission requeue command.
 - A Gmail App Password is revoked when the Google account password changes; replace the Vercel secret after such a change.
 - SMTP cannot guarantee exactly-once delivery if a process crashes after Gmail accepts mail but before PostgreSQL records success. The stored submission remains idempotent.
 

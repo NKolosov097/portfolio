@@ -34,6 +34,49 @@ test.describe('contact form', () => {
     await expect(page.locator('#contact-name')).toHaveAttribute('aria-invalid', 'true')
   })
 
+  test('selects and removes multiple files and rejects a fourth before upload', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 740 })
+    await page.goto('/?lang=en#contact')
+    const input = page.locator('#contact-attachments')
+    await expect(input).toBeEnabled()
+    await expect(input).toHaveAttribute('multiple', '')
+    await expect(input).toHaveAttribute('accept', 'application/pdf,image/jpeg,image/png')
+
+    await input.setInputFiles([
+      { name: 'brief.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-test') },
+      {
+        name: 'screen.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      },
+    ])
+    await expect(page.getByText('brief.pdf', { exact: false })).toBeVisible()
+    await expect(page.getByText('screen.png', { exact: false })).toBeVisible()
+    await page
+      .getByRole('button', { name: en.contact.removeAttachment.replace('{{name}}', 'brief.pdf') })
+      .click()
+    await expect(page.getByText('brief.pdf', { exact: false })).toBeHidden()
+
+    let uploadRequests = 0
+    page.on('request', (request) => {
+      if (request.url().includes('/api/contact-uploads')) uploadRequests += 1
+    })
+    await input.setInputFiles(
+      Array.from({ length: 4 }, (_, index) => ({
+        name: `${index}.pdf`,
+        mimeType: 'application/pdf',
+        buffer: Buffer.from('%PDF-test'),
+      })),
+    )
+    await expect(page.locator('#contact-attachment-error')).toHaveText(en.contact.tooManyFiles)
+    expect(uploadRequests).toBe(0)
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+      .toBe(true)
+  })
+
   test('returns from an article to Contact and selects its header tab', async ({ page }) => {
     await page.goto('/')
     const articleCard = page.getByTestId('writing-article-ai-boilerplate-senior-engineers')

@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import net from 'node:net'
+import path from 'node:path'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -74,22 +75,23 @@ describe('E2E port configuration', () => {
     'loads the real Playwright configuration through its CLI transform',
     { timeout: 30_000 },
     () => {
-      const command = process.platform === 'win32' ? (process.env.ComSpec ?? 'cmd.exe') : 'pnpm'
-      const args =
-        process.platform === 'win32'
-          ? ['/d', '/s', '/c', 'pnpm.cmd exec playwright test --list']
-          : ['exec', 'playwright', 'test', '--list']
-      const result = spawnSync(command, args, {
-        cwd: process.cwd(),
-        encoding: 'utf8',
-        env: { ...process.env, E2E_PORT: '3100' },
-        timeout: 25_000,
-        windowsHide: true,
-      })
+      const result = spawnSync(
+        process.execPath,
+        [path.resolve('node_modules/@playwright/test/cli.js'), 'test', '--list'],
+        {
+          cwd: process.cwd(),
+          encoding: 'utf8',
+          env: { ...process.env, E2E_PORT: '3100' },
+          timeout: 25_000,
+          windowsHide: true,
+        },
+      )
       const output = `${result.stdout ?? ''}${result.stderr ?? ''}`
 
       expect(result.error, output).toBeUndefined()
       expect(result.status, output).toBe(0)
+      expect(output).toContain('contact.spec.ts')
+      expect(output).toContain('contact-submission.spec.ts')
     },
   )
 })
