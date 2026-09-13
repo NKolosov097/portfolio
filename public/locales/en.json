@@ -290,6 +290,13 @@
     "invalidTypeOfMessage": "A message could be only string",
 
     "sendMessage": "Send message",
-    "successfulSubmitTitle": "The message was sent successfully! Thanks 😉"
+    "sending": "Sending message…",
+    "successfulSubmitTitle": "The message was sent successfully! Thanks 😉",
+    "validationError": "Please correct the highlighted fields.",
+    "tooLong": "This value is too long.",
+    "serviceUnavailable": "Message service is temporarily unavailable. Please try again.",
+    "rateLimited": "Too many messages were sent. Please wait and try again.",
+    "submissionIdInvalid": "Please refresh the page and try again.",
+    "submissionIdReused": "This draft changed. Please submit it again."
   }
 }

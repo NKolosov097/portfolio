@@ -1,0 +1,53 @@
+name: Contact operations
+
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contact-operations-production
+  cancel-in-progress: false
+
+jobs:
+  retry-and-check:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      CONTACT_BASE_URL: https://nkolosov.com
+      CRON_SECRET: ${{ secrets.CONTACT_CRON_SECRET }}
+      OPERATIONS_SECRET: ${{ secrets.CONTACT_OPERATIONS_SECRET }}
+    steps:
+      - name: Require operational secrets
+        shell: bash
+        run: test -n "$CRON_SECRET" && test -n "$OPERATIONS_SECRET"
+
+      - name: Retry due owner notifications
+        shell: bash
+        run: >-
+          curl --silent --show-error --fail-with-body
+          --connect-timeout 10 --max-time 65
+          --header "Authorization: Bearer $CRON_SECRET"
+          "$CONTACT_BASE_URL/api/cron/contact-notifications"
+
+      - name: Fail on unhealthy delivery operations
+        shell: bash
+        run: |
+          status="$(
+            curl --silent --show-error --fail-with-body
+            --connect-timeout 10 --max-time 20
+            --header "Authorization: Bearer $OPERATIONS_SECRET"
+            "$CONTACT_BASE_URL/api/internal/contact-status"
+          )"
+          echo "$status" | jq -e '
+            .ok == true and
+            .database == "ok" and
+            .notifications.terminal == 0 and
+            (.notifications.oldestDueAgeSeconds == null or .notifications.oldestDueAgeSeconds <= 1800) and
+            .lastRun.status == "completed" and
+            .lastRun.completedAgeSeconds <= 1800 and
+            .lastRun.lostLease == 0
+          ' >/dev/null

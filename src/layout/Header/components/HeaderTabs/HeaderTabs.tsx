@@ -54,6 +54,10 @@ export const HeaderTabs = () => {
             },
           ]
         : []),
+      {
+        id: ETabID.contact,
+        title: t('headerTabs.contact'),
+      },
     ],
     [t],
   )

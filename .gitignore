@@ -41,11 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma
-prisma/@
-prisma/migrations
-src/generated
-
 # pm2 logs
 logs/
 *.log
@@ -57,6 +52,8 @@ CLAUDE.md
 # brainstorming visual companion
 .superpowers/
 .worktrees/
+.claude/worktrees/
+.pnpm-store/
 
 # tests
 /test-results/
