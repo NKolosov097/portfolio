@@ -1,0 +1,1 @@
+-- Snapshot-only migration: the reviewed baseline is in 0000_contact_core.sql.

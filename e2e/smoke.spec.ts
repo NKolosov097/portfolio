@@ -12,6 +12,7 @@ const ALWAYS_RENDERED_SECTION_IDS = [
   ETabID.portfolio,
   ETabID.aboutMe,
   ETabID.resume,
+  ETabID.contact,
 ] as const
 
 /** Reverse index of the shipped English tab labels, so no label is written out twice. */

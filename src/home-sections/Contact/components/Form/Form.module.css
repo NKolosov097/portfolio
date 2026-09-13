@@ -1,0 +1,112 @@
+.form {
+  width: 100%;
+  min-width: 0;
+}
+
+.container {
+  position: relative;
+  display: grid;
+  grid-template:
+    'name email'
+    'company profession'
+    'message message' 1fr / minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.field {
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.name {
+  grid-area: name;
+}
+
+.email {
+  grid-area: email;
+}
+
+.company {
+  grid-area: company;
+}
+
+.profession {
+  grid-area: profession;
+}
+
+.message {
+  grid-area: message;
+}
+
+.error,
+.result,
+.successfulResult {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  margin: 0.35rem 0 0;
+  color: var(--g-color-text-danger);
+}
+
+.loaderContainer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(0 0 0 / 7%);
+  border-radius: 0.5rem;
+  pointer-events: all;
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.footer {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.submitBtn {
+  margin-top: 1rem;
+  margin-right: auto;
+}
+
+.result,
+.successfulResult {
+  width: fit-content;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.successfulResult {
+  color: var(--toastify-color-progress-success);
+}
+
+@media screen and (width <= 900px) {
+  .container {
+    grid-template:
+      'name'
+      'email'
+      'company'
+      'profession'
+      'message' 1fr / minmax(0, 1fr);
+  }
+}

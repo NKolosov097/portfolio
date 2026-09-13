@@ -1,6 +1,8 @@
 allowBuilds:
-  '@prisma/engines': true
   esbuild: true
-  prisma: true
   sharp: true
   unrs-resolver: true
+# Drizzle exposes optional adapters for other ORMs; this project only uses node-postgres.
+ignoredOptionalDependencies:
+  - prisma
+  - '@prisma/*'

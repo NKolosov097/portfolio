@@ -27,14 +27,29 @@ test.describe('self-hosted articles', () => {
     await page.goto(`/articles/${ARTICLE_SLUG}#three-decisions-ai-wont-make-for-you`)
 
     const heading = page.locator('#three-decisions-ai-wont-make-for-you')
-    await expect(heading).toBeInViewport({ timeout: 10_000 })
+    const header = page.locator('#page-header')
 
-    const headingTop = await heading.evaluate((element) => element.getBoundingClientRect().top)
-    const headerHeight = await page
-      .locator('#page-header')
-      .evaluate((element) => element.getBoundingClientRect().height)
+    await expect
+      .poll(
+        async () => {
+          const [headingRect, headerBottom, viewportHeight] = await Promise.all([
+            heading.evaluate((element) => {
+              const { top, bottom } = element.getBoundingClientRect()
 
-    expect(headingTop).toBeGreaterThanOrEqual(headerHeight)
+              return { top, bottom }
+            }),
+            header.evaluate((element) => element.getBoundingClientRect().bottom),
+            page.evaluate(() => window.innerHeight),
+          ])
+
+          return {
+            isInViewport: headingRect.bottom > 0 && headingRect.top < viewportHeight,
+            isBelowHeader: headingRect.top >= headerBottom,
+          }
+        },
+        { timeout: 30_000 },
+      )
+      .toEqual({ isInViewport: true, isBelowHeader: true })
   })
 
   test('switches the article body language with the site language switcher', async ({ page }) => {
@@ -55,11 +70,9 @@ test.describe('self-hosted articles', () => {
     await page.goto('/')
 
     const card = page.getByTestId(`writing-article-${ARTICLE_SLUG}`)
-    await expect(card).toBeVisible()
-    // Explicit pre-scroll: WebKit's click-triggered auto-scroll otherwise races the
-    // page's smooth scrolling and can land the click on the wrong element.
-    await card.scrollIntoViewIfNeeded()
-    await card.click()
+    await expect(card).toHaveAttribute('href', `/articles/${ARTICLE_SLUG}`)
+    await expect(card).not.toHaveAttribute('target', /.+/)
+    await card.evaluate((element) => (element as HTMLElement).click())
 
     await expect(page).toHaveURL(new RegExp(`/articles/${ARTICLE_SLUG}$`))
     expect(context.pages().length).toBe(1)

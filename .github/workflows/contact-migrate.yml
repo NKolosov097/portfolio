@@ -1,0 +1,70 @@
+name: Contact database migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub environment holding the migration URL
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - production
+      revision:
+        description: Exact reviewed commit SHA to migrate
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contact-migration-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply reviewed Drizzle migrations
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      DIRECT_DATABASE_URL: ${{ secrets.CONTACT_DIRECT_DATABASE_URL }}
+      SELECTED_REVISION: ${{ inputs.revision }}
+    steps:
+      - name: Check out the selected revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.revision }}
+          fetch-depth: 0
+
+      - name: Verify the selected commit
+        shell: bash
+        run: |
+          [[ "$SELECTED_REVISION" =~ ^[0-9a-fA-F]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$SELECTED_REVISION"
+          if [ "${{ inputs.environment }}" = "production" ]; then
+            git fetch origin main
+            git merge-base --is-ancestor HEAD origin/main
+          fi
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.21.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Require the protected migration URL
+        shell: bash
+        run: test -n "$DIRECT_DATABASE_URL"
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply committed migrations
+        run: pnpm db:migrate

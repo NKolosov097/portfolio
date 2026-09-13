@@ -103,7 +103,8 @@ html:has(.g-modal_open) {
   background-color: transparent;
 }
 
-.g-text-input_state_error > .g-text-input__content:focus-within {
+.g-text-input_state_error > .g-text-input__content:focus-within,
+.g-text-area_state_error > .g-text-area__content:focus-within {
   outline: none;
 }
 

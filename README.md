@@ -1,8 +1,8 @@
-# Portfolio - [NKolosov097](https://nkolosov.com)
+﻿# Portfolio - [NKolosov097](https://nkolosov.com)
 
 A production-grade personal portfolio built on the **Next.js App Router** with **React 19** and **TypeScript** (strict): a single-page home experience plus a small set of statically generated article pages. It ships a fully internationalised (English / Russian) UI, a database-backed contact form with transactional email, and an accessibility- and performance-conscious layout shell.
 
-**[View the live portfolio →](https://nkolosov.com)**
+**[View the live portfolio â†’](https://nkolosov.com)**
 
 ---
 
@@ -30,30 +30,30 @@ A production-grade personal portfolio built on the **Next.js App Router** with *
 
 - **Section-based home SPA + self-hosted articles.** The home page (`/`) composes independent sections - `Home` (a hero backed by a decorative, pointer-reactive sparkle field on Canvas 2D, rendered in an OffscreenCanvas worker where supported and on the main thread otherwise, with a runtime governor scaling particle count and pixel ratio to the device), `Portfolio`, `About Me` (with the embedded contact form), `Resume` (with a downloadable CV), and `Writing` (articles & talks, revealed once populated) - behind a persistent layout shell with route-specific loading skeletons. Writing cards for self-hosted posts open a dedicated, statically generated `/articles/[slug]` page rather than staying in-page.
 - **First-class i18n.** All user-facing copy is translated (`en` / `ru`), resolved from a `lang` query string then a cookie, and served from `public/locales`.
-- **Type-safe, server-first data flow.** Contact submissions run through a `'use server'` action with **Zod** validation, persist to **PostgreSQL** via **Prisma 7**, and trigger a transactional email via **Nodemailer**.
+- **Type-safe, server-first data flow.** Contact submissions run through a `'use server'` action with **Zod** validation, persist to **PostgreSQL** via **Drizzle**, and trigger a transactional email via **Nodemailer**.
 - **Accessibility & performance built in.** Skip-to-navigation link, zoomable viewport, `prefers-reduced-motion` support, and a `requestAnimationFrame`-throttled scroll-spy.
 - **Consistent design language.** Themed entirely through **Gravity UI**, with the dark theme applied server-side to avoid a flash of unstyled content.
 - **Operational readiness.** A `/api/health` endpoint reports status, uptime, environment, and version for liveness/readiness probes.
-- **SEO out of the box.** Rich metadata (Open Graph, Twitter card, canonical + `hreflang` alternates), `Person` + `WebSite` JSON-LD structured data, a dynamically generated 1200×630 social banner (`next/og`), and generated `/robots.txt` and `/sitemap.xml` - all driven from a single `src/constants/seo.constants.ts` source of truth. Each article page gets its own metadata, `BlogPosting` JSON-LD, and OG image, generated per slug via `generateStaticParams`.
+- **SEO out of the box.** Rich metadata (Open Graph, Twitter card, canonical + `hreflang` alternates), `Person` + `WebSite` JSON-LD structured data, a dynamically generated 1200Ã—630 social banner (`next/og`), and generated `/robots.txt` and `/sitemap.xml` - all driven from a single `src/constants/seo.constants.ts` source of truth. Each article page gets its own metadata, `BlogPosting` JSON-LD, and OG image, generated per slug via `generateStaticParams`.
 
 ---
 
 ## Tech stack
 
-| Layer           | Technology                                                                                               |
-| --------------- | -------------------------------------------------------------------------------------------------------- |
-| Framework       | [Next.js 16](https://nextjs.org) (App Router) + [React 19](https://react.dev)                            |
-| Language        | [TypeScript 5](https://www.typescriptlang.org) (`strict`)                                                |
-| UI library      | [Gravity UI](https://gravity-ui.com) (`uikit`, `components`, `navigation`)                               |
-| Forms           | [react-hook-form](https://react-hook-form.com) + [Zod](https://zod.dev) resolver                         |
-| State           | [Zustand](https://zustand.docs.pmnd.rs) (vanilla stores behind React context)                            |
-| i18n            | [i18next](https://www.i18next.com) + [react-i18next](https://react.i18next.com)                          |
-| Database / ORM  | [PostgreSQL](https://www.postgresql.org) + [Prisma 7](https://www.prisma.io) (`pg` adapter / Accelerate) |
-| Email           | [Nodemailer](https://nodemailer.com) (Gmail SMTP)                                                        |
-| Notifications   | [react-toastify](https://fkhadra.github.io/react-toastify/)                                              |
-| Tooling         | ESLint 9, Prettier 3, Stylelint 17                                                                       |
-| Testing         | Vitest 4 (unit), Playwright 1.62 (E2E)                                                                   |
-| Package manager | [pnpm](https://pnpm.io) · Node.js 24                                                                     |
+| Layer           | Technology                                                                                         |
+| --------------- | -------------------------------------------------------------------------------------------------- |
+| Framework       | [Next.js 16](https://nextjs.org) (App Router) + [React 19](https://react.dev)                      |
+| Language        | [TypeScript 5](https://www.typescriptlang.org) (`strict`)                                          |
+| UI library      | [Gravity UI](https://gravity-ui.com) (`uikit`, `components`, `navigation`)                         |
+| Forms           | [react-hook-form](https://react-hook-form.com) + [Zod](https://zod.dev) resolver                   |
+| State           | [Zustand](https://zustand.docs.pmnd.rs) (vanilla stores behind React context)                      |
+| i18n            | [i18next](https://www.i18next.com) + [react-i18next](https://react.i18next.com)                    |
+| Database / ORM  | [PostgreSQL](https://www.postgresql.org) + [Drizzle ORM](https://orm.drizzle.team) (node-postgres) |
+| Email           | [Nodemailer](https://nodemailer.com) (Gmail SMTP)                                                  |
+| Notifications   | [react-toastify](https://fkhadra.github.io/react-toastify/)                                        |
+| Tooling         | ESLint 9, Prettier 3, Stylelint 17                                                                 |
+| Testing         | Vitest 4 (unit), Playwright 1.62 (E2E)                                                             |
+| Package manager | [pnpm](https://pnpm.io) Â· Node.js 24                                                              |
 
 ---
 
@@ -63,16 +63,16 @@ The app is a **single-page portfolio plus a small set of statically generated ar
 
 ```
 RootLayout (layout.tsx)
-└─ Providers              ← i18n, theme, Zustand store providers
-   ├─ SkipToNavigationLink
-   ├─ Header              ← navigation tabs + language switch
-   ├─ Aside               ← mobile drawer
-   ├─ Main                ← route loading boundaries stay inside the shell
-   │  ├─ HomePage / HomePageSkeleton                 ← "/"
-   │  ├─ ArticlesListContent / ArticlesListSkeleton  ← "/articles"
-   │  └─ ArticlePageContent / ArticlePageSkeleton    ← "/articles/[slug]"
-   ├─ Footer
-   └─ ToastContainer
+â””â”€ Providers              â† i18n, theme, Zustand store providers
+   â”œâ”€ SkipToNavigationLink
+   â”œâ”€ Header              â† navigation tabs + language switch
+   â”œâ”€ Aside               â† mobile drawer
+   â”œâ”€ Main                â† route loading boundaries stay inside the shell
+   â”‚  â”œâ”€ HomePage / HomePageSkeleton                 â† "/"
+   â”‚  â”œâ”€ ArticlesListContent / ArticlesListSkeleton  â† "/articles"
+   â”‚  â””â”€ ArticlePageContent / ArticlePageSkeleton    â† "/articles/[slug]"
+   â”œâ”€ Footer
+   â””â”€ ToastContainer
 ```
 
 Loading fallbacks use Gravity UI skeletons, shared layout dimensions, a single localized screen-reader status, and reduced-motion support. They appear only while a route suspends; hydration, language switching, decorative effects, and contact submissions do not artificially trigger a page skeleton.
@@ -83,7 +83,7 @@ Key architectural decisions:
 - **Article content as code.** Each article's body lives in `src/content/articles/<slug>/`, registered in `src/content/articles/registry.ts` by slug; article metadata (title, description, publish date, reading time) lives separately in `src/constants/articles.constants.ts` so route generation and SEO don't need to import the body component.
 - **Server-side theming.** The Gravity UI dark theme is resolved with `getRootClassName` in the root layout, so the correct theme class is present on first paint (no client flash).
 - **Server-only boundaries.** Database and mail singletons live in `src/lib/` and are guarded with `import 'server-only'`; server actions are marked `'use server'`.
-- **Path aliases.** `@/*` → `src/*`, `@public/*` → `public/*`, and `@tests/*` → `tests/*` (configured in `tsconfig.json`, the ESLint resolver, and `vitest.config.mts`).
+- **Path aliases.** `@/*` â†’ `src/*`, `@public/*` â†’ `public/*`, and `@tests/*` â†’ `tests/*` (configured in `tsconfig.json`, the ESLint resolver, and `vitest.config.mts`).
 
 ---
 
@@ -91,34 +91,34 @@ Key architectural decisions:
 
 ```
 src/
-├─ app/                 # App Router: layout, root page, /articles + /articles/[slug], /api/health,
-│                        #   robots.ts, sitemap.ts, opengraph-image.tsx, error & not-found
-├─ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Writing, Contact, HomePageSkeleton)
-│  └─ <Section>/
-│     ├─ components/    #   section-local sub-components
-│     ├─ actions/       #   'use server' server actions
-│     ├─ schemas/       #   Zod schemas
-│     ├─ helpers/       #   section-local pure helpers
-│     ├─ workers/       #   section-local web workers
-│     └─ types/         #   section-local types
-├─ content/articles/    # Article body components, one directory per slug, plus registry.ts
-├─ layout/              # Persistent shell: Header, Aside (drawer), Main, Footer
-├─ components/          # Shared UI: Tag, SkipToNavigationLink, NotFoundView, and the articles list/page/nav components
-├─ providers/           # React context providers, composed in Providers.tsx
-│  └─ stores/           #   store providers that instantiate Zustand stores once
-├─ stores/              # Zustand vanilla stores (AsideStore, HeaderStore)
-├─ constants/           # App-wide constants & enums
-├─ helpers/             # Pure utilities (scroll, clipboard, storage, language, idle callback)
-├─ hooks/               # Shared React hooks (e.g. useResolvedLanguage)
-├─ configs/i18n/        # i18next initialisation & context types
-├─ contexts/            # React contexts
-├─ assets/              # Static SVGs (logos, social icons) imported directly into components
-├─ styles/              # Global CSS: globals.css, reset.css
-├─ types/               # Cross-cutting shared types (e.g. IResponse)
-├─ lib/                 # Server-only singletons: prisma.ts, mail.tsx
-└─ generated/prisma/    # Prisma client output - do not edit manually
+â”œâ”€ app/                 # App Router: layout, root page, /articles + /articles/[slug], /api/health,
+â”‚                        #   robots.ts, sitemap.ts, opengraph-image.tsx, error & not-found
+â”œâ”€ home-sections/       # Page sections (Home, Portfolio, AboutMe, Resume, Writing, Contact, HomePageSkeleton)
+â”‚  â””â”€ <Section>/
+â”‚     â”œâ”€ components/    #   section-local sub-components
+â”‚     â”œâ”€ actions/       #   'use server' server actions
+â”‚     â”œâ”€ schemas/       #   Zod schemas
+â”‚     â”œâ”€ helpers/       #   section-local pure helpers
+â”‚     â”œâ”€ workers/       #   section-local web workers
+â”‚     â””â”€ types/         #   section-local types
+â”œâ”€ content/articles/    # Article body components, one directory per slug, plus registry.ts
+â”œâ”€ layout/              # Persistent shell: Header, Aside (drawer), Main, Footer
+â”œâ”€ components/          # Shared UI: Tag, SkipToNavigationLink, NotFoundView, and the articles list/page/nav components
+â”œâ”€ providers/           # React context providers, composed in Providers.tsx
+â”‚  â””â”€ stores/           #   store providers that instantiate Zustand stores once
+â”œâ”€ stores/              # Zustand vanilla stores (AsideStore, HeaderStore)
+â”œâ”€ constants/           # App-wide constants & enums
+â”œâ”€ helpers/             # Pure utilities (scroll, clipboard, storage, language, idle callback)
+â”œâ”€ hooks/               # Shared React hooks (e.g. useResolvedLanguage)
+â”œâ”€ configs/i18n/        # i18next initialisation & context types
+â”œâ”€ contexts/            # React contexts
+â”œâ”€ assets/              # Static SVGs (logos, social icons) imported directly into components
+â”œâ”€ styles/              # Global CSS: globals.css, reset.css
+â”œâ”€ types/               # Cross-cutting shared types (e.g. IResponse)
+â”œâ”€ lib/                 # Server-only mail transport
+â””â”€ db/                  # Drizzle schema and PostgreSQL pool
 
-prisma/                 # schema.prisma, migrations, seed.ts, init.sql
+drizzle/                # Reviewed SQL migrations and snapshots
 public/locales/         # Translation catalogues: en.json, ru.json
 docker/                 # Hardened daemon.json + nginx config for self-hosted setups
 e2e/                    # Playwright specs, shared locators and the server lifecycle hooks
@@ -137,12 +137,12 @@ and is routed to the jsdom environment by `vitest.config.mts`.
 
 - **Node.js 24** (see `engines` in `package.json`)
 - **pnpm**
-- A reachable **PostgreSQL** instance (local, [Neon](https://neon.tech), or Prisma Accelerate)
+- A reachable **PostgreSQL** instance (local or [Neon](https://neon.tech))
 
 ### Installation
 
 ```bash
-# 1. Install dependencies (runs `prisma generate` via postinstall)
+# 1. Install locked dependencies
 pnpm install
 
 # 2. Configure environment
@@ -150,10 +150,10 @@ cp .env.example .env.local
 #   then fill in the values described below
 
 # 3. Apply the database schema
-pnpm prisma migrate dev
+pnpm db:migrate
 
 # 4. (optional) Seed the database
-pnpm prisma db seed
+pnpm db:seed
 
 # 5. Start the dev server (Turbopack)
 pnpm dev
@@ -165,45 +165,30 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment variables
 
-Copy `.env.example` to `.env.local` and provide:
+Copy .env.example to .env.local and provide the pooled PostgreSQL URL, optional direct migration URL, Gmail SMTP settings, trusted Vercel client-IP header, and separate rate-limit, cron, and operations secrets. Secrets belong in deployment settings and GitHub environments; they must never be committed.
 
-| Variable                    | Required | Purpose                                                                                   |
-| --------------------------- | :------: | ----------------------------------------------------------------------------------------- |
-| `DATABASE_URL`              |    ✅    | PostgreSQL connection string. A `prisma://` URL switches the client to Prisma Accelerate. |
-| `NEXT_PUBLIC_LOCALHOST_API` |    ✅    | Public base URL of the deployed app, used for internal API calls.                         |
-| `SMTP_SERVER_HOST`          |    ✅    | Gmail SMTP host (`smtp.gmail.com`).                                                       |
-| `SMTP_SERVER_USERNAME`      |    ✅    | Gmail address used to send mail.                                                          |
-| `SMTP_SERVER_PASSWORD`      |    ✅    | Gmail **App Password** (not the account password).                                        |
-| `SITE_MAIL_RECIEVER`        |    ✅    | Address that receives contact-form submissions.                                           |
-
-> `src/lib/prisma.ts` inspects `DATABASE_URL` at client-creation time: a `prisma://` prefix enables the Accelerate extension, otherwise it connects through the `pg` driver adapter.
+See docs/contact-production.md for the complete production matrix.
 
 ---
 
 ## Available scripts
 
-| Script                    | Description                                                                |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `pnpm dev`                | Start the dev server with Turbopack.                                       |
-| `pnpm build`              | Production build.                                                          |
-| `pnpm start`              | Serve the production build.                                                |
-| `pnpm vercel-build`       | `prisma generate && prisma migrate deploy && next build` (CI).             |
-| `pnpm postinstall`        | `prisma generate` - runs automatically after `pnpm install`.               |
-| `pnpm check-types`        | TypeScript check (`tsc --pretty --noEmit`).                                |
-| `pnpm check-lint`         | ESLint check only, no auto-fix - a standalone alternative to `lint:js`.    |
-| `pnpm check-format`       | Prettier check only, no write, over the whole repo.                        |
-| `pnpm check-styles`       | Stylelint CSS check only, no auto-fix - used in CI.                        |
-| `pnpm lint`               | `lint:js && lint:styles && lint:prettier` - ESLint + Stylelint + Prettier. |
-| `pnpm lint:js`            | ESLint check, no auto-fix (part of `pnpm lint`).                           |
-| `pnpm lint:styles`        | Stylelint CSS with auto-fix.                                               |
-| `pnpm lint:prettier`      | Prettier check for Markdown files only.                                    |
-| `pnpm format`             | Auto-fix formatting with Prettier.                                         |
-| `pnpm test`               | Run the Vitest unit suite once.                                            |
-| `pnpm test:watch`         | Run Vitest in watch mode.                                                  |
-| `pnpm test:e2e`           | Production build, then the Playwright E2E suite.                           |
-| `pnpm prisma generate`    | Regenerate the Prisma client into `src/generated/prisma`.                  |
-| `pnpm prisma migrate dev` | Apply migrations locally.                                                  |
-| `pnpm prisma db seed`     | Seed the database via `prisma/seed.ts`.                                    |
+| Script                | Description                                            |
+| --------------------- | ------------------------------------------------------ |
+| pnpm dev              | Start the Turbopack development server.                |
+| pnpm build            | Build the application.                                 |
+| pnpm vercel-build     | Build on Vercel without mutating the database.         |
+| pnpm db:generate      | Generate a reviewed Drizzle migration.                 |
+| pnpm db:migrate       | Apply committed Drizzle migrations.                    |
+| pnpm db:seed          | Seed a synthetic feedback record.                      |
+| pnpm contact:retry    | Process a bounded leased batch of owner notifications. |
+| pnpm check-types      | Run the TypeScript check.                              |
+| pnpm check-lint       | Run ESLint without rewriting files.                    |
+| pnpm check-format     | Check formatting.                                      |
+| pnpm check-styles     | Check styles.                                          |
+| pnpm test             | Run unit and DOM tests.                                |
+| pnpm test:integration | Run isolated PostgreSQL and Mailpit tests.             |
+| pnpm test:e2e         | Build and run the Playwright matrix.                   |
 
 Before considering any change complete, the validation gate must pass:
 
@@ -233,7 +218,7 @@ What is covered today:
 - **Contact Zod schema** - trimming before length checks, localised messages, multi-field errors.
 - **`sendMessage` server action** - persistence, mail dispatch, validation failures echoing the
   submitted fields, database failure, and the deliberate choice to still report success when only
-  the mail step fails. Prisma and the mailer are mocked, so no database or SMTP is needed.
+  the mail step fails. Persistence and the mail transport are isolated, so unit tests need no database or SMTP.
 - **Locale catalogues** - `en.json` / `ru.json` key parity in both directions, no blank or
   non-string leaves.
 - **Articles registry** - every article has a unique kebab-case slug and a translated title and
@@ -313,27 +298,7 @@ so the breakpoint value is never restated in tests.
 
 ## Database
 
-PostgreSQL, accessed through a Prisma singleton (`src/lib/prisma.ts`). The generated client is emitted to `src/generated/prisma` and must never be edited by hand.
-
-```prisma
-model User {
-  id         Int       @id @default(autoincrement())
-  name       String
-  email      String    @unique
-  company    String
-  profession String
-  messages   Message[]
-}
-
-model Message {
-  id       Int    @id @default(autoincrement())
-  content  String
-  authorId Int
-  author   User   @relation(fields: [authorId], references: [id])
-}
-```
-
-A user is uniquely keyed by email; each contact submission **upserts** the user and appends a new related `Message`.
+PostgreSQL is accessed through Drizzle and a bounded node-postgres pool. Committed SQL migrations create sender snapshots, idempotent submission keys, atomic rate-limit buckets, leased notification state, and aggregate retry-job status. Runtime traffic uses a pooled URL; the controlled migration workflow can use a direct URL.
 
 ---
 
@@ -365,29 +330,25 @@ Current stores: `AsideStore` (mobile drawer) and `HeaderStore`.
 
 ## Contact form flow
 
-1. The form (`react-hook-form` + `zodResolver`) is submitted through `useActionState`.
-2. The `sendMessage` server action (`src/home-sections/Contact/actions/`) validates the payload with a localised Zod schema.
-3. On success it **upserts** the user and their message in PostgreSQL, then sends a confirmation email via `src/lib/mail.tsx`.
-4. Validation and server errors are returned as structured state and surfaced to the user; mail failures are logged without breaking the submission.
-
-Handled edge cases include non-`FormData` payloads, field-level validation errors (returned with the original values preserved), database upsert failures, and email-send failures.
+1. The form is submitted through a Server Action and validated with Zod.
+2. A trusted Vercel client identity and normalized email are rate-limited atomically in PostgreSQL.
+3. The message and immutable sender snapshot are committed under a client-generated submission UUID.
+4. Gmail notification is attempted only after storage. SMTP failure keeps the stored submission successful and queues a bounded retry.
+5. The protected retry route uses database leases so overlapping cron calls cannot run the same job concurrently.
 
 ---
 
 ## Deployment
 
-**Vercel** is the primary target. `vercel.json` wires the build to the `vercel-build` script, which regenerates the Prisma client, deploys migrations, and builds the app in one step:
+Vercel is the primary target. `vercel-build` applies committed migrations under a PostgreSQL advisory lock before compiling the application. The manually dispatched Contact database migration workflow can rehearse or apply an exact reviewed revision before a release. GitHub Actions calls the protected retry endpoint every 15 minutes, with a daily Vercel Cron fallback compatible with Hobby plans.
 
-```jsonc
-{
-  "buildCommand": "pnpm run vercel-build",
-  "framework": "nextjs",
-}
-```
+For self-hosted setups, docker/ contains the existing hardened daemon and reverse-proxy configuration.
 
-For **self-hosted** setups, `docker/` contains a hardened Docker `daemon.json` (log rotation, ulimits, BuildKit, registry mirror) and an `nginx/` reverse-proxy configuration.
+GET and HEAD /api/health provide minimal non-cacheable liveness. GET /api/internal/contact-status requires OPERATIONS_SECRET and returns aggregate queue/database status without sender data, content, IDs, or raw errors.
 
-**Health check:** `GET /api/health` returns status, ISO timestamp, uptime, environment, and version; `HEAD /api/health` returns `200` with no body for lightweight probes.
+See docs/contact-production.md for provisioning, preview, release, rollback, and incident steps.
+
+---
 
 **SEO endpoints:** `GET /robots.txt` (`src/app/robots.ts`), `GET /sitemap.xml` (`src/app/sitemap.ts` - the root page, `/articles`, and one entry per article), and the `GET /opengraph-image` social banner (`src/app/opengraph-image.tsx`, rendered with `next/og`) are all produced from `src/constants/seo.constants.ts`, which also feeds the metadata and JSON-LD in `src/app/layout.tsx`. Each article page additionally generates its own `opengraph-image` at `src/app/articles/[slug]/opengraph-image.tsx`.
 
