@@ -5,6 +5,7 @@ import { E2E_BASE_URL } from './e2e/helpers/server'
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
+  failOnFlakyTests: Boolean(process.env.CI),
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : 4,
