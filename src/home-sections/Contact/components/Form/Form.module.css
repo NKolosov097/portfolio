@@ -9,7 +9,8 @@
   grid-template:
     'name email'
     'company profession'
-    'message message' 1fr / minmax(0, 1fr) minmax(0, 1fr);
+    'message message' 1fr
+    'attachments attachments' / minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
   margin: 1rem 0;
 }
@@ -41,6 +42,36 @@
 
 .message {
   grid-area: message;
+}
+
+.attachments {
+  grid-area: attachments;
+  min-width: 0;
+}
+
+.attachmentHint {
+  margin: 0.35rem 0 0;
+}
+
+.attachmentList {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  list-style: none;
+}
+
+.attachmentList li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.attachmentList span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .error,
@@ -107,6 +138,7 @@
       'email'
       'company'
       'profession'
-      'message' 1fr / minmax(0, 1fr);
+      'message' 1fr
+      'attachments' / minmax(0, 1fr);
   }
 }

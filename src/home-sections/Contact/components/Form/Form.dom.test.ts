@@ -10,11 +10,15 @@ import { EContactField } from '@/home-sections/Contact/types/contact.type'
 import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
 import { Providers } from '@/providers/Providers'
 
-const { sendMessageMock } = vi.hoisted(() => ({ sendMessageMock: vi.fn() }))
+const { sendMessageMock, uploadMock } = vi.hoisted(() => ({
+  sendMessageMock: vi.fn(),
+  uploadMock: vi.fn(),
+}))
 
 vi.mock('@/home-sections/Contact/actions/send-message.action', () => ({
   sendMessage: sendMessageMock,
 }))
+vi.mock('@vercel/blob/client', () => ({ upload: uploadMock }))
 
 interface Deferred<T> {
   promise: Promise<T>
@@ -70,6 +74,25 @@ const getSubmitButton = () => {
   return button
 }
 
+const getAttachmentInput = () => getControl('contact-attachments') as HTMLInputElement
+
+const file = (name: string, type: string, size = 1_024) => {
+  const value = new File(['x'], name, { type, lastModified: 1_000 })
+  Object.defineProperty(value, 'size', { value: size })
+  return value
+}
+
+const selectFiles = (files: File[]) => {
+  const input = getAttachmentInput()
+  Object.defineProperty(input, 'files', { configurable: true, value: files })
+  Object.defineProperty(input, 'value', {
+    configurable: true,
+    writable: true,
+    value: files.length ? `C:\\fakepath\\${files[0]!.name}` : '',
+  })
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+}
+
 const changeControl = (id: string, value: string) => {
   const control = getControl(id)
   const prototype =
@@ -116,6 +139,11 @@ const submittedId = (call: number) => {
 
 beforeEach(async () => {
   sendMessageMock.mockReset()
+  uploadMock.mockReset()
+  uploadMock.mockImplementation(async (pathname: string) => ({
+    url: `https://store.private.blob.vercel-storage.com/${pathname}`,
+    pathname,
+  }))
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   vi.stubGlobal(
     'ResizeObserver',
@@ -129,6 +157,10 @@ beforeEach(async () => {
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222222',
     '33333333-3333-4333-8333-333333333333',
+    '44444444-4444-4444-8444-444444444444',
+    '55555555-5555-4555-8555-555555555555',
+    '66666666-6666-4666-8666-666666666666',
+    '77777777-7777-4777-8777-777777777777',
   ]
   vi.spyOn(globalThis.crypto, 'randomUUID').mockImplementation(() => {
     const id = ids.shift()
@@ -185,6 +217,24 @@ describe('contact form accessibility', () => {
     expect(getControl('contact-email').getAttribute('autocomplete')).toBe('email')
   })
 
+  it('uses an accessible native multiple-file input and removable file list', async () => {
+    const input = getAttachmentInput()
+    expect(input.multiple).toBe(true)
+    expect(input.accept).toBe('application/pdf,image/jpeg,image/png')
+    expect(host.querySelector('label[for="contact-attachments"]')?.textContent).toBe('Attachments')
+
+    await act(async () =>
+      selectFiles([file('brief.pdf', 'application/pdf'), file('screen.png', 'image/png', 2_048)]),
+    )
+    expect(host.textContent).toContain('brief.pdf')
+    expect(host.textContent).toContain('2 KB')
+
+    const remove = host.querySelector<HTMLButtonElement>('button[aria-label="Remove brief.pdf"]')
+    await act(async () => remove?.click())
+    expect(host.textContent).not.toContain('brief.pdf')
+    expect(host.textContent).toContain('screen.png')
+  })
+
   it('focuses and associates the first invalid field without losing a later draft', async () => {
     await act(async () => {
       changeControl('contact-message', 'Please keep my draft')
@@ -203,6 +253,161 @@ describe('contact form accessibility', () => {
 })
 
 describe('contact form action state', () => {
+  it.each([
+    [
+      'four files',
+      () => Array.from({ length: 4 }, (_, index) => file(`${index}.pdf`, 'application/pdf')),
+      'Attach no more than 3 files.',
+    ],
+    [
+      'an unsupported type',
+      () => [file('notes.txt', 'text/plain')],
+      'Only PDF, JPG and PNG files are supported.',
+    ],
+    [
+      'an oversized file',
+      () => [file('large.pdf', 'application/pdf', 5_242_881)],
+      'Each file must be 5 MB or smaller.',
+    ],
+    [
+      'an oversized total',
+      () => [
+        file('one.pdf', 'application/pdf', 4 * 1024 * 1024),
+        file('two.pdf', 'application/pdf', 4 * 1024 * 1024),
+        file('three.pdf', 'application/pdf', 3 * 1024 * 1024),
+      ],
+      'Attachments must be 10 MB or smaller in total.',
+    ],
+  ])('rejects %s before upload or submission', async (_case, makeFiles, error) => {
+    await act(async () => fillValidForm())
+    await act(async () => selectFiles(makeFiles()))
+    await act(async () => submit())
+
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(error)
+    expect(uploadMock).not.toHaveBeenCalled()
+    expect(sendMessageMock).not.toHaveBeenCalled()
+  })
+
+  it('uploads in order, exposes busy progress, and resets files after success', async () => {
+    const uploads = [
+      deferred<{ url: string; pathname: string }>(),
+      deferred<{ url: string; pathname: string }>(),
+    ]
+    const action = deferred<ContactSubmissionState>()
+    uploadMock.mockImplementation(
+      (
+        pathname: string,
+        _file: File,
+        options: {
+          onUploadProgress: (progress: {
+            loaded: number
+            total: number
+            percentage: number
+          }) => void
+        },
+      ) => {
+        options.onUploadProgress({ loaded: 512, total: 1_024, percentage: 50 })
+        const index = uploadMock.mock.calls.length - 1
+        return uploads[index]!.promise
+      },
+    )
+    sendMessageMock.mockReturnValueOnce(action.promise)
+    await act(async () => fillValidForm())
+    await act(async () =>
+      selectFiles([file('brief.pdf', 'application/pdf'), file('screen.png', 'image/png')]),
+    )
+    await act(async () => {
+      submit()
+      await vi.waitFor(() => expect(uploadMock).toHaveBeenCalledTimes(2))
+    })
+    expect(getForm().getAttribute('aria-busy')).toBe('true')
+    expect(getAttachmentInput().disabled).toBe(true)
+    expect(getSubmitButton().disabled).toBe(true)
+    expect(host.querySelector('[role="status"]')?.textContent).toContain('50%')
+
+    await act(async () => {
+      for (const [index, pending] of uploads.entries()) {
+        const uploadedPath = String(uploadMock.mock.calls[index]![0])
+        pending.resolve({
+          url: `https://store.private.blob.vercel-storage.com/${uploadedPath}`,
+          pathname: uploadedPath,
+        })
+      }
+      await Promise.all(uploads.map(({ promise }) => promise))
+    })
+    await vi.waitFor(() => expect(sendMessageMock).toHaveBeenCalledOnce())
+    const submitted = JSON.parse(String(submittedPayload(0).get('attachments')))
+    expect(submitted.map(({ name }: { name: string }) => name)).toEqual(['brief.pdf', 'screen.png'])
+    expect(submitted.map(({ pathname }: { pathname: string }) => pathname)).toEqual(
+      uploadMock.mock.calls.map(([uploadedPath]) => uploadedPath),
+    )
+    await act(async () => {
+      action.resolve({ status: 'success', submissionId: submittedId(0) })
+      await action.promise
+    })
+    expect(host.querySelector('button[aria-label="Remove brief.pdf"]')).toBeNull()
+    expect(getAttachmentInput().value).toBe('')
+  })
+
+  it('preserves a failed upload draft and reuses completed uploads on unchanged action retry', async () => {
+    await act(async () => fillValidForm('Keep this draft'))
+    await act(async () => selectFiles([file('brief.pdf', 'application/pdf')]))
+    uploadMock.mockRejectedValueOnce(new Error('upload down'))
+    await act(async () => submit())
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(
+      'The files could not be uploaded. Try again.',
+    )
+    expect(getControl('contact-message').value).toBe('Keep this draft')
+    expect(host.textContent).toContain('brief.pdf')
+    expect(sendMessageMock).not.toHaveBeenCalled()
+
+    sendMessageMock
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockImplementationOnce(async (_state: ContactSubmissionState, payload: FormData) => ({
+        status: 'success',
+        submissionId: String(payload.get('submissionId')),
+      }))
+    await act(async () => submit())
+    await act(async () => submit())
+    expect(uploadMock).toHaveBeenCalledTimes(2)
+    expect(submittedPayload(1).get('submissionId')).toBe(submittedPayload(0).get('submissionId'))
+  })
+
+  it('allocates a new submission ID and upload when the selected files change', async () => {
+    sendMessageMock.mockResolvedValue({
+      status: 'validation-error',
+      fieldErrors: { email: ['invalid_email'] },
+    })
+    await act(async () => fillValidForm())
+    await act(async () => selectFiles([file('first.pdf', 'application/pdf')]))
+    await act(async () => submit())
+    await act(async () => selectFiles([file('second.pdf', 'application/pdf')]))
+    await act(async () => submit())
+
+    expect(uploadMock).toHaveBeenCalledTimes(2)
+    expect(submittedId(1)).not.toBe(submittedId(0))
+  })
+
+  it('focuses and retranslates an authoritative attachment error', async () => {
+    sendMessageMock.mockResolvedValueOnce({
+      status: 'validation-error',
+      fieldErrors: { attachments: ['attachment_invalid'] },
+    })
+    await act(async () => fillValidForm())
+    await act(async () => submit())
+    expect(document.activeElement).toBe(getAttachmentInput())
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(
+      'One of the uploaded files is invalid. Select it again.',
+    )
+
+    const languageButton = Array.from(host.querySelectorAll('button')).find(
+      (button) => button.textContent === 'Russian',
+    )
+    await act(async () => languageButton?.click())
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(
+      'Один из загруженных файлов недействителен. Выберите его заново.',
+    )
+  })
   it('submits from the message field on Enter', async () => {
     sendMessageMock.mockImplementationOnce(
       async (_state: ContactSubmissionState, payload: FormData) => ({

@@ -297,6 +297,16 @@
     "serviceUnavailable": "Message service is temporarily unavailable. Please try again.",
     "rateLimited": "Too many messages were sent. Please wait and try again.",
     "submissionIdInvalid": "Please refresh the page and try again.",
-    "submissionIdReused": "This draft changed. Please submit it again."
+    "submissionIdReused": "This draft changed. Please submit it again.",
+    "attachments": "Attachments",
+    "attachmentHint": "Up to 3 PDF, JPG or PNG files; 5 MB each, 10 MB total.",
+    "removeAttachment": "Remove {{name}}",
+    "uploadingAttachments": "Uploading files: {{progress}}%",
+    "tooManyFiles": "Attach no more than 3 files.",
+    "unsupportedFileType": "Only PDF, JPG and PNG files are supported.",
+    "fileTooLarge": "Each file must be 5 MB or smaller.",
+    "filesTooLarge": "Attachments must be 10 MB or smaller in total.",
+    "uploadFailed": "The files could not be uploaded. Try again.",
+    "attachmentInvalid": "One of the uploaded files is invalid. Select it again."
   }
 }
