@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { attachmentManifestSchema } from '@/home-sections/Contact/attachments'
 import { contactSubmissionSchema } from '@/home-sections/Contact/schemas/send-message.schema'
 import type { SubmissionAcceptance } from '@/home-sections/Contact/services/submission-policy'
 import { EContactField } from '@/home-sections/Contact/types/contact.type'
@@ -24,6 +25,7 @@ const knownFields = [
   EContactField.message,
   'submissionId',
   'website',
+  'attachments',
 ] as const
 const contactFields: Record<string, ContactField> = {
   [EContactField.name]: EContactField.name,
@@ -33,6 +35,7 @@ const contactFields: Record<string, ContactField> = {
   [EContactField.message]: EContactField.message,
   submissionId: 'submissionId',
   website: 'form',
+  attachments: 'attachments',
   form: 'form',
 }
 const errorCodes: Record<string, ContactFieldErrorCode> = {
@@ -43,26 +46,54 @@ const errorCodes: Record<string, ContactFieldErrorCode> = {
   too_short: 'too_short',
   submission_id_invalid: 'submission_id_invalid',
   submission_id_reused: 'submission_id_reused',
+  attachment_invalid: 'attachment_invalid',
+  too_many_files: 'too_many_files',
 }
 
 const readFormData = (
   payload: FormData,
-): { errorField: ContactField } | { value: Record<string, FormDataEntryValue> } => {
+):
+  | { errorField: ContactField; errorCode: ContactFieldErrorCode }
+  | { value: Record<string, unknown> } => {
   const invalidDuplicates = knownFields.filter((field) => payload.getAll(field).length > 1)
   if (invalidDuplicates.length) {
     const duplicate = invalidDuplicates[0]
-    return { errorField: duplicate === 'website' ? 'form' : duplicate }
+    return {
+      errorField: duplicate === 'website' ? 'form' : duplicate,
+      errorCode: duplicate === 'attachments' ? 'attachment_invalid' : 'invalid_type',
+    }
   }
   for (const field of payload.keys())
-    if (!knownFields.includes(field as (typeof knownFields)[number])) return { errorField: 'form' }
-  return {
-    value: Object.fromEntries(
-      knownFields.flatMap((field) => {
-        const value = payload.get(field)
-        return value === null ? [] : [[field, value]]
-      }),
-    ),
+    if (!knownFields.includes(field as (typeof knownFields)[number]))
+      return { errorField: 'form', errorCode: 'invalid_type' }
+
+  const value: Record<string, unknown> = Object.fromEntries(
+    knownFields.flatMap((field) => {
+      if (field === 'attachments') return []
+      const entry = payload.get(field)
+      return entry === null ? [] : [[field, entry]]
+    }),
+  )
+  const rawAttachments = payload.get('attachments')
+  if (rawAttachments === null) value.attachments = []
+  else if (typeof rawAttachments !== 'string')
+    return { errorField: 'attachments', errorCode: 'attachment_invalid' }
+  else {
+    try {
+      const parsed = attachmentManifestSchema.safeParse(JSON.parse(rawAttachments))
+      if (!parsed.success)
+        return {
+          errorField: 'attachments',
+          errorCode: parsed.error.issues.some((issue) => issue.message === 'too_many_files')
+            ? 'too_many_files'
+            : 'attachment_invalid',
+        }
+      value.attachments = parsed.data
+    } catch {
+      return { errorField: 'attachments', errorCode: 'attachment_invalid' }
+    }
   }
+  return { value }
 }
 
 const validationState = (
@@ -89,7 +120,10 @@ export const createSendMessage =
       return { status: 'validation-error', fieldErrors: { form: ['invalid_type'] } }
     const read = readFormData(payload)
     if ('errorField' in read)
-      return { status: 'validation-error', fieldErrors: { [read.errorField]: ['invalid_type'] } }
+      return {
+        status: 'validation-error',
+        fieldErrors: { [read.errorField]: [read.errorCode] },
+      }
 
     const parsed = contactSubmissionSchema.safeParse(read.value)
     if (!parsed.success) return validationState(parsed.error.issues)
@@ -106,6 +140,11 @@ export const createSendMessage =
           fieldErrors: { submissionId: ['submission_id_reused'] },
         }
       if (accepted.kind === 'rate-limited') return { status: 'rate-limited', code: 'rate_limited' }
+      if (accepted.kind === 'invalid-attachments')
+        return {
+          status: 'validation-error',
+          fieldErrors: { attachments: ['attachment_invalid'] },
+        }
       if (accepted.kind === 'accepted')
         await dependencies.notify(accepted.messageId).catch(() => undefined)
       return { status: 'success', submissionId: parsed.data.submissionId }

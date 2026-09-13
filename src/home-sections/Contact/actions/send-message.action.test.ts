@@ -16,6 +16,7 @@ const formData = (overrides: Record<string, FormDataEntryValue> = {}) => {
     [EContactField.message]: 'Hello!',
     submissionId,
     website: '',
+    attachments: '[]',
     ...overrides,
   }
   Object.entries(fields).forEach(([key, value]) => data.set(key, value))
@@ -94,6 +95,56 @@ describe('sendMessage', () => {
     })
   })
 
+  it.each([
+    ['malformed JSON', '{'],
+    ['an object', '{}'],
+    ['a raw file', new File(['%PDF-test'], 'brief.pdf', { type: 'application/pdf' })],
+  ])('rejects %s in the attachment manifest', async (_case, attachments) => {
+    expect(await sendMessage({ status: 'idle' }, formData({ attachments }))).toEqual({
+      status: 'validation-error',
+      fieldErrors: { attachments: ['attachment_invalid'] },
+    })
+    expect(accept).not.toHaveBeenCalled()
+  })
+
+  it('rejects a fourth attachment and a duplicate manifest field', async () => {
+    const item = {
+      url: 'https://store.private.blob.vercel-storage.com/contact/file.pdf',
+      pathname: 'contact/submission/file.pdf',
+      name: 'file.pdf',
+    }
+    expect(
+      await sendMessage(
+        { status: 'idle' },
+        formData({ attachments: JSON.stringify([item, item, item, item]) }),
+      ),
+    ).toEqual({
+      status: 'validation-error',
+      fieldErrors: { attachments: ['too_many_files'] },
+    })
+
+    const duplicate = formData()
+    duplicate.append('attachments', '[]')
+    expect(await sendMessage({ status: 'idle' }, duplicate)).toEqual({
+      status: 'validation-error',
+      fieldErrors: { attachments: ['attachment_invalid'] },
+    })
+  })
+
+  it('passes one decoded attachment reference to persistence', async () => {
+    const item = {
+      url: 'https://store.private.blob.vercel-storage.com/contact/file.pdf',
+      pathname: 'contact/submission/file.pdf',
+      name: 'file.pdf',
+    }
+    await sendMessage({ status: 'idle' }, formData({ attachments: JSON.stringify([item]) }))
+
+    expect(accept).toHaveBeenCalledWith(
+      expect.objectContaining({ attachments: [item] }),
+      '127.0.0.1',
+    )
+  })
+
   it('does not consume policy or mail for a filled honeypot', async () => {
     expect(await sendMessage({ status: 'idle' }, formData({ website: 'bot.example' }))).toEqual({
       status: 'validation-error',
@@ -117,6 +168,14 @@ describe('sendMessage', () => {
     expect(await sendMessage({ status: 'idle' }, formData())).toEqual({
       status: 'validation-error',
       fieldErrors: { submissionId: ['submission_id_reused'] },
+    })
+  })
+
+  it('maps authoritative attachment rejection to the attachment field', async () => {
+    accept.mockResolvedValue({ kind: 'invalid-attachments' })
+    expect(await sendMessage({ status: 'idle' }, formData())).toEqual({
+      status: 'validation-error',
+      fieldErrors: { attachments: ['attachment_invalid'] },
     })
   })
 
