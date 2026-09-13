@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Form } from './Form'
 import { ELanguage } from '@/constants/header.constants'
 import { I18nContext } from '@/contexts/i18'
-import { EContactField } from '@/home-sections/Contact/types/contact.type'
+import { EContactField, EContactSubmissionStatus } from '@/home-sections/Contact/types/contact.type'
 import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
 import { Providers } from '@/providers/Providers'
 
@@ -387,7 +387,7 @@ describe('contact form action state', () => {
       uploadMock.mock.calls.map(([uploadedPath]) => uploadedPath),
     )
     await act(async () => {
-      action.resolve({ status: 'success', submissionId: submittedId(0) })
+      action.resolve({ status: EContactSubmissionStatus.success, submissionId: submittedId(0) })
       await action.promise
     })
     expect(host.querySelector('button[aria-label="Remove brief.pdf"]')).toBeNull()
@@ -409,7 +409,7 @@ describe('contact form action state', () => {
     sendMessageMock
       .mockRejectedValueOnce(new Error('offline'))
       .mockImplementationOnce(async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }))
     await act(async () => submit())
@@ -420,7 +420,7 @@ describe('contact form action state', () => {
 
   it('allocates a new submission ID and uploads the combined selection when files are added', async () => {
     sendMessageMock.mockResolvedValue({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { email: ['invalid_email'] },
     })
     await act(async () => fillValidForm())
@@ -440,7 +440,7 @@ describe('contact form action state', () => {
 
   it('focuses and retranslates an authoritative attachment error', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { attachments: ['attachment_invalid'] },
     })
     await act(async () => fillValidForm())
@@ -463,7 +463,7 @@ describe('contact form action state', () => {
   it('submits from the message field on Enter', async () => {
     sendMessageMock.mockImplementationOnce(
       async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }),
     )
@@ -493,7 +493,7 @@ describe('contact form action state', () => {
 
   it('does not submit while an input method editor is composing text', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'success',
+      status: EContactSubmissionStatus.success,
       submissionId: '11111111-1111-4111-8111-111111111111',
     })
     await act(async () => fillValidForm())
@@ -519,7 +519,7 @@ describe('contact form action state', () => {
 
   it('clears a server field error as soon as that field is edited', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { email: ['invalid_email'], message: ['too_short'] },
     })
     await act(async () => fillValidForm())
@@ -562,7 +562,7 @@ describe('contact form action state', () => {
     }
 
     await act(async () => {
-      response.resolve({ status: 'success', submissionId: submittedId(0) })
+      response.resolve({ status: EContactSubmissionStatus.success, submissionId: submittedId(0) })
     })
 
     expect(getForm().getAttribute('aria-busy')).toBe('false')
@@ -571,7 +571,7 @@ describe('contact form action state', () => {
 
   it('renders server field and global errors while preserving every input', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { name: ['required'], form: ['submission_id_invalid'] },
     })
     await act(async () => {
@@ -595,7 +595,7 @@ describe('contact form action state', () => {
     sendMessageMock
       .mockRejectedValueOnce(new Error('offline'))
       .mockImplementationOnce(async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }))
     await act(async () => fillValidForm())
@@ -614,11 +614,11 @@ describe('contact form action state', () => {
   it('uses a new submission ID when a rejected payload is edited', async () => {
     sendMessageMock
       .mockResolvedValueOnce({
-        status: 'validation-error',
+        status: EContactSubmissionStatus.validationError,
         fieldErrors: { email: ['invalid_email'] },
       })
       .mockImplementationOnce(async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }))
     await act(async () => fillValidForm())
@@ -634,7 +634,7 @@ describe('contact form action state', () => {
   it('resets each acknowledged success once and supports a second successful send', async () => {
     sendMessageMock.mockImplementation(
       async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }),
     )
@@ -660,7 +660,7 @@ describe('contact form action state', () => {
     vi.useFakeTimers()
     sendMessageMock.mockImplementationOnce(
       async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }),
     )
@@ -681,7 +681,7 @@ describe('contact form action state', () => {
 
     await act(async () => changeControl('contact-message', 'Browser-restored draft'))
     await act(async () => {
-      response.resolve({ status: 'success', submissionId: submittedId(0) })
+      response.resolve({ status: EContactSubmissionStatus.success, submissionId: submittedId(0) })
     })
 
     expect(getControl('contact-message').value).toBe('Browser-restored draft')
@@ -689,7 +689,7 @@ describe('contact form action state', () => {
 
   it('retranslates visible server errors when the language changes', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { name: ['required'] },
     })
     await act(async () => fillValidForm())
@@ -714,7 +714,7 @@ describe('contact form action state', () => {
     act(() => submit())
 
     await act(async () => root.unmount())
-    response.resolve({ status: 'unavailable', code: 'service_unavailable' })
+    response.resolve({ status: EContactSubmissionStatus.unavailable, code: 'service_unavailable' })
     await response.promise
 
     expect(error).not.toHaveBeenCalled()

@@ -9,6 +9,7 @@ import {
   deliverClaimedNotification,
 } from '@/home-sections/Contact/services/notify-owner'
 import type { VerifiedContactAttachment } from '@/home-sections/Contact/attachments'
+import { EContactNotificationDeliveryStatus } from '@/home-sections/Contact/types/contact.type'
 
 const message = {
   id: 42,
@@ -65,7 +66,7 @@ describe('owner notifications', () => {
         openAttachment: vi.fn(),
         deleteDeliveredAttachments: vi.fn().mockResolvedValue(undefined),
       }),
-    ).resolves.toEqual({ status: 'sent' })
+    ).resolves.toEqual({ status: EContactNotificationDeliveryStatus.sent })
     expect(markSent).toHaveBeenCalledWith(42, message.notificationClaimToken)
     expect(markFailed).not.toHaveBeenCalled()
   })
@@ -92,7 +93,7 @@ describe('owner notifications', () => {
           deleteDeliveredAttachments,
         },
       ),
-    ).resolves.toEqual({ status: 'sent' })
+    ).resolves.toEqual({ status: EContactNotificationDeliveryStatus.sent })
     expect(openAttachment.mock.calls.map(([value]) => value)).toEqual(
       attachments.map(({ pathname }) => pathname),
     )
@@ -124,7 +125,10 @@ describe('owner notifications', () => {
           deleteDeliveredAttachments: vi.fn(),
         },
       ),
-    ).resolves.toEqual({ status: 'requeued', code: 'attachment_unavailable' })
+    ).resolves.toEqual({
+      status: EContactNotificationDeliveryStatus.requeued,
+      code: 'attachment_unavailable',
+    })
     expect(send).not.toHaveBeenCalled()
     expect(markFailed).toHaveBeenCalledWith(
       42,
@@ -161,7 +165,10 @@ describe('owner notifications', () => {
         openAttachment: vi.fn(),
         deleteDeliveredAttachments: vi.fn(),
       }),
-    ).resolves.toEqual({ status: 'requeued', code: 'transport_failed' })
+    ).resolves.toEqual({
+      status: EContactNotificationDeliveryStatus.requeued,
+      code: 'transport_failed',
+    })
     expect(markFailed).toHaveBeenCalledWith(
       42,
       message.notificationClaimToken,
@@ -180,7 +187,7 @@ describe('owner notifications', () => {
         openAttachment: vi.fn(),
         deleteDeliveredAttachments: vi.fn(),
       }),
-    ).resolves.toEqual({ status: 'lost-lease' })
+    ).resolves.toEqual({ status: EContactNotificationDeliveryStatus.lostLease })
 
     await expect(
       deliverClaimedNotification(message, {
@@ -191,6 +198,6 @@ describe('owner notifications', () => {
         openAttachment: vi.fn(),
         deleteDeliveredAttachments: vi.fn(),
       }),
-    ).resolves.toEqual({ status: 'lost-lease' })
+    ).resolves.toEqual({ status: EContactNotificationDeliveryStatus.lostLease })
   })
 })

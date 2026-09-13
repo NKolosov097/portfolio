@@ -17,6 +17,7 @@ import {
   markNotificationFailed,
   markNotificationSent,
 } from '@/home-sections/Contact/services/notification-store'
+import { EContactNotificationDeliveryStatus } from '@/home-sections/Contact/types/contact.type'
 
 export interface ClaimedContactNotification {
   id: number
@@ -83,9 +84,9 @@ export const deliverClaimedNotification = async (
   message: ClaimedContactNotification,
   dependencies: NotificationDeliveryDependencies,
 ): Promise<
-  | { status: 'sent' }
-  | { status: 'requeued'; code: ContactNotificationFailureCode }
-  | { status: 'lost-lease' }
+  | { status: EContactNotificationDeliveryStatus.sent }
+  | { status: EContactNotificationDeliveryStatus.requeued; code: ContactNotificationFailureCode }
+  | { status: EContactNotificationDeliveryStatus.lostLease }
 > => {
   const mail = buildOwnerNotification(message, dependencies.ownerEmail)
   if (message.attachments.length) {
@@ -105,19 +106,22 @@ export const deliverClaimedNotification = async (
         message.notificationAttempts,
       )
       return isRecorded
-        ? { status: 'requeued', code: 'attachment_unavailable' }
-        : { status: 'lost-lease' }
+        ? {
+            status: EContactNotificationDeliveryStatus.requeued,
+            code: 'attachment_unavailable',
+          }
+        : { status: EContactNotificationDeliveryStatus.lostLease }
     }
   }
 
   const outcome = await dependencies.send(mail)
   if (outcome.ok) {
     const isRecorded = await dependencies.markSent(message.id, message.notificationClaimToken)
-    if (!isRecorded) return { status: 'lost-lease' }
+    if (!isRecorded) return { status: EContactNotificationDeliveryStatus.lostLease }
     await dependencies
       .deleteDeliveredAttachments(message.id, message.attachments)
       .catch(() => undefined)
-    return { status: 'sent' }
+    return { status: EContactNotificationDeliveryStatus.sent }
   }
   const isRecorded = await dependencies.markFailed(
     message.id,
@@ -125,7 +129,9 @@ export const deliverClaimedNotification = async (
     outcome.code,
     message.notificationAttempts,
   )
-  return isRecorded ? { status: 'requeued', code: outcome.code } : { status: 'lost-lease' }
+  return isRecorded
+    ? { status: EContactNotificationDeliveryStatus.requeued, code: outcome.code }
+    : { status: EContactNotificationDeliveryStatus.lostLease }
 }
 
 export const notifyPersistedContactMessage = async (messageId: number) => {

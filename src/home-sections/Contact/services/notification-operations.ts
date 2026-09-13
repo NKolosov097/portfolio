@@ -4,10 +4,12 @@ import { randomUUID } from 'node:crypto'
 
 import type { Pool } from 'pg'
 
+import { EContactNotificationRunStatus } from '@/home-sections/Contact/types/contact.type'
+
 const JOB_NAME = 'owner-email'
 
 interface CompletedNotificationRun {
-  status: 'completed' | 'failed'
+  status: EContactNotificationRunStatus.completed | EContactNotificationRunStatus.failed
   claimed: number
   sent: number
   requeued: number
@@ -114,7 +116,7 @@ export const getContactOperationalStatus = async (pool: Pool) => {
       )))::int AS "oldestDueAgeSeconds"
     FROM messages`),
     pool.query<{
-      status: string | null
+      status: EContactNotificationRunStatus | null
       completedAt: Date | null
       completedAgeSeconds: number | null
       claimed: number

@@ -17,14 +17,15 @@ import {
   verifyContactAttachments,
 } from '@/home-sections/Contact/services/contact-attachments'
 import { saveContactMessageInTransaction } from '@/home-sections/Contact/services/save-message'
+import { EContactSubmissionAcceptanceKind } from '@/home-sections/Contact/types/contact.type'
 import type { ValidatedContactSubmission } from '@/home-sections/Contact/types/submission.type'
 
 export type SubmissionAcceptance =
-  | { kind: 'accepted'; messageId: number }
-  | { kind: 'replay'; messageId: number }
-  | { kind: 'mismatch' }
-  | { kind: 'rate-limited' }
-  | { kind: 'invalid-attachments' }
+  | { kind: EContactSubmissionAcceptanceKind.accepted; messageId: number }
+  | { kind: EContactSubmissionAcceptanceKind.replay; messageId: number }
+  | { kind: EContactSubmissionAcceptanceKind.mismatch }
+  | { kind: EContactSubmissionAcceptanceKind.rateLimited }
+  | { kind: EContactSubmissionAcceptanceKind.invalidAttachments }
 
 class RateLimitedError extends Error {}
 const CONTACT_UPLOAD_LIMIT = 20
@@ -133,8 +134,8 @@ export const acceptContactSubmission = async (
       .where(eq(contactAttachments.messageId, existing.id))
       .orderBy(asc(contactAttachments.position))
     return samePayload(existing, storedAttachments, input)
-      ? { kind: 'replay', messageId: existing.id }
-      : { kind: 'mismatch' }
+      ? { kind: EContactSubmissionAcceptanceKind.replay, messageId: existing.id }
+      : { kind: EContactSubmissionAcceptanceKind.mismatch }
   }
 
   let verifiedAttachments
@@ -144,7 +145,8 @@ export const acceptContactSubmission = async (
       input.attachments,
     )
   } catch (error) {
-    if (error instanceof InvalidContactAttachmentError) return { kind: 'invalid-attachments' }
+    if (error instanceof InvalidContactAttachmentError)
+      return { kind: EContactSubmissionAcceptanceKind.invalidAttachments }
     throw error
   }
 
@@ -169,8 +171,8 @@ export const acceptContactSubmission = async (
           .where(eq(contactAttachments.messageId, stored.id))
           .orderBy(asc(contactAttachments.position))
         return samePayload(stored, storedAttachments, input)
-          ? { kind: 'replay', messageId: stored.id }
-          : { kind: 'mismatch' }
+          ? { kind: EContactSubmissionAcceptanceKind.replay, messageId: stored.id }
+          : { kind: EContactSubmissionAcceptanceKind.mismatch }
       }
 
       const identityHash = hashRateIdentity(secret, 'identity', trustedIdentity)
@@ -188,10 +190,11 @@ export const acceptContactSubmission = async (
       await transaction.execute(sql`DELETE FROM ${contactRateLimits} WHERE ctid IN (
         SELECT ctid FROM ${contactRateLimits} WHERE ${contactRateLimits.expiresAt} <= clock_timestamp() LIMIT 100
       )`)
-      return { kind: 'accepted', messageId }
+      return { kind: EContactSubmissionAcceptanceKind.accepted, messageId }
     })
   } catch (error) {
-    if (error instanceof RateLimitedError) return { kind: 'rate-limited' }
+    if (error instanceof RateLimitedError)
+      return { kind: EContactSubmissionAcceptanceKind.rateLimited }
     throw error
   }
 }

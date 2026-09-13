@@ -28,7 +28,7 @@ import {
   type AttachmentManifestItem,
 } from '@/home-sections/Contact/attachments'
 import { contactSchema } from '@/home-sections/Contact/schemas/send-message.schema'
-import { EContactField } from '@/home-sections/Contact/types/contact.type'
+import { EContactField, EContactSubmissionStatus } from '@/home-sections/Contact/types/contact.type'
 import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
 
 import styles from './Form.module.css'
@@ -73,7 +73,7 @@ const getFingerprint = (payload: FormData, files: File[] = []) =>
   ])
 
 const hasReusedSubmissionId = (state: ContactSubmissionState | undefined) =>
-  state?.status === 'validation-error' &&
+  state?.status === EContactSubmissionStatus.validationError &&
   (state.fieldErrors.submissionId?.includes('submission_id_reused') ||
     state.fieldErrors.form?.includes('submission_id_reused'))
 
@@ -118,7 +118,7 @@ export const Form = () => {
         return nextState
       } catch {
         const nextState: ContactSubmissionState = {
-          status: 'unavailable',
+          status: EContactSubmissionStatus.unavailable,
           code: 'service_unavailable',
         }
         const activeSubmission = activeSubmissionRef.current
@@ -128,7 +128,7 @@ export const Form = () => {
         dispatchingRef.current = false
       }
     },
-    { status: 'idle' },
+    { status: EContactSubmissionStatus.idle },
   )
   const [editedServerErrors, setEditedServerErrors] = useState<{
     source: ContactSubmissionState
@@ -152,7 +152,7 @@ export const Form = () => {
   })
 
   useEffect(() => {
-    if (submissionState.status !== 'success') return
+    if (submissionState.status !== EContactSubmissionStatus.success) return
     if (acknowledgedSubmissionRef.current === submissionState.submissionId) return
 
     const submitted = lastSubmissionRef.current
@@ -177,7 +177,7 @@ export const Form = () => {
   }, [reset, selectedFiles, submissionState])
 
   useEffect(() => {
-    if (submissionState.status !== 'validation-error') return
+    if (submissionState.status !== EContactSubmissionStatus.validationError) return
 
     const firstInvalidField = CONTACT_FIELDS.find(
       (field) => submissionState.fieldErrors[field]?.length,
@@ -242,7 +242,7 @@ export const Form = () => {
   const getFieldError = (field: ContactFieldName) => {
     const clientMessage = errors[field]?.message
     const serverCode =
-      submissionState.status === 'validation-error' &&
+      submissionState.status === EContactSubmissionStatus.validationError &&
       !(editedServerErrors.source === submissionState && editedServerErrors.fields.has(field))
         ? submissionState.fieldErrors[field]?.[0]
         : undefined
@@ -256,10 +256,13 @@ export const Form = () => {
   const getResultMessage = () => {
     if (isUploading) return t('contact.uploadingAttachments', { progress: uploadProgress })
     if (isPending) return t('contact.sending')
-    if (submissionState.status === 'success') return t('contact.successfulSubmitTitle')
-    if (submissionState.status === 'unavailable') return t('contact.serviceUnavailable')
-    if (submissionState.status === 'rate-limited') return t('contact.rateLimited')
-    if (submissionState.status === 'validation-error') {
+    if (submissionState.status === EContactSubmissionStatus.success)
+      return t('contact.successfulSubmitTitle')
+    if (submissionState.status === EContactSubmissionStatus.unavailable)
+      return t('contact.serviceUnavailable')
+    if (submissionState.status === EContactSubmissionStatus.rateLimited)
+      return t('contact.rateLimited')
+    if (submissionState.status === EContactSubmissionStatus.validationError) {
       const formCode =
         submissionState.fieldErrors.form?.[0] ?? submissionState.fieldErrors.submissionId?.[0]
       if (formCode === 'submission_id_reused') return t('contact.submissionIdReused')
@@ -370,7 +373,7 @@ export const Form = () => {
 
   const resultMessage = getResultMessage()
   const serverAttachmentError =
-    submissionState.status === 'validation-error' &&
+    submissionState.status === EContactSubmissionStatus.validationError &&
     !(editedServerErrors.source === submissionState && editedServerErrors.fields.has('attachments'))
       ? (submissionState.fieldErrors.attachments?.[0] as AttachmentErrorCode | undefined)
       : undefined
@@ -617,7 +620,9 @@ export const Form = () => {
         {resultMessage && (
           <p
             className={
-              submissionState.status === 'success' ? styles.successfulResult : styles.result
+              submissionState.status === EContactSubmissionStatus.success
+                ? styles.successfulResult
+                : styles.result
             }
             data-testid="contact-result"
             role="status"

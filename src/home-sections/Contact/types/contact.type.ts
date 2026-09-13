@@ -10,6 +10,35 @@ export const enum EContactField {
   message = 'message',
 }
 
+export const enum EContactSubmissionStatus {
+  idle = 'idle',
+  success = 'success',
+  validationError = 'validation-error',
+  unavailable = 'unavailable',
+  rateLimited = 'rate-limited',
+}
+
+export const enum EContactSubmissionAcceptanceKind {
+  accepted = 'accepted',
+  replay = 'replay',
+  mismatch = 'mismatch',
+  rateLimited = 'rate-limited',
+  invalidAttachments = 'invalid-attachments',
+}
+
+export const enum EContactNotificationDeliveryStatus {
+  sent = 'sent',
+  requeued = 'requeued',
+  lostLease = 'lost-lease',
+}
+
+export const enum EContactNotificationRunStatus {
+  running = 'running',
+  completed = 'completed',
+  failed = 'failed',
+  alreadyRunning = 'already-running',
+}
+
 export interface IContactSchema {
   name: {
     requireName: string

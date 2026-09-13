@@ -13,6 +13,7 @@ import {
   requeueTerminalNotification,
   recoverExhaustedNotifications,
 } from '@/home-sections/Contact/services/notification-operations'
+import { EContactNotificationRunStatus } from '@/home-sections/Contact/types/contact.type'
 
 const databaseUrl = process.env.TEST_DATABASE_URL
 if (!databaseUrl) throw new Error('TEST_DATABASE_URL is required')
@@ -48,7 +49,7 @@ describe('contact notification operations', () => {
 
     expect(
       await completeNotificationJob(pool, randomUUID(), {
-        status: 'completed',
+        status: EContactNotificationRunStatus.completed,
         claimed: 0,
         sent: 0,
         requeued: 0,
@@ -57,7 +58,7 @@ describe('contact notification operations', () => {
     ).toBe(false)
     expect(
       await completeNotificationJob(pool, tokens[0], {
-        status: 'completed',
+        status: EContactNotificationRunStatus.completed,
         claimed: 2,
         sent: 1,
         requeued: 1,
@@ -74,7 +75,7 @@ describe('contact notification operations', () => {
     const token = await acquireNotificationJob(pool, 70)
     expect(token).toEqual(expect.any(String))
     await completeNotificationJob(pool, token!, {
-      status: 'completed',
+      status: EContactNotificationRunStatus.completed,
       claimed: 3,
       sent: 2,
       requeued: 1,
@@ -83,7 +84,11 @@ describe('contact notification operations', () => {
 
     const status = await getContactOperationalStatus(pool)
     expect(status.database).toBe('ok')
-    expect(status.lastRun).toMatchObject({ status: 'completed', claimed: 3, sent: 2 })
+    expect(status.lastRun).toMatchObject({
+      status: EContactNotificationRunStatus.completed,
+      claimed: 3,
+      sent: 2,
+    })
     expect(status.notifications).toEqual(
       expect.objectContaining({ due: expect.any(Number), terminal: expect.any(Number) }),
     )

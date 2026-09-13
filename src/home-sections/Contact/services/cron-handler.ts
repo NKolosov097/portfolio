@@ -2,8 +2,10 @@ import 'server-only'
 
 import { createHash, timingSafeEqual } from 'node:crypto'
 
+import { EContactNotificationRunStatus } from '@/home-sections/Contact/types/contact.type'
+
 export type ContactCronRunResult = {
-  status: 'completed' | 'already-running'
+  status: EContactNotificationRunStatus.completed | EContactNotificationRunStatus.alreadyRunning
   claimed: number
   sent: number
   requeued: number

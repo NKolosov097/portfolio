@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 import { handleContactNotificationCron, handleContactOperationsStatus } from './cron-handler'
+import { EContactNotificationRunStatus } from '@/home-sections/Contact/types/contact.type'
 
 const request = (authorization?: string) =>
   new Request('https://portfolio.example/api/cron/contact-notifications', {
@@ -38,7 +39,7 @@ describe('contact notification cron handler', () => {
 
   it('returns aggregate run results for a valid bearer secret', async () => {
     const run = vi.fn().mockResolvedValue({
-      status: 'completed',
+      status: EContactNotificationRunStatus.completed,
       claimed: 2,
       sent: 1,
       requeued: 1,
@@ -56,7 +57,7 @@ describe('contact notification cron handler', () => {
     const body = await response.json()
     expect(body).toEqual({
       ok: true,
-      status: 'completed',
+      status: EContactNotificationRunStatus.completed,
       claimed: 2,
       sent: 1,
       requeued: 1,

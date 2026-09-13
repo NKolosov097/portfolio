@@ -3,7 +3,11 @@ import 'server-only'
 import { attachmentManifestSchema } from '@/home-sections/Contact/attachments'
 import { contactSubmissionSchema } from '@/home-sections/Contact/schemas/send-message.schema'
 import type { SubmissionAcceptance } from '@/home-sections/Contact/services/submission-policy'
-import { EContactField } from '@/home-sections/Contact/types/contact.type'
+import {
+  EContactField,
+  EContactSubmissionAcceptanceKind,
+  EContactSubmissionStatus,
+} from '@/home-sections/Contact/types/contact.type'
 import type {
   ContactField,
   ContactFieldErrorCode,
@@ -107,7 +111,7 @@ const validationState = (
     if (!fieldErrors[field]?.includes(code))
       fieldErrors[field] = [...(fieldErrors[field] ?? []), code]
   }
-  return { status: 'validation-error', fieldErrors }
+  return { status: EContactSubmissionStatus.validationError, fieldErrors }
 }
 
 export const createSendMessage =
@@ -117,38 +121,49 @@ export const createSendMessage =
     payload: FormData,
   ): Promise<ContactSubmissionState> => {
     if (!(payload instanceof FormData))
-      return { status: 'validation-error', fieldErrors: { form: ['invalid_type'] } }
+      return {
+        status: EContactSubmissionStatus.validationError,
+        fieldErrors: { form: ['invalid_type'] },
+      }
     const read = readFormData(payload)
     if ('errorField' in read)
       return {
-        status: 'validation-error',
+        status: EContactSubmissionStatus.validationError,
         fieldErrors: { [read.errorField]: [read.errorCode] },
       }
 
     const parsed = contactSubmissionSchema.safeParse(read.value)
     if (!parsed.success) return validationState(parsed.error.issues)
     if (parsed.data.website)
-      return { status: 'validation-error', fieldErrors: { form: ['invalid_type'] } }
+      return {
+        status: EContactSubmissionStatus.validationError,
+        fieldErrors: { form: ['invalid_type'] },
+      }
 
     try {
       const identity = await dependencies.getIdentity()
-      if (!identity) return { status: 'unavailable', code: 'service_unavailable' }
+      if (!identity)
+        return { status: EContactSubmissionStatus.unavailable, code: 'service_unavailable' }
       const accepted = await dependencies.accept(parsed.data, identity)
-      if (accepted.kind === 'mismatch')
+      if (accepted.kind === EContactSubmissionAcceptanceKind.mismatch)
         return {
-          status: 'validation-error',
+          status: EContactSubmissionStatus.validationError,
           fieldErrors: { submissionId: ['submission_id_reused'] },
         }
-      if (accepted.kind === 'rate-limited') return { status: 'rate-limited', code: 'rate_limited' }
-      if (accepted.kind === 'invalid-attachments')
+      if (accepted.kind === EContactSubmissionAcceptanceKind.rateLimited)
+        return { status: EContactSubmissionStatus.rateLimited, code: 'rate_limited' }
+      if (accepted.kind === EContactSubmissionAcceptanceKind.invalidAttachments)
         return {
-          status: 'validation-error',
+          status: EContactSubmissionStatus.validationError,
           fieldErrors: { attachments: ['attachment_invalid'] },
         }
-      if (accepted.kind === 'accepted')
+      if (accepted.kind === EContactSubmissionAcceptanceKind.accepted)
         await dependencies.notify(accepted.messageId).catch(() => undefined)
-      return { status: 'success', submissionId: parsed.data.submissionId }
+      return {
+        status: EContactSubmissionStatus.success,
+        submissionId: parsed.data.submissionId,
+      }
     } catch {
-      return { status: 'unavailable', code: 'service_unavailable' }
+      return { status: EContactSubmissionStatus.unavailable, code: 'service_unavailable' }
     }
   }
