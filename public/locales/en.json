@@ -281,11 +281,11 @@
     "invalidTypeOfcompany": "A company name could be only string",
 
     "labelOfProfession": "Profession",
-    "placeholderOfProfession": "Super Cool CEO",
+    "placeholderOfProfession": "Founder & CEO",
     "invalidTypeOfProfession": "A profession could be only string",
 
     "labelOfMessage": "Message to Nikita 😏",
-    "placeholderOfMessage": "You're cool!",
+    "placeholderOfMessage": "You're cool! Let's work together!",
     "requireMessage": "Enter a message to developer 🙂",
     "invalidTypeOfMessage": "A message could be only string",
 

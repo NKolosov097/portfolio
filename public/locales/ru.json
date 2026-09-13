@@ -281,11 +281,11 @@
     "invalidTypeOfcompany": "Название компании может быть только строкой",
 
     "labelOfProfession": "Профессия",
-    "placeholderOfProfession": "Супер Пупер CEO",
+    "placeholderOfProfession": "Основатель и CEO",
     "invalidTypeOfProfession": "Профессия может быть только строкой",
 
     "labelOfMessage": "Сообщение Никите 😏",
-    "placeholderOfMessage": "Ты крутой!",
+    "placeholderOfMessage": "Вы классные! Давайте поработаем вместе!",
     "requireMessage": "Введите сообщение разработчику 🙂",
     "invalidTypeOfMessage": "Сообщение может быть только строкой",
 
