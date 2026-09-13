@@ -65,6 +65,21 @@ jobs:
       - name: Production build
         run: pnpm build
 
+  quality-gate:
+    name: Type check, lint, and unit tests
+    needs: quality
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify quality matrix
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+        run: |
+          if [ "$QUALITY_RESULT" != "success" ]; then
+            echo "Quality matrix finished with: $QUALITY_RESULT"
+            exit 1
+          fi
+
   e2e:
     name: End-to-end tests
     runs-on: ubuntu-latest
