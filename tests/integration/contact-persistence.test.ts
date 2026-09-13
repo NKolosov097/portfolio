@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   acceptContactSubmission,
@@ -21,6 +21,12 @@ import { seedFeedback } from '../../scripts/seed-feedback'
 import * as databaseSchema from '@/db/schema'
 import { contactSubmissionKeys } from '@/db/schema'
 import { saveContactMessageInTransaction } from '@/home-sections/Contact/services/save-message'
+import type {
+  AttachmentManifestItem,
+  VerifiedContactAttachment,
+} from '@/home-sections/Contact/attachments'
+import { InvalidContactAttachmentError } from '@/home-sections/Contact/services/contact-attachments'
+import type { ValidatedContactSubmission } from '@/home-sections/Contact/types/submission.type'
 
 const databaseUrl = process.env.TEST_DATABASE_URL
 if (!databaseUrl) throw new Error('TEST_DATABASE_URL is required')
@@ -41,7 +47,8 @@ const email = (suffix: string) => {
   usedEmails.add(value)
   return value
 }
-const submission = (suffix: string, overrides = {}) => ({
+type SubmissionInput = ValidatedContactSubmission & { website: string }
+const submission = (suffix: string, overrides: Partial<SubmissionInput> = {}): SubmissionInput => ({
   submissionId: randomUUID(),
   name: `Name ${suffix}`,
   email: email(suffix),
@@ -56,6 +63,38 @@ const accept = (input: ReturnType<typeof submission>, identity: string) => {
   usedIdentities.add(identity)
   usedEmails.add(input.email.trim().toLowerCase())
   return acceptContactSubmission(input, identity, { pool, rateLimitSecret: secret })
+}
+const attachmentManifest = (suffix: string, count = 1): AttachmentManifestItem[] =>
+  Array.from({ length: count }, (_, index) => {
+    const pathname = `contact/${run}/${suffix}-${index}.pdf`
+    return {
+      url: `https://store.private.blob.vercel-storage.com/${pathname}`,
+      pathname,
+      name: `${suffix}-${index}.pdf`,
+    }
+  })
+const verifiedAttachments = (manifest: AttachmentManifestItem[]): VerifiedContactAttachment[] =>
+  manifest.map((item, index) => ({
+    ...item,
+    contentType: 'application/pdf',
+    size: 1_024 + index,
+    etag: `etag-${run}-${item.name}`,
+  }))
+const acceptWithVerifier = (
+  input: ReturnType<typeof submission>,
+  identity: string,
+  verifyAttachments: (
+    submissionId: string,
+    manifest: AttachmentManifestItem[],
+  ) => Promise<VerifiedContactAttachment[]>,
+) => {
+  usedIdentities.add(identity)
+  usedEmails.add(input.email.trim().toLowerCase())
+  return acceptContactSubmission(input, identity, {
+    pool,
+    rateLimitSecret: secret,
+    verifyAttachments,
+  })
 }
 
 beforeAll(async () => {
@@ -185,6 +224,102 @@ describe('contact persistence on PostgreSQL', () => {
         [accepted.messageId, `${url}-size`, `${pathname}-size`],
       ),
     ).rejects.toThrow()
+  })
+
+  it('atomically persists ordered verified attachments and replays without Blob access', async () => {
+    const manifest = attachmentManifest('verified', 2)
+    const input = submission('verified', { attachments: manifest })
+    const verify = vi.fn(async () => verifiedAttachments(manifest))
+
+    const accepted = await acceptWithVerifier(input, `test:${run}:verified`, verify)
+    if (accepted.kind !== 'accepted') throw new Error('setup did not persist a message')
+    await expect(acceptWithVerifier(input, `test:${run}:verified`, verify)).resolves.toEqual({
+      kind: 'replay',
+      messageId: accepted.messageId,
+    })
+    expect(verify).toHaveBeenCalledTimes(1)
+
+    const stored = await pool.query(
+      `SELECT position, blob_url AS "blobUrl", pathname, original_name AS name
+       FROM contact_attachments WHERE message_id = $1 ORDER BY position`,
+      [accepted.messageId],
+    )
+    expect(stored.rows).toEqual(
+      manifest.map((item, position) => ({
+        position,
+        blobUrl: item.url,
+        pathname: item.pathname,
+        name: item.name,
+      })),
+    )
+
+    for (const changed of [
+      [{ ...manifest[0]!, url: `${manifest[0]!.url}-changed` }, manifest[1]!],
+      [{ ...manifest[0]!, pathname: `${manifest[0]!.pathname}-changed` }, manifest[1]!],
+      [{ ...manifest[0]!, name: 'renamed.pdf' }, manifest[1]!],
+      [manifest[1]!, manifest[0]!],
+    ]) {
+      await expect(
+        acceptWithVerifier({ ...input, attachments: changed }, `test:${run}:verified`, verify),
+      ).resolves.toEqual({ kind: 'mismatch' })
+    }
+    expect(verify).toHaveBeenCalledTimes(1)
+  })
+
+  it('persists one attachment row for twenty parallel identical submissions', async () => {
+    const manifest = attachmentManifest('parallel')
+    const input = submission('parallel-attachment', { attachments: manifest })
+    const verify = vi.fn(async () => verifiedAttachments(manifest))
+    const results = await Promise.all(
+      Array.from({ length: 20 }, () =>
+        acceptWithVerifier(input, `test:${run}:parallel-attachment`, verify),
+      ),
+    )
+
+    expect(results.filter((result) => result.kind === 'accepted')).toHaveLength(1)
+    expect(results.filter((result) => result.kind === 'replay')).toHaveLength(19)
+    const rows = await pool.query(
+      `SELECT count(*)::int AS count FROM contact_attachments
+       JOIN messages ON messages.id = contact_attachments.message_id
+       WHERE messages.submission_id = $1`,
+      [input.submissionId],
+    )
+    expect(rows.rows[0].count).toBe(1)
+  })
+
+  it('rolls back the entire submission when attachment metadata cannot be inserted', async () => {
+    const manifest = attachmentManifest('attachment-rollback')
+    const input = submission('attachment-rollback', { attachments: manifest })
+    const invalidVerified = [{ ...verifiedAttachments(manifest)[0]!, size: 5_242_881 }]
+
+    await expect(
+      acceptWithVerifier(input, `test:${run}:attachment-rollback`, async () => invalidVerified),
+    ).rejects.toThrow()
+    const result = await pool.query(
+      `SELECT
+         (SELECT count(*)::int FROM users WHERE email = $1) AS users,
+         (SELECT count(*)::int FROM messages WHERE submission_id = $2) AS messages,
+         (SELECT count(*)::int FROM contact_submission_keys WHERE submission_id = $2) AS keys`,
+      [input.email, input.submissionId],
+    )
+    expect(result.rows[0]).toEqual({ users: 0, messages: 0, keys: 0 })
+  })
+
+  it('classifies only attachment policy errors as invalid input', async () => {
+    const manifest = attachmentManifest('invalid-policy')
+    const input = submission('invalid-policy', { attachments: manifest })
+    const identity = `test:${run}:invalid-policy`
+
+    await expect(
+      acceptWithVerifier(input, identity, async () => {
+        throw new InvalidContactAttachmentError()
+      }),
+    ).resolves.toEqual({ kind: 'invalid-attachments' })
+    await expect(
+      acceptWithVerifier(input, identity, async () => {
+        throw new Error('blob unavailable')
+      }),
+    ).rejects.toThrow('blob unavailable')
   })
 
   it('rolls back a user update when the message insert violates a database check', async () => {

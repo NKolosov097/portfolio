@@ -3,14 +3,19 @@ import 'server-only'
 import { createHmac } from 'node:crypto'
 import { isIP } from 'node:net'
 
-import { eq, sql } from 'drizzle-orm'
+import { asc, eq, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import type { Pool } from 'pg'
 
 import * as schema from '@/db/schema'
-import { contactRateLimits, contactSubmissionKeys, messages } from '@/db/schema'
+import { contactAttachments, contactRateLimits, contactSubmissionKeys, messages } from '@/db/schema'
 import { getContactPool } from '@/db/client'
+import { sanitizeAttachmentName } from '@/home-sections/Contact/attachments'
 import { contactSubmissionSchema } from '@/home-sections/Contact/schemas/send-message.schema'
+import {
+  InvalidContactAttachmentError,
+  verifyContactAttachments,
+} from '@/home-sections/Contact/services/contact-attachments'
 import { saveContactMessageInTransaction } from '@/home-sections/Contact/services/save-message'
 import type { ValidatedContactSubmission } from '@/home-sections/Contact/types/submission.type'
 
@@ -19,6 +24,7 @@ export type SubmissionAcceptance =
   | { kind: 'replay'; messageId: number }
   | { kind: 'mismatch' }
   | { kind: 'rate-limited' }
+  | { kind: 'invalid-attachments' }
 
 class RateLimitedError extends Error {}
 const CONTACT_UPLOAD_LIMIT = 20
@@ -76,17 +82,36 @@ export const consumeContactUploadLimit = async (
   )
 }
 
-const samePayload = (row: typeof messages.$inferSelect, input: ValidatedContactSubmission) =>
+const samePayload = (
+  row: typeof messages.$inferSelect,
+  attachments: (typeof contactAttachments.$inferSelect)[],
+  input: ValidatedContactSubmission,
+) =>
   row.name === input.name &&
   row.email === input.email &&
   row.company === input.company &&
   row.profession === input.profession &&
-  row.content === input.message
+  row.content === input.message &&
+  attachments.length === input.attachments.length &&
+  attachments.every((attachment, index) => {
+    const item = input.attachments[index]
+    return (
+      attachment.position === index &&
+      attachment.blobUrl === item?.url &&
+      attachment.pathname === item.pathname &&
+      attachment.originalName === sanitizeAttachmentName(item.name)
+    )
+  })
 
 export const acceptContactSubmission = async (
   rawInput: ValidatedContactSubmission,
   trustedIdentity: string,
-  dependencies: { pool?: Pool; rateLimitSecret?: string; emailLimit?: number } = {},
+  dependencies: {
+    pool?: Pool
+    rateLimitSecret?: string
+    emailLimit?: number
+    verifyAttachments?: typeof verifyContactAttachments
+  } = {},
 ): Promise<SubmissionAcceptance> => {
   const input = contactSubmissionSchema.parse(rawInput)
   const secret = dependencies.rateLimitSecret ?? process.env.CONTACT_RATE_LIMIT_SECRET
@@ -95,6 +120,33 @@ export const acceptContactSubmission = async (
   if (!Number.isInteger(emailLimit) || emailLimit <= 5 || emailLimit > 1_000)
     throw new Error('contact persistence unavailable')
   const database = drizzle(dependencies.pool ?? getContactPool(), { schema })
+
+  const [existing] = await database
+    .select()
+    .from(messages)
+    .where(eq(messages.submissionId, input.submissionId))
+    .limit(1)
+  if (existing) {
+    const storedAttachments = await database
+      .select()
+      .from(contactAttachments)
+      .where(eq(contactAttachments.messageId, existing.id))
+      .orderBy(asc(contactAttachments.position))
+    return samePayload(existing, storedAttachments, input)
+      ? { kind: 'replay', messageId: existing.id }
+      : { kind: 'mismatch' }
+  }
+
+  let verifiedAttachments
+  try {
+    verifiedAttachments = await (dependencies.verifyAttachments ?? verifyContactAttachments)(
+      input.submissionId,
+      input.attachments,
+    )
+  } catch (error) {
+    if (error instanceof InvalidContactAttachmentError) return { kind: 'invalid-attachments' }
+    throw error
+  }
 
   try {
     return await database.transaction(async (transaction) => {
@@ -111,7 +163,12 @@ export const acceptContactSubmission = async (
           .where(eq(messages.submissionId, input.submissionId))
           .limit(1)
         if (!stored) throw new Error('contact persistence unavailable')
-        return samePayload(stored, input)
+        const storedAttachments = await transaction
+          .select()
+          .from(contactAttachments)
+          .where(eq(contactAttachments.messageId, stored.id))
+          .orderBy(asc(contactAttachments.position))
+        return samePayload(stored, storedAttachments, input)
           ? { kind: 'replay', messageId: stored.id }
           : { kind: 'mismatch' }
       }
@@ -123,7 +180,11 @@ export const acceptContactSubmission = async (
       if (!(await consumeRateLimit(transaction, 'email', emailHash, emailLimit)))
         throw new RateLimitedError()
 
-      const messageId = await saveContactMessageInTransaction(transaction, input)
+      const messageId = await saveContactMessageInTransaction(
+        transaction,
+        input,
+        verifiedAttachments,
+      )
       await transaction.execute(sql`DELETE FROM ${contactRateLimits} WHERE ctid IN (
         SELECT ctid FROM ${contactRateLimits} WHERE ${contactRateLimits.expiresAt} <= clock_timestamp() LIMIT 100
       )`)
