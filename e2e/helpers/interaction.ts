@@ -18,18 +18,16 @@ const isSettledHitTarget = (locator: Locator): Promise<boolean> =>
     return node.contains(document.elementFromPoint(left + width / 2, top + height / 2))
   })
 
-/** Waits until a visible target has stopped moving and owns its center point. */
-export const waitUntilSettled = async (locator: Locator): Promise<void> => {
+/**
+ * Clicks once the target has stopped moving. Popups animate into place and the header tab strip
+ * re-measures after mount, so a click sent too early lands where the target no longer is.
+ */
+export const clickWhenSettled = async (locator: Locator): Promise<void> => {
   await expect(locator).toBeVisible()
 
   await locator.scrollIntoViewIfNeeded()
 
   await expect.poll(() => isSettledHitTarget(locator)).toBe(true)
-}
-
-/** Clicks a target only after it has stopped moving. */
-export const clickWhenSettled = async (locator: Locator): Promise<void> => {
-  await waitUntilSettled(locator)
 
   await locator.click()
 }
