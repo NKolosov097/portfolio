@@ -142,6 +142,38 @@ test.describe('contact form', () => {
       .toBe(true)
   })
 
+  test('keeps the attachment remove focus ring inside its scroll container', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 740 })
+    await page.goto('/?lang=en#contact')
+    const input = page.locator('#contact-attachments')
+
+    await expect(input).toBeEnabled()
+    await input.setInputFiles({
+      name: 'brief.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from('%PDF-test'),
+    })
+    const remove = page.getByRole('button', {
+      name: en.contact.removeAttachment.replace('{{name}}', 'brief.pdf'),
+    })
+    const list = page.locator('ul').filter({ has: remove })
+
+    await remove.focus()
+    const [listBox, removeBox, ringWidth] = await Promise.all([
+      list.boundingBox(),
+      remove.boundingBox(),
+      remove.evaluate((element) => {
+        const style = getComputedStyle(element)
+
+        return Number.parseFloat(style.outlineWidth) + Number.parseFloat(style.outlineOffset)
+      }),
+    ])
+
+    expect(listBox).not.toBeNull()
+    expect(removeBox).not.toBeNull()
+    expect(removeBox!.y - ringWidth).toBeGreaterThanOrEqual(listBox!.y)
+  })
+
   test('returns from an article to Contact and selects its header tab', async ({ page }) => {
     await page.goto('/')
     const articleCard = page.getByTestId('writing-article-ai-boilerplate-senior-engineers')
