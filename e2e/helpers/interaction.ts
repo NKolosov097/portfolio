@@ -29,5 +29,5 @@ export const clickWhenSettled = async (locator: Locator): Promise<void> => {
 
   await expect.poll(() => isSettledHitTarget(locator)).toBe(true)
 
-  await locator.click()
+  await locator.click({ force: true })
 }

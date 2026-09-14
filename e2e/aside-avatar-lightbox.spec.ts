@@ -31,7 +31,6 @@ const SQUARE_TOLERANCE_PX = 1
 
 /** Opens the lightbox from the aside on the current viewport and measures it once settled. */
 const openSettledLightbox = async (page: Page): Promise<ILightboxBoxes> => {
-  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
 
   const aside = await revealAside(page)
@@ -55,6 +54,9 @@ const expectSquarePhotoWithCloseInside = ({ photoBox, closeBox }: ILightboxBoxes
 }
 
 test.describe('aside avatar lightbox', () => {
+  // These tests cover behavior and geometry, so unrelated UI motion is disabled for stability.
+  test.use({ contextOptions: { reducedMotion: 'reduce' } })
+
   test('opens on click and closes via the close button', async ({ page }) => {
     await page.goto('/')
 
