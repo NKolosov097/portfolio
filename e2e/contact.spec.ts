@@ -34,28 +34,35 @@ test.describe('contact form', () => {
     await expect(page.locator('#contact-name')).toHaveAttribute('aria-invalid', 'true')
   })
 
-  test('shows attachment limits in the desktop paperclip tooltip', async ({ page }) => {
-    await page.goto('/?lang=en#contact')
-    const attach = page.locator(`button[aria-label="${en.contact.attachFiles}"]`)
+  test.describe('desktop attachment hint', () => {
+    // Mirrors the CSS conditions that switch the inline hint to the desktop tooltip.
+    test.skip(
+      ({ viewport, hasTouch }) => (viewport?.width ?? 0) <= 900 || hasTouch,
+      'Desktop-only tooltip',
+    )
+    test('shows attachment limits in the paperclip tooltip', async ({ page }) => {
+      await page.goto('/?lang=en#contact')
+      const attach = page.locator(`button[aria-label="${en.contact.attachFiles}"]`)
 
-    await expect(page.locator('#contact-attachments-hint')).toBeHidden()
-    await expect(attach).toBeEnabled()
-    await attach.hover()
-    await expect(
-      page.getByRole('tooltip').getByText('Up to 3 PDF, JPG or PNG files.', { exact: true }),
-    ).toBeVisible()
-    await expect(
-      page.getByRole('tooltip').getByText('5 MB each, 10 MB total.', { exact: true }),
-    ).toBeVisible()
-    await page.mouse.move(0, 0)
-    await expect(page.getByRole('tooltip')).toBeHidden()
-    await attach.focus()
-    await expect(
-      page.getByRole('tooltip').getByText('Up to 3 PDF, JPG or PNG files.', { exact: true }),
-    ).toBeVisible()
-    await expect(
-      page.getByRole('tooltip').getByText('5 MB each, 10 MB total.', { exact: true }),
-    ).toBeVisible()
+      await expect(page.locator('#contact-attachments-hint')).toBeHidden()
+      await expect(attach).toBeEnabled()
+      await attach.hover()
+      await expect(
+        page.getByRole('tooltip').getByText('Up to 3 PDF, JPG or PNG files.', { exact: true }),
+      ).toBeVisible()
+      await expect(
+        page.getByRole('tooltip').getByText('5 MB each, 10 MB total.', { exact: true }),
+      ).toBeVisible()
+      await page.mouse.move(0, 0)
+      await expect(page.getByRole('tooltip')).toBeHidden()
+      await attach.focus()
+      await expect(
+        page.getByRole('tooltip').getByText('Up to 3 PDF, JPG or PNG files.', { exact: true }),
+      ).toBeVisible()
+      await expect(
+        page.getByRole('tooltip').getByText('5 MB each, 10 MB total.', { exact: true }),
+      ).toBeVisible()
+    })
   })
 
   test('selects and removes multiple files and rejects a fourth before upload', async ({
