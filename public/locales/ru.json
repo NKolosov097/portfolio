@@ -281,11 +281,11 @@
     "invalidTypeOfcompany": "Название компании может быть только строкой",
 
     "labelOfProfession": "Профессия",
-    "placeholderOfProfession": "Супер Пупер CEO",
+    "placeholderOfProfession": "Основатель и CEO",
     "invalidTypeOfProfession": "Профессия может быть только строкой",
 
     "labelOfMessage": "Сообщение Никите 😏",
-    "placeholderOfMessage": "Ты крутой!",
+    "placeholderOfMessage": "Вы классные! Давайте поработаем вместе!",
     "requireMessage": "Введите сообщение разработчику 🙂",
     "invalidTypeOfMessage": "Сообщение может быть только строкой",
 
@@ -297,6 +297,20 @@
     "serviceUnavailable": "Сервис сообщений временно недоступен. Попробуйте ещё раз.",
     "rateLimited": "Отправлено слишком много сообщений. Подождите и попробуйте ещё раз.",
     "submissionIdInvalid": "Обновите страницу и попробуйте ещё раз.",
-    "submissionIdReused": "Черновик изменился. Отправьте его ещё раз."
+    "submissionIdReused": "Черновик изменился. Отправьте его ещё раз.",
+    "attachments": "Вложения",
+    "attachFiles": "Прикрепить файлы",
+    "previewAttachment": "Открыть {{name}}",
+    "closeAttachmentPreview": "Закрыть предпросмотр файла",
+    "attachmentHintFiles": "До 3 файлов PDF, JPG или PNG.",
+    "attachmentHintLimits": "Не более 5 МБ каждый, 10 МБ суммарно.",
+    "removeAttachment": "Удалить {{name}}",
+    "uploadingAttachments": "Загрузка файлов: {{progress}}%",
+    "tooManyFiles": "Прикрепите не более 3 файлов.",
+    "unsupportedFileType": "Поддерживаются только файлы PDF, JPG и PNG.",
+    "fileTooLarge": "Размер каждого файла не должен превышать 5 МБ.",
+    "filesTooLarge": "Общий размер файлов не должен превышать 10 МБ.",
+    "uploadFailed": "Не удалось загрузить файлы. Попробуйте ещё раз.",
+    "attachmentInvalid": "Один из загруженных файлов недействителен. Выберите его заново."
   }
 }

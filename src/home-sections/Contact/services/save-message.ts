@@ -4,8 +4,9 @@ import type { ExtractTablesWithRelations } from 'drizzle-orm'
 import type { NodePgTransaction } from 'drizzle-orm/node-postgres'
 
 import * as schema from '@/db/schema'
-import { contactSubmissionKeys, messages, users } from '@/db/schema'
+import { contactAttachments, contactSubmissionKeys, messages, users } from '@/db/schema'
 import { getContactDb } from '@/db/client'
+import type { VerifiedContactAttachment } from '@/home-sections/Contact/attachments'
 import type { ValidatedContactSubmission } from '@/home-sections/Contact/types/submission.type'
 
 export type ContactTransaction = NodePgTransaction<
@@ -16,6 +17,7 @@ export type ContactTransaction = NodePgTransaction<
 export const saveContactMessageInTransaction = async (
   transaction: ContactTransaction,
   input: ValidatedContactSubmission,
+  attachments: VerifiedContactAttachment[] = [],
 ): Promise<number> => {
   const [user] = await transaction
     .insert(users)
@@ -50,6 +52,19 @@ export const saveContactMessageInTransaction = async (
     })
     .returning({ id: messages.id })
   if (!message) throw new Error('contact persistence unavailable')
+  if (attachments.length)
+    await transaction.insert(contactAttachments).values(
+      attachments.map((attachment, position) => ({
+        messageId: message.id,
+        position,
+        blobUrl: attachment.url,
+        pathname: attachment.pathname,
+        originalName: attachment.name,
+        contentType: attachment.contentType,
+        byteSize: attachment.size,
+        etag: attachment.etag,
+      })),
+    )
   return message.id
 }
 

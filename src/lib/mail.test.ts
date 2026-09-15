@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events'
+import { Readable } from 'node:stream'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -70,6 +71,27 @@ describe('sendMail', () => {
 
     expect(result).toEqual({ ok: false, code: 'transport_failed' })
     expect(JSON.stringify(result)).not.toContain('secret')
+  })
+
+  it('forwards attachment streams unchanged to Nodemailer', async () => {
+    sendMailTransport.mockResolvedValue({ messageId: 'mail-attachment' })
+    const attachment = {
+      filename: 'brief.pdf',
+      content: Readable.from(Buffer.from('%PDF-test')),
+      contentType: 'application/pdf',
+    }
+    const { sendMail } = await import('@/lib/mail')
+
+    await sendMail({
+      to: 'owner@example.test',
+      subject: 'subject',
+      text: 'body',
+      attachments: [attachment],
+    })
+
+    expect(sendMailTransport).toHaveBeenCalledWith(
+      expect.objectContaining({ attachments: [attachment] }),
+    )
   })
 
   it('hands a secure SMTP transport a raw socket for one Nodemailer-owned TLS handshake', async () => {

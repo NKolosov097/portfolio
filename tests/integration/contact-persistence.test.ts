@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto'
+import { Readable } from 'node:stream'
 
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   acceptContactSubmission,
+  consumeContactUploadLimit,
   hashRateIdentity,
 } from '@/home-sections/Contact/services/submission-policy'
 import {
@@ -20,6 +22,16 @@ import { seedFeedback } from '../../scripts/seed-feedback'
 import * as databaseSchema from '@/db/schema'
 import { contactSubmissionKeys } from '@/db/schema'
 import { saveContactMessageInTransaction } from '@/home-sections/Contact/services/save-message'
+import type {
+  AttachmentManifestItem,
+  VerifiedContactAttachment,
+} from '@/home-sections/Contact/attachments'
+import { InvalidContactAttachmentError } from '@/home-sections/Contact/services/contact-attachments'
+import {
+  EContactNotificationDeliveryStatus,
+  EContactSubmissionAcceptanceKind,
+} from '@/home-sections/Contact/types/contact.type'
+import type { ValidatedContactSubmission } from '@/home-sections/Contact/types/submission.type'
 
 const databaseUrl = process.env.TEST_DATABASE_URL
 if (!databaseUrl) throw new Error('TEST_DATABASE_URL is required')
@@ -34,12 +46,14 @@ const run = randomUUID()
 const secret = 'integration-contact-rate-secret'
 const usedEmails = new Set<string>()
 const usedIdentities = new Set<string>()
+const usedUploadIdentities = new Set<string>()
 const email = (suffix: string) => {
   const value = `${run}-${suffix}@example.test`
   usedEmails.add(value)
   return value
 }
-const submission = (suffix: string, overrides = {}) => ({
+type SubmissionInput = ValidatedContactSubmission & { website: string }
+const submission = (suffix: string, overrides: Partial<SubmissionInput> = {}): SubmissionInput => ({
   submissionId: randomUUID(),
   name: `Name ${suffix}`,
   email: email(suffix),
@@ -47,12 +61,45 @@ const submission = (suffix: string, overrides = {}) => ({
   profession: `Profession ${suffix}`,
   message: `Message ${suffix}`,
   website: '',
+  attachments: [],
   ...overrides,
 })
 const accept = (input: ReturnType<typeof submission>, identity: string) => {
   usedIdentities.add(identity)
   usedEmails.add(input.email.trim().toLowerCase())
   return acceptContactSubmission(input, identity, { pool, rateLimitSecret: secret })
+}
+const attachmentManifest = (suffix: string, count = 1): AttachmentManifestItem[] =>
+  Array.from({ length: count }, (_, index) => {
+    const pathname = `contact/${run}/${suffix}-${index}.pdf`
+    return {
+      url: `https://store.private.blob.vercel-storage.com/${pathname}`,
+      pathname,
+      name: `${suffix}-${index}.pdf`,
+    }
+  })
+const verifiedAttachments = (manifest: AttachmentManifestItem[]): VerifiedContactAttachment[] =>
+  manifest.map((item, index) => ({
+    ...item,
+    contentType: 'application/pdf',
+    size: 1_024 + index,
+    etag: `etag-${run}-${item.name}`,
+  }))
+const acceptWithVerifier = (
+  input: ReturnType<typeof submission>,
+  identity: string,
+  verifyAttachments: (
+    submissionId: string,
+    manifest: AttachmentManifestItem[],
+  ) => Promise<VerifiedContactAttachment[]>,
+) => {
+  usedIdentities.add(identity)
+  usedEmails.add(input.email.trim().toLowerCase())
+  return acceptContactSubmission(input, identity, {
+    pool,
+    rateLimitSecret: secret,
+    verifyAttachments,
+  })
 }
 
 beforeAll(async () => {
@@ -63,6 +110,7 @@ beforeAll(async () => {
 afterAll(async () => {
   const hashes = [
     ...[...usedIdentities].map((value) => hashRateIdentity(secret, 'identity', value)),
+    ...[...usedUploadIdentities].map((value) => hashRateIdentity(secret, 'upload', value)),
     ...[...usedEmails].map((value) => hashRateIdentity(secret, 'email', value)),
   ]
   if (hashes.length)
@@ -98,10 +146,23 @@ describe('contact persistence on PostgreSQL', () => {
         migrationsSchema: schemaName,
       })
       const tables = await isolated.query(
-        `SELECT count(*)::int AS count FROM information_schema.tables WHERE table_schema = $1 AND table_name IN ('users', 'messages', 'contact_submission_keys', 'contact_rate_limits', 'contact_notification_jobs')`,
+        `SELECT count(*)::int AS count FROM information_schema.tables WHERE table_schema = $1 AND table_name IN ('users', 'messages', 'contact_submission_keys', 'contact_rate_limits', 'contact_notification_jobs', 'contact_attachments')`,
         [schemaName],
       )
-      expect(tables.rows[0].count).toBe(5)
+      expect(tables.rows[0].count).toBe(6)
+      const attachmentForeignKey = await isolated.query(
+        `SELECT referenced_namespace.nspname AS "referencedSchema"
+         FROM pg_constraint
+         JOIN pg_class source_table ON source_table.oid = conrelid
+         JOIN pg_namespace source_namespace ON source_namespace.oid = source_table.relnamespace
+         JOIN pg_class referenced_table ON referenced_table.oid = confrelid
+         JOIN pg_namespace referenced_namespace ON referenced_namespace.oid = referenced_table.relnamespace
+         WHERE contype = 'f' AND source_namespace.nspname = $1
+           AND source_table.relname = 'contact_attachments'
+           AND referenced_table.relname = 'messages'`,
+        [schemaName],
+      )
+      expect(attachmentForeignKey.rows).toEqual([{ referencedSchema: schemaName }])
     } finally {
       await isolated.end()
       await pool.query(`DROP SCHEMA "${schemaName}" CASCADE`)
@@ -126,7 +187,9 @@ describe('contact persistence on PostgreSQL', () => {
       accept(second, `test:${run}:same-2`),
     ])
 
-    expect(results.every((result) => result.kind === 'accepted')).toBe(true)
+    expect(
+      results.every((result) => result.kind === EContactSubmissionAcceptanceKind.accepted),
+    ).toBe(true)
     const users = await pool.query(`SELECT count(*)::int AS count FROM users WHERE email = $1`, [
       email('shared'),
     ])
@@ -135,6 +198,141 @@ describe('contact persistence on PostgreSQL', () => {
     ])
     expect(users.rows[0].count).toBe(1)
     expect(messages.rows.map((row) => row.name)).toEqual(['First', 'Second'])
+  })
+
+  it('stores only three bounded attachment positions', async () => {
+    const accepted = await accept(
+      submission('attachment-boundary'),
+      `test:${run}:attachment-boundary`,
+    )
+    if (accepted.kind !== EContactSubmissionAcceptanceKind.accepted)
+      throw new Error('setup did not persist a message')
+    const pathname = `contact/${run}/brief.pdf`
+    const url = `https://store.private.blob.vercel-storage.com/${pathname}`
+
+    await pool.query(
+      `INSERT INTO contact_attachments
+        (message_id, position, blob_url, pathname, original_name, content_type, byte_size, etag)
+       VALUES ($1, 0, $2, $3, 'brief.pdf', 'application/pdf', 5242880, 'etag-valid')`,
+      [accepted.messageId, url, pathname],
+    )
+    await expect(
+      pool.query(
+        `INSERT INTO contact_attachments
+          (message_id, position, blob_url, pathname, original_name, content_type, byte_size, etag)
+         VALUES ($1, 3, $2, $3, 'fourth.pdf', 'application/pdf', 1, 'etag-position')`,
+        [accepted.messageId, `${url}-position`, `${pathname}-position`],
+      ),
+    ).rejects.toThrow()
+    await expect(
+      pool.query(
+        `INSERT INTO contact_attachments
+          (message_id, position, blob_url, pathname, original_name, content_type, byte_size, etag)
+         VALUES ($1, 1, $2, $3, 'large.pdf', 'application/pdf', 5242881, 'etag-size')`,
+        [accepted.messageId, `${url}-size`, `${pathname}-size`],
+      ),
+    ).rejects.toThrow()
+  })
+
+  it('atomically persists ordered verified attachments and replays without Blob access', async () => {
+    const manifest = attachmentManifest('verified', 2)
+    const input = submission('verified', { attachments: manifest })
+    const verify = vi.fn(async () => verifiedAttachments(manifest))
+
+    const accepted = await acceptWithVerifier(input, `test:${run}:verified`, verify)
+    if (accepted.kind !== EContactSubmissionAcceptanceKind.accepted)
+      throw new Error('setup did not persist a message')
+    await expect(acceptWithVerifier(input, `test:${run}:verified`, verify)).resolves.toEqual({
+      kind: EContactSubmissionAcceptanceKind.replay,
+      messageId: accepted.messageId,
+    })
+    expect(verify).toHaveBeenCalledTimes(1)
+
+    const stored = await pool.query(
+      `SELECT position, blob_url AS "blobUrl", pathname, original_name AS name
+       FROM contact_attachments WHERE message_id = $1 ORDER BY position`,
+      [accepted.messageId],
+    )
+    expect(stored.rows).toEqual(
+      manifest.map((item, position) => ({
+        position,
+        blobUrl: item.url,
+        pathname: item.pathname,
+        name: item.name,
+      })),
+    )
+
+    for (const changed of [
+      [{ ...manifest[0]!, url: `${manifest[0]!.url}-changed` }, manifest[1]!],
+      [{ ...manifest[0]!, pathname: `${manifest[0]!.pathname}-changed` }, manifest[1]!],
+      [{ ...manifest[0]!, name: 'renamed.pdf' }, manifest[1]!],
+      [manifest[1]!, manifest[0]!],
+    ]) {
+      await expect(
+        acceptWithVerifier({ ...input, attachments: changed }, `test:${run}:verified`, verify),
+      ).resolves.toEqual({ kind: EContactSubmissionAcceptanceKind.mismatch })
+    }
+    expect(verify).toHaveBeenCalledTimes(1)
+  })
+
+  it('persists one attachment row for twenty parallel identical submissions', async () => {
+    const manifest = attachmentManifest('parallel')
+    const input = submission('parallel-attachment', { attachments: manifest })
+    const verify = vi.fn(async () => verifiedAttachments(manifest))
+    const results = await Promise.all(
+      Array.from({ length: 20 }, () =>
+        acceptWithVerifier(input, `test:${run}:parallel-attachment`, verify),
+      ),
+    )
+
+    expect(
+      results.filter((result) => result.kind === EContactSubmissionAcceptanceKind.accepted),
+    ).toHaveLength(1)
+    expect(
+      results.filter((result) => result.kind === EContactSubmissionAcceptanceKind.replay),
+    ).toHaveLength(19)
+    const rows = await pool.query(
+      `SELECT count(*)::int AS count FROM contact_attachments
+       JOIN messages ON messages.id = contact_attachments.message_id
+       WHERE messages.submission_id = $1`,
+      [input.submissionId],
+    )
+    expect(rows.rows[0].count).toBe(1)
+  })
+
+  it('rolls back the entire submission when attachment metadata cannot be inserted', async () => {
+    const manifest = attachmentManifest('attachment-rollback')
+    const input = submission('attachment-rollback', { attachments: manifest })
+    const invalidVerified = [{ ...verifiedAttachments(manifest)[0]!, size: 5_242_881 }]
+
+    await expect(
+      acceptWithVerifier(input, `test:${run}:attachment-rollback`, async () => invalidVerified),
+    ).rejects.toThrow()
+    const result = await pool.query(
+      `SELECT
+         (SELECT count(*)::int FROM users WHERE email = $1) AS users,
+         (SELECT count(*)::int FROM messages WHERE submission_id = $2) AS messages,
+         (SELECT count(*)::int FROM contact_submission_keys WHERE submission_id = $2) AS keys`,
+      [input.email, input.submissionId],
+    )
+    expect(result.rows[0]).toEqual({ users: 0, messages: 0, keys: 0 })
+  })
+
+  it('classifies only attachment policy errors as invalid input', async () => {
+    const manifest = attachmentManifest('invalid-policy')
+    const input = submission('invalid-policy', { attachments: manifest })
+    const identity = `test:${run}:invalid-policy`
+
+    await expect(
+      acceptWithVerifier(input, identity, async () => {
+        throw new InvalidContactAttachmentError()
+      }),
+    ).resolves.toEqual({ kind: EContactSubmissionAcceptanceKind.invalidAttachments })
+    await expect(
+      acceptWithVerifier(input, identity, async () => {
+        throw new Error('blob unavailable')
+      }),
+    ).rejects.toThrow('blob unavailable')
   })
 
   it('rolls back a user update when the message insert violates a database check', async () => {
@@ -179,8 +377,12 @@ describe('contact persistence on PostgreSQL', () => {
       Array.from({ length: 20 }, () => accept(input, `test:${run}:duplicate`)),
     )
 
-    expect(results.filter((result) => result.kind === 'accepted')).toHaveLength(1)
-    expect(results.filter((result) => result.kind === 'replay')).toHaveLength(19)
+    expect(
+      results.filter((result) => result.kind === EContactSubmissionAcceptanceKind.accepted),
+    ).toHaveLength(1)
+    expect(
+      results.filter((result) => result.kind === EContactSubmissionAcceptanceKind.replay),
+    ).toHaveLength(19)
     const messages = await pool.query(
       `SELECT count(*)::int AS count FROM messages WHERE submission_id = $1`,
       [input.submissionId],
@@ -191,8 +393,11 @@ describe('contact persistence on PostgreSQL', () => {
     )
     expect(messages.rows[0].count).toBe(1)
     expect(counters.rows[0].count).toBe(1)
-    const stored = results.find((result) => result.kind === 'accepted')
-    if (!stored || stored.kind !== 'accepted') throw new Error('accepted result missing')
+    const stored = results.find(
+      (result) => result.kind === EContactSubmissionAcceptanceKind.accepted,
+    )
+    if (!stored || stored.kind !== EContactSubmissionAcceptanceKind.accepted)
+      throw new Error('accepted result missing')
     const claims = await Promise.all(
       Array.from({ length: 20 }, () => claimContactNotification(pool, stored.messageId)),
     )
@@ -204,7 +409,7 @@ describe('contact persistence on PostgreSQL', () => {
     await accept(input, `test:${run}:mismatch`)
     await expect(
       accept({ ...input, message: 'A different message' }, `test:${run}:mismatch`),
-    ).resolves.toEqual(expect.objectContaining({ kind: 'mismatch' }))
+    ).resolves.toEqual(expect.objectContaining({ kind: EContactSubmissionAcceptanceKind.mismatch }))
     const counter = await pool.query(
       `SELECT count FROM contact_rate_limits WHERE value_hash = $1`,
       [hashRateIdentity(secret, 'identity', `test:${run}:mismatch`)],
@@ -217,22 +422,41 @@ describe('contact persistence on PostgreSQL', () => {
     const results = await Promise.all(
       Array.from({ length: 6 }, (_, index) => accept(submission(`limit-${index}`), identity)),
     )
-    expect(results.filter((result) => result.kind === 'accepted')).toHaveLength(5)
-    expect(results.filter((result) => result.kind === 'rate-limited')).toHaveLength(1)
+    expect(
+      results.filter((result) => result.kind === EContactSubmissionAcceptanceKind.accepted),
+    ).toHaveLength(5)
+    expect(
+      results.filter((result) => result.kind === EContactSubmissionAcceptanceKind.rateLimited),
+    ).toHaveLength(1)
 
     await pool.query(
       `UPDATE contact_rate_limits SET expires_at = clock_timestamp() - interval '1 second' WHERE value_hash = $1`,
       [hashRateIdentity(secret, 'identity', identity)],
     )
     await expect(accept(submission('limit-reset'), identity)).resolves.toEqual(
-      expect.objectContaining({ kind: 'accepted' }),
+      expect.objectContaining({ kind: EContactSubmissionAcceptanceKind.accepted }),
     )
+  })
+
+  it('issues exactly twenty upload tokens per identity and fixed window', async () => {
+    const identity = `test:${run}:upload-limited`
+    usedUploadIdentities.add(identity)
+
+    const results = await Promise.all(
+      Array.from({ length: 21 }, () =>
+        consumeContactUploadLimit(identity, { pool, rateLimitSecret: secret }),
+      ),
+    )
+
+    expect(results.filter(Boolean)).toHaveLength(20)
+    expect(results.filter((allowed) => !allowed)).toHaveLength(1)
   })
 
   it('allows only one worker to claim a pending notification and recovers failed work', async () => {
     const input = submission('claim')
     const accepted = await accept(input, `test:${run}:claim`)
-    if (accepted.kind !== 'accepted') throw new Error('setup did not persist a message')
+    if (accepted.kind !== EContactSubmissionAcceptanceKind.accepted)
+      throw new Error('setup did not persist a message')
 
     const claims = await Promise.all(
       Array.from({ length: 8 }, () => claimContactNotification(pool, accepted.messageId)),
@@ -254,7 +478,8 @@ describe('contact persistence on PostgreSQL', () => {
 
   it('reclaims an expired sending lease once', async () => {
     const accepted = await accept(submission('expired-lease'), `test:${run}:expired-lease`)
-    if (accepted.kind !== 'accepted') throw new Error('setup did not persist a message')
+    if (accepted.kind !== EContactSubmissionAcceptanceKind.accepted)
+      throw new Error('setup did not persist a message')
     const first = await claimContactNotification(pool, accepted.messageId)
     expect(first).not.toBeNull()
     await pool.query(
@@ -291,9 +516,18 @@ describe('contact persistence on PostgreSQL', () => {
   })
 
   it('recovers a failed notification through Mailpit without another database message', async () => {
-    const input = submission('mailpit', { name: `Mailpit ${run}`, message: `<b>hello</b>&"'` })
-    const accepted = await accept(input, `test:${run}:mailpit`)
-    if (accepted.kind !== 'accepted') throw new Error('setup did not persist a message')
+    const manifest = attachmentManifest('mailpit')
+    manifest[0]!.name = 'brief.pdf'
+    const input = submission('mailpit', {
+      name: `Mailpit ${run}`,
+      message: `<b>hello</b>&"'`,
+      attachments: manifest,
+    })
+    const accepted = await acceptWithVerifier(input, `test:${run}:mailpit`, async () =>
+      verifiedAttachments(manifest),
+    )
+    if (accepted.kind !== EContactSubmissionAcceptanceKind.accepted)
+      throw new Error('setup did not persist a message')
     const failedClaim = await claimContactNotification(pool, accepted.messageId)
     if (!failedClaim) throw new Error('setup did not claim notification')
     await deliverClaimedNotification(failedClaim, {
@@ -302,6 +536,8 @@ describe('contact persistence on PostgreSQL', () => {
       markSent: (id, token) => markNotificationSent(pool, id, token),
       markFailed: (id, token, code, attempts) =>
         markNotificationFailed(pool, id, token, code, attempts, new Date(Date.now() - 31_000)),
+      openAttachment: async () => Readable.from(Buffer.from('%PDF-test')),
+      deleteDeliveredAttachments: async () => undefined,
     })
 
     process.env.SMTP_SERVER_HOST = '127.0.0.1'
@@ -319,8 +555,10 @@ describe('contact persistence on PostgreSQL', () => {
         markSent: (id, token) => markNotificationSent(pool, id, token),
         markFailed: (id, token, code, attempts) =>
           markNotificationFailed(pool, id, token, code, attempts),
+        openAttachment: async () => Readable.from(Buffer.from('%PDF-test')),
+        deleteDeliveredAttachments: async () => undefined,
       }),
-    ).resolves.toEqual({ status: 'sent' })
+    ).resolves.toEqual({ status: EContactNotificationDeliveryStatus.sent })
 
     const mailpitApi = process.env.MAILPIT_API_URL ?? 'http://127.0.0.1:18025'
     const mailpitUrl = new URL(mailpitApi)
@@ -339,11 +577,11 @@ describe('contact persistence on PostgreSQL', () => {
     const detail = (await detailResponse.json()) as {
       HTML: string
       ReplyTo: Array<{ Address: string }>
-      Attachments: unknown[]
+      Attachments: Array<{ FileName: string }>
     }
     expect(detail.ReplyTo.map((recipient) => recipient.Address)).toEqual([input.email])
     expect(detail.HTML).toContain('&lt;b&gt;hello&lt;/b&gt;&amp;&quot;&#39;')
-    expect(detail.Attachments).toHaveLength(0)
+    expect(detail.Attachments.map((attachment) => attachment.FileName)).toEqual(['brief.pdf'])
     const count = await pool.query(
       `SELECT count(*)::int AS count FROM messages WHERE submission_id = $1`,
       [input.submissionId],

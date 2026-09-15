@@ -4,8 +4,10 @@ import { randomUUID } from 'node:crypto'
 
 import type { Pool } from 'pg'
 
-import type { MailFailureCode } from '@/lib/mail'
-import type { ClaimedContactNotification } from '@/home-sections/Contact/services/notify-owner'
+import type {
+  ClaimedContactNotification,
+  ContactNotificationFailureCode,
+} from '@/home-sections/Contact/services/notify-owner'
 
 const MAX_NOTIFICATION_ATTEMPTS = 5
 
@@ -37,7 +39,17 @@ export const claimContactNotification = async (
       message.notification_claim_token AS "notificationClaimToken"`,
     values: [messageId ?? null, MAX_NOTIFICATION_ATTEMPTS, token],
   })
-  return result.rows[0] ?? null
+  const message = result.rows[0]
+  if (!message) return null
+  const attachments = await pool.query<ClaimedContactNotification['attachments'][number]>(
+    `SELECT blob_url AS "url", pathname, original_name AS "name",
+      content_type AS "contentType", byte_size AS "size", etag
+     FROM contact_attachments
+     WHERE message_id = $1 AND deleted_at IS NULL
+     ORDER BY position`,
+    [message.id],
+  )
+  return { ...message, attachments: attachments.rows }
 }
 
 export const markNotificationSent = async (pool: Pool, messageId: number, token: string) => {
@@ -54,7 +66,7 @@ export const markNotificationFailed = async (
   pool: Pool,
   messageId: number,
   token: string,
-  code: MailFailureCode,
+  code: ContactNotificationFailureCode,
   attempts: number,
   now = new Date(),
 ) => {

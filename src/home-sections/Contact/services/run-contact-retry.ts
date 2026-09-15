@@ -5,6 +5,13 @@ import type { Pool } from 'pg'
 
 import { getContactPool } from '@/db/client'
 import { sendMail } from '@/lib/mail'
+import { EContactNotificationRunStatus } from '@/home-sections/Contact/types/contact.type'
+import type { ContactCronRunResult } from './cron-handler'
+import {
+  cleanupContactAttachments,
+  deleteDeliveredContactAttachments,
+  openContactAttachment,
+} from './contact-attachments'
 import {
   acquireNotificationJob,
   completeNotificationJob,
@@ -24,17 +31,21 @@ const RUN_BUDGET_MS = 45_000
 const retryLimit = () =>
   Math.min(100, Math.max(1, Number(process.env.CONTACT_RETRY_LIMIT ?? '25') || 25))
 
-export const runContactNotificationRetry = async (pool: Pool = getContactPool()) => {
+export const runContactNotificationRetry = async (
+  pool: Pool = getContactPool(),
+): Promise<ContactCronRunResult> => {
   const startedAt = Date.now()
   const token = await acquireNotificationJob(pool, RUN_LEASE_SECONDS)
   if (!token) {
     return {
-      status: 'already-running' as const,
+      status: EContactNotificationRunStatus.alreadyRunning,
       claimed: 0,
       sent: 0,
       requeued: 0,
       lostLease: 0,
       stoppedByDeadline: false,
+      attachmentsDeleted: 0,
+      orphansDeleted: 0,
     }
   }
 
@@ -53,27 +64,41 @@ export const runContactNotificationRetry = async (pool: Pool = getContactPool())
           markSent: (id, claimToken) => markNotificationSent(pool, id, claimToken),
           markFailed: (id, claimToken, code, attempts) =>
             markNotificationFailed(pool, id, claimToken, code, attempts),
+          openAttachment: openContactAttachment,
+          deleteDeliveredAttachments: deleteDeliveredContactAttachments,
         })
         return outcome.status
       },
     })
     latest = result
-    await completeNotificationJob(pool, token, { status: 'completed', ...result })
+    const cleanup = await cleanupContactAttachments(pool)
+    const completed = {
+      ...result,
+      attachmentsDeleted: cleanup.delivered,
+      orphansDeleted: cleanup.orphaned,
+    }
+    await completeNotificationJob(pool, token, {
+      status: EContactNotificationRunStatus.completed,
+      ...result,
+    })
     console.info(
       JSON.stringify({
         event: 'contact_notification_retry',
-        status: 'completed',
-        ...result,
+        status: EContactNotificationRunStatus.completed,
+        ...completed,
         durationMs: Date.now() - startedAt,
       }),
     )
-    return { status: 'completed' as const, ...result }
+    return { status: EContactNotificationRunStatus.completed, ...completed }
   } catch (error) {
-    await completeNotificationJob(pool, token, { status: 'failed', ...latest })
+    await completeNotificationJob(pool, token, {
+      status: EContactNotificationRunStatus.failed,
+      ...latest,
+    })
     console.error(
       JSON.stringify({
         event: 'contact_notification_retry',
-        status: 'failed',
+        status: EContactNotificationRunStatus.failed,
         durationMs: Date.now() - startedAt,
       }),
     )

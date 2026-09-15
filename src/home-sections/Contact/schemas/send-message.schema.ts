@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { attachmentManifestSchema } from '@/home-sections/Contact/attachments'
 import { EContactField, type IContactSchema } from '@/home-sections/Contact/types/contact.type'
 
 const stringField = () => z.string({ error: 'invalid_type' }).trim()
@@ -22,6 +23,7 @@ export const contactSchema = z.strictObject(
 export const contactSubmissionSchema = contactSchema.safeExtend({
   submissionId: z.uuid({ error: 'submission_id_invalid' }),
   website: z.string({ error: 'invalid_type' }).max(0, 'invalid_type').optional().default(''),
+  attachments: attachmentManifestSchema.default([]),
 })
 
 export const getContactSchema = (errorsMsgs: IContactSchema) =>

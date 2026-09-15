@@ -6,15 +6,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Form } from './Form'
 import { ELanguage } from '@/constants/header.constants'
 import { I18nContext } from '@/contexts/i18'
-import { EContactField } from '@/home-sections/Contact/types/contact.type'
+import { EContactField, EContactSubmissionStatus } from '@/home-sections/Contact/types/contact.type'
 import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
 import { Providers } from '@/providers/Providers'
 
-const { sendMessageMock } = vi.hoisted(() => ({ sendMessageMock: vi.fn() }))
+const { sendMessageMock, uploadMock } = vi.hoisted(() => ({
+  sendMessageMock: vi.fn(),
+  uploadMock: vi.fn(),
+}))
 
 vi.mock('@/home-sections/Contact/actions/send-message.action', () => ({
   sendMessage: sendMessageMock,
 }))
+vi.mock('@vercel/blob/client', () => ({ upload: uploadMock }))
 
 interface Deferred<T> {
   promise: Promise<T>
@@ -70,6 +74,25 @@ const getSubmitButton = () => {
   return button
 }
 
+const getAttachmentInput = () => getControl('contact-attachments') as HTMLInputElement
+
+const file = (name: string, type: string, size = 1_024) => {
+  const value = new File(['x'], name, { type, lastModified: 1_000 })
+  Object.defineProperty(value, 'size', { value: size })
+  return value
+}
+
+const selectFiles = (files: File[]) => {
+  const input = getAttachmentInput()
+  Object.defineProperty(input, 'files', { configurable: true, value: files })
+  Object.defineProperty(input, 'value', {
+    configurable: true,
+    writable: true,
+    value: files.length ? `C:\\fakepath\\${files[0]!.name}` : '',
+  })
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+}
+
 const changeControl = (id: string, value: string) => {
   const control = getControl(id)
   const prototype =
@@ -116,6 +139,11 @@ const submittedId = (call: number) => {
 
 beforeEach(async () => {
   sendMessageMock.mockReset()
+  uploadMock.mockReset()
+  uploadMock.mockImplementation(async (pathname: string) => ({
+    url: `https://store.private.blob.vercel-storage.com/${pathname}`,
+    pathname,
+  }))
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   vi.stubGlobal(
     'ResizeObserver',
@@ -129,6 +157,10 @@ beforeEach(async () => {
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222222',
     '33333333-3333-4333-8333-333333333333',
+    '44444444-4444-4444-8444-444444444444',
+    '55555555-5555-4555-8555-555555555555',
+    '66666666-6666-4666-8666-666666666666',
+    '77777777-7777-4777-8777-777777777777',
   ]
   vi.spyOn(globalThis.crypto, 'randomUUID').mockImplementation(() => {
     const id = ids.shift()
@@ -185,6 +217,66 @@ describe('contact form accessibility', () => {
     expect(getControl('contact-email').getAttribute('autocomplete')).toBe('email')
   })
 
+  it('opens the native picker and previews selected images and PDFs', async () => {
+    const input = getAttachmentInput()
+    expect(input.multiple).toBe(true)
+    expect(input.accept).toBe('application/pdf,image/jpeg,image/png')
+
+    const picker = host.querySelector<HTMLButtonElement>('button[aria-label="Attach files"]')
+    const openPicker = vi.spyOn(input, 'click').mockImplementation(() => undefined)
+    await act(async () => picker?.click())
+    expect(openPicker).toHaveBeenCalledOnce()
+
+    const createObjectURL = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockImplementation((blob) => `blob:${(blob as File).name}`)
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+
+    await act(async () =>
+      selectFiles([file('brief.pdf', 'application/pdf'), file('screen.png', 'image/png', 2_048)]),
+    )
+
+    expect(createObjectURL).toHaveBeenCalledTimes(2)
+    expect(host.querySelector('img[alt="screen.png"]')?.getAttribute('src')).toBe('blob:screen.png')
+
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: false,
+        media: '',
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }),
+    )
+    const pdfPreview = host.querySelector<HTMLButtonElement>(
+      'button[aria-label="Preview brief.pdf"]',
+    )
+    await act(async () => pdfPreview?.click())
+    expect(
+      document.body.querySelector('iframe[title="Preview brief.pdf"]')?.getAttribute('src'),
+    ).toBe('blob:brief.pdf')
+
+    const remove = host.querySelector<HTMLButtonElement>('button[aria-label="Remove brief.pdf"]')
+    await act(async () => remove?.click())
+    expect(host.querySelector('button[aria-label="Preview brief.pdf"]')).toBeNull()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:brief.pdf')
+  })
+
+  it('adds files from a later picker selection instead of replacing the current selection', async () => {
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => `blob:${(blob as File).name}`)
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+
+    await act(async () => selectFiles([file('brief.pdf', 'application/pdf')]))
+    await act(async () => selectFiles([file('screen.png', 'image/png')]))
+
+    expect(host.querySelector('button[aria-label="Preview brief.pdf"]')).not.toBeNull()
+    expect(host.querySelector('button[aria-label="Preview screen.png"]')).not.toBeNull()
+  })
+
   it('focuses and associates the first invalid field without losing a later draft', async () => {
     await act(async () => {
       changeControl('contact-message', 'Please keep my draft')
@@ -203,10 +295,175 @@ describe('contact form accessibility', () => {
 })
 
 describe('contact form action state', () => {
+  it.each([
+    [
+      'four files',
+      () => Array.from({ length: 4 }, (_, index) => file(`${index}.pdf`, 'application/pdf')),
+      'Attach no more than 3 files.',
+    ],
+    [
+      'an unsupported type',
+      () => [file('notes.txt', 'text/plain')],
+      'Only PDF, JPG and PNG files are supported.',
+    ],
+    [
+      'an oversized file',
+      () => [file('large.pdf', 'application/pdf', 5_242_881)],
+      'Each file must be 5 MB or smaller.',
+    ],
+    [
+      'an oversized total',
+      () => [
+        file('one.pdf', 'application/pdf', 4 * 1024 * 1024),
+        file('two.pdf', 'application/pdf', 4 * 1024 * 1024),
+        file('three.pdf', 'application/pdf', 3 * 1024 * 1024),
+      ],
+      'Attachments must be 10 MB or smaller in total.',
+    ],
+  ])('rejects %s before upload or submission', async (_case, makeFiles, error) => {
+    await act(async () => fillValidForm())
+    const files = makeFiles()
+    await act(async () => selectFiles(files))
+    expect(host.querySelectorAll('button[aria-label^="Preview "]')).toHaveLength(files.length)
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(error)
+    await act(async () => submit())
+
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(error)
+    expect(uploadMock).not.toHaveBeenCalled()
+    expect(sendMessageMock).not.toHaveBeenCalled()
+  })
+
+  it('uploads in order, exposes busy progress, and resets files after success', async () => {
+    const uploads = [
+      deferred<{ url: string; pathname: string }>(),
+      deferred<{ url: string; pathname: string }>(),
+    ]
+    const action = deferred<ContactSubmissionState>()
+    uploadMock.mockImplementation(
+      (
+        pathname: string,
+        _file: File,
+        options: {
+          onUploadProgress: (progress: {
+            loaded: number
+            total: number
+            percentage: number
+          }) => void
+        },
+      ) => {
+        options.onUploadProgress({ loaded: 512, total: 1_024, percentage: 50 })
+        const index = uploadMock.mock.calls.length - 1
+        return uploads[index]!.promise
+      },
+    )
+    sendMessageMock.mockReturnValueOnce(action.promise)
+    await act(async () => fillValidForm())
+    await act(async () =>
+      selectFiles([file('brief.pdf', 'application/pdf'), file('screen.png', 'image/png')]),
+    )
+    await act(async () => {
+      submit()
+      await vi.waitFor(() => expect(uploadMock).toHaveBeenCalledTimes(2))
+    })
+    expect(getForm().getAttribute('aria-busy')).toBe('true')
+    expect(getAttachmentInput().disabled).toBe(true)
+    expect(getSubmitButton().disabled).toBe(true)
+    expect(host.querySelector('[role="status"]')?.textContent).toContain('50%')
+
+    await act(async () => {
+      for (const [index, pending] of uploads.entries()) {
+        const uploadedPath = String(uploadMock.mock.calls[index]![0])
+        pending.resolve({
+          url: `https://store.private.blob.vercel-storage.com/${uploadedPath}`,
+          pathname: uploadedPath,
+        })
+      }
+      await Promise.all(uploads.map(({ promise }) => promise))
+    })
+    await vi.waitFor(() => expect(sendMessageMock).toHaveBeenCalledOnce())
+    const submitted = JSON.parse(String(submittedPayload(0).get('attachments')))
+    expect(submitted.map(({ name }: { name: string }) => name)).toEqual(['brief.pdf', 'screen.png'])
+    expect(submitted.map(({ pathname }: { pathname: string }) => pathname)).toEqual(
+      uploadMock.mock.calls.map(([uploadedPath]) => uploadedPath),
+    )
+    await act(async () => {
+      action.resolve({ status: EContactSubmissionStatus.success, submissionId: submittedId(0) })
+      await action.promise
+    })
+    expect(host.querySelector('button[aria-label="Remove brief.pdf"]')).toBeNull()
+    expect(getAttachmentInput().value).toBe('')
+  })
+
+  it('preserves a failed upload draft and reuses completed uploads on unchanged action retry', async () => {
+    await act(async () => fillValidForm('Keep this draft'))
+    await act(async () => selectFiles([file('brief.pdf', 'application/pdf')]))
+    uploadMock.mockRejectedValueOnce(new Error('upload down'))
+    await act(async () => submit())
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(
+      'The files could not be uploaded. Try again.',
+    )
+    expect(getControl('contact-message').value).toBe('Keep this draft')
+    expect(host.textContent).toContain('brief.pdf')
+    expect(sendMessageMock).not.toHaveBeenCalled()
+
+    sendMessageMock
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockImplementationOnce(async (_state: ContactSubmissionState, payload: FormData) => ({
+        status: EContactSubmissionStatus.success,
+        submissionId: String(payload.get('submissionId')),
+      }))
+    await act(async () => submit())
+    await act(async () => submit())
+    expect(uploadMock).toHaveBeenCalledTimes(2)
+    expect(submittedPayload(1).get('submissionId')).toBe(submittedPayload(0).get('submissionId'))
+  })
+
+  it('allocates a new submission ID and uploads the combined selection when files are added', async () => {
+    sendMessageMock.mockResolvedValue({
+      status: EContactSubmissionStatus.validationError,
+      fieldErrors: { email: ['invalid_email'] },
+    })
+    await act(async () => fillValidForm())
+    await act(async () => selectFiles([file('first.pdf', 'application/pdf')]))
+    await act(async () => submit())
+    await act(async () => selectFiles([file('second.pdf', 'application/pdf')]))
+    await act(async () => submit())
+
+    expect(uploadMock).toHaveBeenCalledTimes(3)
+    expect(
+      JSON.parse(String(submittedPayload(1).get('attachments'))).map(
+        ({ name }: { name: string }) => name,
+      ),
+    ).toEqual(['first.pdf', 'second.pdf'])
+    expect(submittedId(1)).not.toBe(submittedId(0))
+  })
+
+  it('focuses and retranslates an authoritative attachment error', async () => {
+    sendMessageMock.mockResolvedValueOnce({
+      status: EContactSubmissionStatus.validationError,
+      fieldErrors: { attachments: ['attachment_invalid'] },
+    })
+    await act(async () => fillValidForm())
+    await act(async () => submit())
+    expect(document.activeElement).toBe(
+      host.querySelector<HTMLButtonElement>('button[aria-label="Attach files"]'),
+    )
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(
+      'One of the uploaded files is invalid. Select it again.',
+    )
+
+    const languageButton = Array.from(host.querySelectorAll('button')).find(
+      (button) => button.textContent === 'Russian',
+    )
+    await act(async () => languageButton?.click())
+    expect(host.querySelector('#contact-attachment-error')?.textContent).toBe(
+      'Один из загруженных файлов недействителен. Выберите его заново.',
+    )
+  })
   it('submits from the message field on Enter', async () => {
     sendMessageMock.mockImplementationOnce(
       async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }),
     )
@@ -236,7 +493,7 @@ describe('contact form action state', () => {
 
   it('does not submit while an input method editor is composing text', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'success',
+      status: EContactSubmissionStatus.success,
       submissionId: '11111111-1111-4111-8111-111111111111',
     })
     await act(async () => fillValidForm())
@@ -262,7 +519,7 @@ describe('contact form action state', () => {
 
   it('clears a server field error as soon as that field is edited', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { email: ['invalid_email'], message: ['too_short'] },
     })
     await act(async () => fillValidForm())
@@ -305,7 +562,7 @@ describe('contact form action state', () => {
     }
 
     await act(async () => {
-      response.resolve({ status: 'success', submissionId: submittedId(0) })
+      response.resolve({ status: EContactSubmissionStatus.success, submissionId: submittedId(0) })
     })
 
     expect(getForm().getAttribute('aria-busy')).toBe('false')
@@ -314,7 +571,7 @@ describe('contact form action state', () => {
 
   it('renders server field and global errors while preserving every input', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { name: ['required'], form: ['submission_id_invalid'] },
     })
     await act(async () => {
@@ -338,7 +595,7 @@ describe('contact form action state', () => {
     sendMessageMock
       .mockRejectedValueOnce(new Error('offline'))
       .mockImplementationOnce(async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }))
     await act(async () => fillValidForm())
@@ -357,11 +614,11 @@ describe('contact form action state', () => {
   it('uses a new submission ID when a rejected payload is edited', async () => {
     sendMessageMock
       .mockResolvedValueOnce({
-        status: 'validation-error',
+        status: EContactSubmissionStatus.validationError,
         fieldErrors: { email: ['invalid_email'] },
       })
       .mockImplementationOnce(async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }))
     await act(async () => fillValidForm())
@@ -377,7 +634,7 @@ describe('contact form action state', () => {
   it('resets each acknowledged success once and supports a second successful send', async () => {
     sendMessageMock.mockImplementation(
       async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }),
     )
@@ -403,7 +660,7 @@ describe('contact form action state', () => {
     vi.useFakeTimers()
     sendMessageMock.mockImplementationOnce(
       async (_state: ContactSubmissionState, payload: FormData) => ({
-        status: 'success',
+        status: EContactSubmissionStatus.success,
         submissionId: String(payload.get('submissionId')),
       }),
     )
@@ -424,7 +681,7 @@ describe('contact form action state', () => {
 
     await act(async () => changeControl('contact-message', 'Browser-restored draft'))
     await act(async () => {
-      response.resolve({ status: 'success', submissionId: submittedId(0) })
+      response.resolve({ status: EContactSubmissionStatus.success, submissionId: submittedId(0) })
     })
 
     expect(getControl('contact-message').value).toBe('Browser-restored draft')
@@ -432,7 +689,7 @@ describe('contact form action state', () => {
 
   it('retranslates visible server errors when the language changes', async () => {
     sendMessageMock.mockResolvedValueOnce({
-      status: 'validation-error',
+      status: EContactSubmissionStatus.validationError,
       fieldErrors: { name: ['required'] },
     })
     await act(async () => fillValidForm())
@@ -457,7 +714,7 @@ describe('contact form action state', () => {
     act(() => submit())
 
     await act(async () => root.unmount())
-    response.resolve({ status: 'unavailable', code: 'service_unavailable' })
+    response.resolve({ status: EContactSubmissionStatus.unavailable, code: 'service_unavailable' })
     await response.promise
 
     expect(error).not.toHaveBeenCalled()

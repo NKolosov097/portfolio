@@ -74,14 +74,21 @@ describe('contactSchema', () => {
 })
 
 describe('contactSubmissionSchema', () => {
-  it('accepts a UUID and empty honeypot', () => {
+  it('accepts a UUID, empty honeypot, and private attachment manifest', () => {
     expect(
-      contactSubmissionSchema.safeParse({
+      contactSubmissionSchema.parse({
         ...valid,
         submissionId: 'aa1d1085-6b07-4c18-99fe-dc1ee32179dc',
         website: '',
-      }).success,
-    ).toBe(true)
+        attachments: [
+          {
+            url: 'https://store.private.blob.vercel-storage.com/contact/id/brief.pdf',
+            pathname: 'contact/aa1d1085-6b07-4c18-99fe-dc1ee32179dc/brief.pdf',
+            name: 'brief.pdf',
+          },
+        ],
+      }).attachments,
+    ).toHaveLength(1)
   })
 
   it('rejects invalid UUIDs and unknown fields', () => {

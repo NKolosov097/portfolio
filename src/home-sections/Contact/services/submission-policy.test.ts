@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-import { resolveTrustedIdentity } from '@/home-sections/Contact/services/submission-policy'
+import {
+  consumeContactUploadLimit,
+  resolveTrustedIdentity,
+} from '@/home-sections/Contact/services/submission-policy'
 
 describe('resolveTrustedIdentity', () => {
   it('uses only the explicitly configured header with a canonical IP value', () => {
@@ -31,5 +34,13 @@ describe('resolveTrustedIdentity', () => {
   it('uses a constant loopback identity only outside production when no header is configured', () => {
     expect(resolveTrustedIdentity(new Headers(), { NODE_ENV: 'development' })).toBe('127.0.0.1')
     expect(resolveTrustedIdentity(new Headers(), { NODE_ENV: 'production' })).toBeNull()
+  })
+})
+
+describe('consumeContactUploadLimit', () => {
+  it('fails closed when the rate-limit secret is missing', async () => {
+    await expect(consumeContactUploadLimit('192.0.2.12', { rateLimitSecret: '' })).rejects.toThrow(
+      'contact persistence unavailable',
+    )
   })
 })

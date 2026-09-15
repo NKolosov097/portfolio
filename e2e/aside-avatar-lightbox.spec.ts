@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { revealAside } from './helpers/aside'
+import { clickWhenSettled } from './helpers/interaction'
 
 /** Rectangles of the lightbox photo and its close button, sampled in the same frame. */
 interface ILightboxBoxes {
@@ -10,30 +11,13 @@ interface ILightboxBoxes {
   closeBox: DOMRect
 }
 
-/**
- * Waits out the modal's scale-in transition, then measures the photo and the close button together -
- * separate `boundingBox()` calls would sample different frames of that transition.
- */
-const measureSettledLightbox = (page: Page): Promise<ILightboxBoxes> =>
-  page.evaluate(async () => {
-    const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-
+/** Samples the photo and close button in the same frame. */
+const measureLightbox = (page: Page): Promise<ILightboxBoxes> =>
+  page.evaluate(() => {
     const photo = document.querySelector<HTMLElement>('[data-testid="aside-avatar-lightbox-image"]')
     const close = document.querySelector<HTMLElement>('[data-testid="aside-avatar-lightbox-close"]')
 
     if (!photo || !close) throw new Error('The lightbox photo or its close button is not mounted.')
-
-    let previousWidth = -1
-
-    // The transition is short; the cap only guards against a never-settling layout.
-    for (let frame = 0; frame < 120; frame += 1) {
-      const { width } = photo.getBoundingClientRect()
-
-      if (width > 0 && width === previousWidth) break
-
-      previousWidth = width
-      await nextFrame()
-    }
 
     return {
       photoBox: photo.getBoundingClientRect().toJSON(),
@@ -51,12 +35,12 @@ const openSettledLightbox = async (page: Page): Promise<ILightboxBoxes> => {
 
   const aside = await revealAside(page)
 
-  await aside.getByTestId('aside-avatar-trigger').click()
+  await clickWhenSettled(aside.getByTestId('aside-avatar-trigger'))
 
   const photo = page.getByTestId('aside-avatar-lightbox-image')
   await expect(photo).toBeVisible()
 
-  return measureSettledLightbox(page)
+  return measureLightbox(page)
 }
 
 /** Asserts the sizing contract shared by every viewport: square photo, close button on top of it. */
@@ -70,17 +54,20 @@ const expectSquarePhotoWithCloseInside = ({ photoBox, closeBox }: ILightboxBoxes
 }
 
 test.describe('aside avatar lightbox', () => {
+  // These tests cover behavior and geometry, so unrelated UI motion is disabled for stability.
+  test.use({ contextOptions: { reducedMotion: 'reduce' } })
+
   test('opens on click and closes via the close button', async ({ page }) => {
     await page.goto('/')
 
     const aside = await revealAside(page)
 
-    await aside.getByTestId('aside-avatar-trigger').click()
+    await clickWhenSettled(aside.getByTestId('aside-avatar-trigger'))
 
     const lightbox = page.getByTestId('aside-avatar-lightbox')
     await expect(lightbox).toBeVisible()
 
-    await page.getByTestId('aside-avatar-lightbox-close').click()
+    await clickWhenSettled(page.getByTestId('aside-avatar-lightbox-close'))
 
     await expect(lightbox).toBeHidden()
   })
@@ -90,7 +77,7 @@ test.describe('aside avatar lightbox', () => {
 
     const aside = await revealAside(page)
 
-    await aside.getByTestId('aside-avatar-trigger').click()
+    await clickWhenSettled(aside.getByTestId('aside-avatar-trigger'))
 
     const lightbox = page.getByTestId('aside-avatar-lightbox')
     await expect(lightbox).toBeVisible()
@@ -105,7 +92,7 @@ test.describe('aside avatar lightbox', () => {
 
     const aside = await revealAside(page)
 
-    await aside.getByTestId('aside-avatar-trigger').click()
+    await clickWhenSettled(aside.getByTestId('aside-avatar-trigger'))
 
     const lightbox = page.getByTestId('aside-avatar-lightbox')
     await expect(lightbox).toBeVisible()
@@ -147,12 +134,12 @@ test.describe('aside avatar lightbox', () => {
 
       const drawer = await revealAside(page)
 
-      await drawer.getByTestId('aside-avatar-trigger').click()
+      await clickWhenSettled(drawer.getByTestId('aside-avatar-trigger'))
 
       const lightbox = page.getByTestId('aside-avatar-lightbox')
       await expect(lightbox).toBeVisible()
 
-      await page.getByTestId('aside-avatar-lightbox-close').click()
+      await clickWhenSettled(page.getByTestId('aside-avatar-lightbox-close'))
 
       await expect(lightbox).toBeHidden()
       await expect(drawer).toBeVisible()
@@ -163,7 +150,7 @@ test.describe('aside avatar lightbox', () => {
 
       const drawer = await revealAside(page)
 
-      await drawer.getByTestId('aside-avatar-trigger').click()
+      await clickWhenSettled(drawer.getByTestId('aside-avatar-trigger'))
 
       const lightbox = page.getByTestId('aside-avatar-lightbox')
       await expect(lightbox).toBeVisible()
@@ -179,7 +166,7 @@ test.describe('aside avatar lightbox', () => {
 
       const drawer = await revealAside(page)
 
-      await drawer.getByTestId('aside-avatar-trigger').click()
+      await clickWhenSettled(drawer.getByTestId('aside-avatar-trigger'))
 
       const lightbox = page.getByTestId('aside-avatar-lightbox')
       await expect(lightbox).toBeVisible()
