@@ -42,14 +42,21 @@ test.describe('contact form', () => {
     const attachmentButton = page.locator(`button[aria-label="${en.contact.attachFiles}"]`)
     await expect(textarea).toBeVisible()
     await expect(attachmentButton).toBeVisible()
-    const textareaBounds = await textarea.boundingBox()
-    const buttonBounds = await attachmentButton.boundingBox()
-    expect(textareaBounds).not.toBeNull()
-    expect(buttonBounds).not.toBeNull()
 
-    const textareaCenter = textareaBounds!.y + textareaBounds!.height / 2
-    const buttonCenter = buttonBounds!.y + buttonBounds!.height / 2
-    expect(Math.abs(buttonCenter - textareaCenter)).toBeLessThanOrEqual(0.5)
+    // Measures both centers in one browser frame so page movement cannot split the sample.
+    const centerDelta = await textarea.evaluate((element) => {
+      const messageControl = element.parentElement?.parentElement?.parentElement
+      const button = messageControl?.querySelector('button')
+      if (!(button instanceof HTMLButtonElement)) throw new Error('Expected attachment button')
+
+      const textareaBounds = element.getBoundingClientRect()
+      const buttonBounds = button.getBoundingClientRect()
+      const textareaCenter = textareaBounds.y + textareaBounds.height / 2
+      const buttonCenter = buttonBounds.y + buttonBounds.height / 2
+
+      return Math.abs(buttonCenter - textareaCenter)
+    })
+    expect(centerDelta).toBeLessThanOrEqual(0.5)
   })
 
   // Guards the single hold followed by an uninterrupted horizontal departure.
