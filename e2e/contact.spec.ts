@@ -5,7 +5,6 @@ import ru from '@public/locales/ru.json'
 
 import { LANG_COOKIE_KEY } from '@/helpers/language'
 
-import { clickWhenSettled } from './helpers/interaction'
 import { E2E_BASE_URL } from './helpers/server'
 
 test.describe('contact form', () => {
@@ -278,7 +277,7 @@ test.describe('contact form', () => {
     const articleCard = page.getByTestId('writing-article-ai-boilerplate-senior-engineers')
     await expect(articleCard).toBeVisible()
     await articleCard.scrollIntoViewIfNeeded()
-    await clickWhenSettled(articleCard)
+    await articleCard.press('Enter')
     await expect(page).toHaveURL(/\/articles\/ai-boilerplate-senior-engineers$/)
     await page.goBack()
     await expect(page).toHaveURL(/\/$/)

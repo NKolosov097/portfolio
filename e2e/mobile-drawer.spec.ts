@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { clickWhenSettled } from './helpers/interaction'
+
 test.describe('profile drawer on narrow viewports', () => {
   test('replaces the sidebar and opens and closes on demand', async ({ page }) => {
     await page.goto('/')
@@ -23,7 +25,7 @@ test.describe('profile drawer on narrow viewports', () => {
     await expect(drawer).toBeVisible()
     await expect(drawer.getByTestId('aside-ghost')).toBeVisible()
 
-    await drawer.getByTestId('aside-close-profile').click()
+    await clickWhenSettled(drawer.getByTestId('aside-close-profile'))
 
     await expect(drawer).toBeHidden()
   })
