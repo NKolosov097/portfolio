@@ -550,6 +550,12 @@ describe('contact form action state', () => {
     expect(submittedPayload(0).get('website')).toBe('')
     expect(submittedId(0)).toMatch(/^[0-9a-f-]{36}$/)
     expect(getForm().getAttribute('aria-busy')).toBe('true')
+    const sendingIndicator = host.querySelector('[data-testid="contact-sending-indicator"]')
+    expect(sendingIndicator?.textContent).toBe('')
+    expect(sendingIndicator?.querySelector('svg')).not.toBeNull()
+    expect(sendingIndicator?.parentElement?.querySelector('button[type="submit"]')).toBe(
+      getSubmitButton(),
+    )
     expect(getSubmitButton().disabled).toBe(true)
     for (const id of [
       'contact-name',
@@ -566,6 +572,7 @@ describe('contact form action state', () => {
     })
 
     expect(getForm().getAttribute('aria-busy')).toBe('false')
+    expect(host.querySelector('[data-testid="contact-sending-indicator"]')).toBeNull()
     expect(getSubmitButton().disabled).toBe(false)
   })
 

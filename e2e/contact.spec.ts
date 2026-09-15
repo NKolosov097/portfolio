@@ -34,6 +34,98 @@ test.describe('contact form', () => {
     await expect(page.locator('#contact-name')).toHaveAttribute('aria-invalid', 'true')
   })
 
+  // Guards the attachment control's visual alignment with the message input.
+  test('centers the attachment button vertically in the message input', async ({ page }) => {
+    await page.goto('/?lang=en#contact')
+
+    const textarea = page.locator('#contact-message')
+    const attachmentButton = page.locator(`button[aria-label="${en.contact.attachFiles}"]`)
+    await expect(textarea).toBeVisible()
+    await expect(attachmentButton).toBeVisible()
+    const textareaBounds = await textarea.boundingBox()
+    const buttonBounds = await attachmentButton.boundingBox()
+    expect(textareaBounds).not.toBeNull()
+    expect(buttonBounds).not.toBeNull()
+
+    const textareaCenter = textareaBounds!.y + textareaBounds!.height / 2
+    const buttonCenter = buttonBounds!.y + buttonBounds!.height / 2
+    expect(Math.abs(buttonCenter - textareaCenter)).toBeLessThanOrEqual(0.5)
+  })
+
+  // Guards the single hold followed by an uninterrupted horizontal departure.
+  test('holds the sending plane once, then flies steadily to the right', async ({ page }) => {
+    await page.goto('/?lang=en#contact')
+    await page.locator('#contact-name').fill('Animation Test')
+    await page.locator('#contact-email').fill('animation@example.test')
+    await page.locator('#contact-message').fill('Keep this request pending')
+
+    // Holds the real Server Action request so the pending indicator remains mounted.
+    await page.route('**/*', (route) => {
+      if (route.request().method() === 'POST' && route.request().headers()['next-action']) return
+
+      return route.continue()
+    })
+    await page.getByRole('button', { name: en.contact.sendMessage, exact: true }).click()
+    const plane = page.getByTestId('contact-sending-indicator').locator('span')
+    await expect(plane).toBeVisible()
+
+    // Samples the browser's real CSS animation at equal time intervals after its initial hold.
+    const samples = await plane.evaluate((element) => {
+      const movement = element
+        .getAnimations()
+        .find(
+          (animation) =>
+            animation.effect instanceof KeyframeEffect && animation.effect.pseudoElement === null,
+        )
+      if (movement === undefined) throw new Error('Expected the plane movement animation')
+
+      movement.pause()
+      const duration = Number(movement.effect?.getTiming().duration)
+      if (!Number.isFinite(duration)) throw new Error('Expected a finite animation duration')
+
+      const positions: Array<{ x: number; y: number }> = []
+      for (const offset of [0.05, 0.12, 0.34, 0.56, 0.78]) {
+        movement.currentTime = duration * offset
+        const bounds = element.getBoundingClientRect()
+        positions.push({ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 })
+      }
+
+      return positions
+    })
+    const [earlyHold, departure, ...flight] = samples
+    expect(Math.abs(departure.x - earlyHold.x)).toBeLessThan(1)
+
+    const flightSamples = [departure, ...flight]
+    const distances = flightSamples.slice(1).map(({ x }, index) => x - flightSamples[index].x)
+    expect(Math.min(...distances)).toBeGreaterThan(0)
+    expect(Math.max(...distances) - Math.min(...distances)).toBeLessThan(2)
+    const flightY = flightSamples.map(({ y }) => y)
+    expect(Math.max(...flightY) - Math.min(...flightY)).toBeLessThan(1)
+  })
+
+  // Guards the pending announcement without restoring visible status text.
+  test('announces the pending state without showing its text', async ({ page }) => {
+    await page.goto('/?lang=en#contact')
+    await page.locator('#contact-name').fill('Accessibility Test')
+    await page.locator('#contact-email').fill('accessibility@example.test')
+    await page.locator('#contact-message').fill('Keep this request pending')
+
+    // Holds the real Server Action request so the pending status remains mounted.
+    await page.route('**/*', (route) => {
+      if (route.request().method() === 'POST' && route.request().headers()['next-action']) return
+
+      return route.continue()
+    })
+    await page.getByRole('button', { name: en.contact.sendMessage, exact: true }).click()
+
+    const pendingStatus = page.getByRole('status')
+    await expect(pendingStatus).toHaveText(en.contact.sending)
+    const bounds = await pendingStatus.boundingBox()
+    expect(bounds).not.toBeNull()
+    expect(bounds!.width).toBeLessThanOrEqual(1)
+    expect(bounds!.height).toBeLessThanOrEqual(1)
+  })
+
   test.describe('desktop attachment hint', () => {
     // Mirrors the CSS conditions that switch the inline hint to the desktop tooltip.
     test.skip(
