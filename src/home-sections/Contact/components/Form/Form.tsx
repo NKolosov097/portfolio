@@ -13,8 +13,8 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleXmark, Paperclip, Xmark } from '@gravity-ui/icons'
-import { Button, Loader, Modal, TextArea, TextInput, Tooltip } from '@gravity-ui/uikit'
+import { CircleXmark, Paperclip, PaperPlane, Xmark } from '@gravity-ui/icons'
+import { Button, Modal, TextArea, TextInput, Tooltip } from '@gravity-ui/uikit'
 import { upload } from '@vercel/blob/client'
 import type { z } from 'zod'
 
@@ -597,12 +597,6 @@ export const Form = () => {
           tabIndex={-1}
           aria-hidden="true"
         />
-
-        {isBusy && (
-          <div className={styles.loaderContainer} aria-hidden="true">
-            <Loader />
-          </div>
-        )}
       </div>
 
       <div className={styles.footer}>
@@ -620,9 +614,11 @@ export const Form = () => {
         {resultMessage && (
           <p
             className={
-              submissionState.status === EContactSubmissionStatus.success
-                ? styles.successfulResult
-                : styles.result
+              isPending
+                ? styles.srOnly
+                : submissionState.status === EContactSubmissionStatus.success
+                  ? styles.successfulResult
+                  : styles.result
             }
             data-testid="contact-result"
             role="status"
@@ -630,6 +626,18 @@ export const Form = () => {
           >
             {resultMessage}
           </p>
+        )}
+
+        {isBusy && (
+          <div
+            className={styles.sendingFlight}
+            data-testid="contact-sending-indicator"
+            aria-hidden="true"
+          >
+            <span className={styles.paperPlane}>
+              <PaperPlane />
+            </span>
+          </div>
         )}
       </div>
       {previewAttachment && (
