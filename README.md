@@ -173,22 +173,23 @@ See docs/contact-production.md for the complete production matrix.
 
 ## Available scripts
 
-| Script                | Description                                            |
-| --------------------- | ------------------------------------------------------ |
-| pnpm dev              | Start the Turbopack development server.                |
-| pnpm build            | Build the application.                                 |
-| pnpm vercel-build     | Build on Vercel without mutating the database.         |
-| pnpm db:generate      | Generate a reviewed Drizzle migration.                 |
-| pnpm db:migrate       | Apply committed Drizzle migrations.                    |
-| pnpm db:seed          | Seed a synthetic feedback record.                      |
-| pnpm contact:retry    | Process a bounded leased batch of owner notifications. |
-| pnpm check-types      | Run the TypeScript check.                              |
-| pnpm check-lint       | Run ESLint without rewriting files.                    |
-| pnpm check-format     | Check formatting.                                      |
-| pnpm check-styles     | Check styles.                                          |
-| pnpm test             | Run unit and DOM tests.                                |
-| pnpm test:integration | Run isolated PostgreSQL and Mailpit tests.             |
-| pnpm test:e2e         | Build and run the Playwright matrix.                   |
+| Script                | Description                                                         |
+| --------------------- | ------------------------------------------------------------------- |
+| pnpm dev              | Start the Turbopack development server.                             |
+| pnpm build            | Build the application.                                              |
+| pnpm vercel-build     | Build on Vercel without mutating the database.                      |
+| pnpm db:generate      | Generate a reviewed Drizzle migration.                              |
+| pnpm db:migrate       | Apply committed Drizzle migrations.                                 |
+| pnpm db:seed          | Seed a synthetic feedback record.                                   |
+| pnpm contact:retry    | Process a bounded leased batch of owner notifications.              |
+| pnpm contact:requeue  | Reset one terminal notification back to pending by submission UUID. |
+| pnpm check-types      | Run the TypeScript check.                                           |
+| pnpm check-lint       | Run ESLint without rewriting files.                                 |
+| pnpm check-format     | Check formatting.                                                   |
+| pnpm check-styles     | Check styles.                                                       |
+| pnpm test             | Run unit and DOM tests.                                             |
+| pnpm test:integration | Run isolated PostgreSQL and Mailpit tests.                          |
+| pnpm test:e2e         | Build and run the Playwright matrix.                                |
 
 Before considering any change complete, the validation gate must pass:
 
@@ -237,6 +238,29 @@ What is covered today:
 - **Profile drawer** (`e2e/mobile-drawer.spec.ts`) - below the breakpoint the sidebar is hidden
   and its content is reachable only through the drawer, which opens and closes on demand. The
   spec skips itself on viewports that render the sidebar.
+- **Aside avatar lightbox** (`e2e/aside-avatar-lightbox.spec.ts`) - the photo lightbox opens from
+  the aside and closes via its close button, Escape, or an outside click on both the sidebar and
+  the mobile drawer, keeping the rendered photo square with its close button anchored on top of
+  it across desktop and mobile viewports.
+- **Mobile aside swipe-to-close** (`e2e/aside-swipe.spec.ts`) - a synthetic left swipe past the
+  distance threshold closes the drawer, a short slow drag snaps it back open, and a vertical drag
+  inside the content is left to native scrolling. Skips itself in browser projects without
+  synthetic touch event support.
+- **Contact form** (`e2e/contact.spec.ts`) - the section is reachable by anchor and keyboard, an
+  invalid draft keeps its values and focuses the first invalid field, the attachment button stays
+  vertically centered on the message input, the sending plane animation holds then departs
+  smoothly, the pending state is announced without visible status text, the desktop tooltip shows
+  attachment limits, up to three PDF/JPEG/PNG files can be selected, previewed and removed with a
+  fourth rejected before upload, the remove-button focus ring stays inside its scroll container,
+  navigating to an article and back reselects the Contact tab, controls stay reachable across
+  responsive breakpoints, and the draft survives a locale switch with retranslated errors.
+- **Contact submission** (`e2e/contact-submission.spec.ts`, isolated PostgreSQL + Mailpit) - a
+  failed submission keeps its draft, a rapid double-click and a replayed request still persist and
+  notify exactly once with no duplicate attachment rows, and the captured mail has the right
+  recipients, HTML-escaped body, and reply-to address.
+- **Contact failures** (`e2e/contact-failures.spec.ts`, isolated service outages) - an unreachable
+  database preserves the draft and reports a clear error, and an unreachable SMTP server still
+  reports success, stores the submission, and records a failed notification attempt for retry.
 - **Home sparkle field** (`e2e/home-sparkle-field.spec.ts`) - the canvas fades in behind the hero
   without covering the headline, and holds a still frame under `prefers-reduced-motion: reduce`.
 - **Self-hosted articles** (`e2e/articles.spec.ts`) - the article is listed on `/articles`, its
