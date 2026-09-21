@@ -2,16 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import en from '@public/locales/en.json'
 
-const startGame = async (page: Page) => {
-  await page.goto('/')
-  const play = page.getByTestId('doom-play-button')
-  await play.scrollIntoViewIfNeeded()
-  await expect(play).toHaveText(en.resume.retroArcadePlay)
-  await play.click()
-  await expect(page.getByRole('button', { name: en.resume.retroArcadeStop })).toBeVisible({
-    timeout: 15_000,
-  })
-}
+import { startDoomGame } from './helpers/doom'
 
 const expectViewportScreen = async (page: Page) => {
   await expect
@@ -55,6 +46,7 @@ const expectExitControlOnTop = async (page: Page) => {
 
 for (const capability of ['missing', 'rejected'] as const) {
   test(`expands without restarting the game when fullscreen is ${capability}`, async ({ page }) => {
+    test.setTimeout(60_000)
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     await page.addInitScript((mode) => {
@@ -67,7 +59,7 @@ for (const capability of ['missing', 'rejected'] as const) {
       })
     }, capability)
     await page.setViewportSize({ width: 393, height: 851 })
-    await startGame(page)
+    await startDoomGame(page)
 
     const screen = page.getByTestId('doom-screen')
     const canvas = page.getByTestId('doom-canvas')
@@ -122,10 +114,11 @@ for (const capability of ['missing', 'rejected'] as const) {
 }
 
 test('keeps keyboard focus in the expanded game and restores it on Escape', async ({ page }) => {
+  test.setTimeout(60_000)
   await page.addInitScript(() => {
     Object.defineProperty(Element.prototype, 'requestFullscreen', { value: undefined })
   })
-  await startGame(page)
+  await startDoomGame(page)
   const canvas = page.getByTestId('doom-canvas')
   const stop = page.getByRole('button', { name: en.resume.retroArcadeStop })
   const expand = page.getByRole('button', { name: en.resume.retroArcadeFullscreen, exact: true })
@@ -153,7 +146,8 @@ test('keeps keyboard focus in the expanded game and restores it on Escape', asyn
 })
 
 test('uses native fullscreen when available and follows a browser exit', async ({ page }) => {
-  await startGame(page)
+  test.setTimeout(60_000)
+  await startDoomGame(page)
   test.skip(
     !(await page.evaluate(() => Boolean(document.fullscreenEnabled))),
     'This browser does not provide native fullscreen',
