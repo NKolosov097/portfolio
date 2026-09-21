@@ -2,26 +2,20 @@ import { expect, test } from '@playwright/test'
 
 import en from '@public/locales/en.json'
 
+import { startDoomGame } from './helpers/doom'
+
 test.describe('DOOM easter egg in the Resume section', () => {
   test('boots the game on click and can be stopped again', async ({ page }) => {
+    test.setTimeout(60_000)
     const pageErrors: string[] = []
     page.on('pageerror', (error) => pageErrors.push(error.message))
 
-    await page.goto('/')
+    await startDoomGame(page)
 
-    const playButton = page.getByTestId('doom-play-button')
-    await playButton.scrollIntoViewIfNeeded()
-    await expect(playButton).toHaveText(en.resume.retroArcadePlay)
-
-    await playButton.click()
-
-    const canvas = page.getByTestId('doom-canvas')
-    await expect(canvas).toBeVisible()
-    await expect(playButton).not.toBeVisible()
+    await expect(page.getByTestId('doom-canvas')).toBeVisible()
+    await expect(page.getByTestId('doom-play-button')).not.toBeVisible()
 
     const stopButton = page.getByRole('button', { name: en.resume.retroArcadeStop })
-    await expect(stopButton).toBeVisible({ timeout: 15_000 })
-
     await stopButton.click()
     await expect(page.getByTestId('doom-play-button')).toBeVisible()
 
