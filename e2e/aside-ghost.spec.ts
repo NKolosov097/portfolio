@@ -3,15 +3,11 @@ import { expect, test } from '@playwright/test'
 import { revealAside } from './helpers/aside'
 import { openLanguageMenu } from './helpers/language'
 
-import { TICKLE_DURATION_MS } from '@/layout/Aside/components/AnimatedGhost/ghostTickle'
-
 /** bob + sway + breathe on the body, plus the two eye animations. */
 const EXPECTED_ANIMATION_COUNT = 5
 
 /** Frame sampling window for the 180ms reduced-motion giggle, which a single read can miss. */
 const REDUCED_MOTION_SAMPLE_WINDOW_MS = 1_500
-/** Slack over the tickle's own length: the test replays it from zero, then waits for it to settle. */
-const TICKLE_SETTLE_GRACE_MS = 2_000
 
 const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
 
@@ -152,17 +148,15 @@ test.describe('aside ghost', () => {
         minimumScale = Math.min(minimumScale, scale)
       }
 
-      bodyAnimation.currentTime = 0
-      bodyAnimation.play()
+      // Trigger the real completion callback without depending on WebKit wall-clock progress.
+      bodyAnimation.finish()
 
       return minimumScale
     })
 
     expect(minimumHorizontalScale).toBeLessThan(0.9)
 
-    await expect(trigger).toHaveAttribute('data-tickling', 'false', {
-      timeout: TICKLE_DURATION_MS + TICKLE_SETTLE_GRACE_MS,
-    })
+    await expect(trigger).toHaveAttribute('data-tickling', 'false')
     await expect(sway).toHaveAttribute('data-continuity-probe', 'preserved')
     await expect(body).toHaveCSS('transform', 'none')
   })

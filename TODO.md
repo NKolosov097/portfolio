@@ -12,4 +12,4 @@
 - [x] Replace the generic portfolio SEO description with a professional summary shared across metadata, social cards, and structured data.
 - [x] Sync `README.md` with reality: document the five previously undescribed e2e specs (contact form and attachments, contact submission, contact failures, aside avatar lightbox, aside swipe) in Testing, and add the `contact:requeue` script to Available scripts.
 - [ ] Add a web app manifest (name, theme color, icon set) and reference it from metadata so the site installs cleanly as a home-screen app - currently only a bare `favicon.ico` exists, no icon artwork.
-- [ ] Remove the unused `CUSTOM_KEY` browser exposure from `next.config.ts` and the unused direct `axios` and `bem-cn-lite` dependencies.
+- [x] Remove the unused `CUSTOM_KEY` browser exposure from `next.config.ts` and the unused direct `axios` and `bem-cn-lite` dependencies.
