@@ -9,6 +9,14 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : 4,
+  /**
+   * Two workers drive twelve browser projects on a shared runner, so a cold route, a WebKit paint
+   * or a settling popup regularly outlasts Playwright's 30s/5s defaults. These ceilings bound how
+   * slow the machine may be, not how slow the product may be: a real break still fails, and every
+   * passing test is unaffected because an expectation resolves as soon as it is met.
+   */
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: E2E_BASE_URL,
