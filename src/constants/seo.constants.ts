@@ -11,7 +11,8 @@ export const SITE_NAME = 'NKolosov097 Portfolio'
 export const SITE_TITLE = 'Portfolio NKolosov097'
 
 /** Marketing description reused across meta tags and structured data. */
-export const SITE_DESCRIPTION = 'Portfolio about super developer @NKolosov097!'
+export const SITE_DESCRIPTION =
+  'Software engineer portfolio featuring production React, Next.js, TypeScript, and PostgreSQL work, technical writing, and contact details.'
 
 /** Full name of the portfolio owner, used as the structured-data subject. */
 export const AUTHOR_NAME = 'Nikita Kolosov'

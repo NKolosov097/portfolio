@@ -33,8 +33,6 @@
     "@gravity-ui/navigation": "4.0.15",
     "@hookform/resolvers": "5.2.2",
     "@vercel/blob": "^2.8.0",
-    "axios": "1.16.0",
-    "bem-cn-lite": "4.1.0",
     "drizzle-orm": "0.45.2",
     "i18next": "26.1.0",
     "i18next-browser-languagedetector": "8.2.1",
