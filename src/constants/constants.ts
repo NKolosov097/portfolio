@@ -12,4 +12,4 @@ export const CV_FILE_NAME = 'Nikita Kolosov - Senior Software Engineer.pdf'
 export const AUTHOR_GITHUB_URL = 'https://github.com/NKolosov097'
 
 /** Absolute URL of the owner's public LinkedIn profile. */
-export const AUTHOR_LINKEDIN_URL = 'https://www.linkedin.com/in/nkolosov097'
+export const AUTHOR_LINKEDIN_URL = 'https://www.linkedin.com/in/nikita-kolosov-profile/'
