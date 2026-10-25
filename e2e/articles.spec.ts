@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 import { selectLanguage } from './helpers/language'
 
@@ -6,6 +6,23 @@ import { ELanguage } from '@/constants/header.constants'
 import { aiBoilerplateSeniorEngineersArticle as article } from '@/constants/articles.constants'
 
 const ARTICLE_SLUG = article.slug
+
+/**
+ * Ceiling for the first paint of a cold route. WebKit on a contended runner can take well past the
+ * default expect timeout to get there, which is a slow machine, not a broken page.
+ */
+const ARTICLE_RENDER_TIMEOUT = 30_000
+
+/** Opens the article page and resolves once its body heading is on screen. */
+const openArticle = async (page: Page): Promise<Locator> => {
+  await page.goto(`/articles/${ARTICLE_SLUG}`)
+
+  const heading = page.locator('article').getByRole('heading', { level: 1 })
+
+  await expect(heading).toBeVisible({ timeout: ARTICLE_RENDER_TIMEOUT })
+
+  return heading
+}
 
 test.describe('self-hosted articles', () => {
   test('lists the article on the articles index', async ({ page }) => {
@@ -15,9 +32,8 @@ test.describe('self-hosted articles', () => {
   })
 
   test('renders the article page with its content', async ({ page }) => {
-    await page.goto(`/articles/${ARTICLE_SLUG}`)
+    await openArticle(page)
 
-    await expect(page.locator('article').getByRole('heading', { level: 1 })).toBeVisible()
     await expect(page.getByTestId(`article-content-${ARTICLE_SLUG}`)).toBeVisible()
   })
 
@@ -53,9 +69,8 @@ test.describe('self-hosted articles', () => {
   })
 
   test('switches the article body language with the site language switcher', async ({ page }) => {
-    await page.goto(`/articles/${ARTICLE_SLUG}`)
+    const heading = await openArticle(page)
 
-    const heading = page.locator('article').getByRole('heading', { level: 1 })
     await expect(heading).toHaveText(article.title[ELanguage.en])
 
     await selectLanguage(page, ELanguage.ru)
