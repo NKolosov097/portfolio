@@ -56,6 +56,10 @@
   "portfolio": {
     "header": "Check out my featured projects",
     "projects": {
+      "clinical-cases": {
+        "title": "Clinical Cases",
+        "description": "Clinical case trainer on synthetic data: Gemini-assisted structured authoring with human review before publication, deterministic exact-match grading, and an OpenAPI contract that fails CI on drift - FastAPI, Next.js 16 and PostgreSQL on Cloud Run."
+      },
       "protein-web": {
         "title": "Protein Web",
         "description": "Interactive drug-discovery game: guide molecules into real cancer-target proteins with live 3D visualization and physics-based binding scoring."
@@ -67,10 +71,6 @@
       "auth-service": {
         "title": "Auth Service",
         "description": "Go authentication microservice for BLOB: email/password and social sign-in, rotating JWT sessions, account recovery, rate limiting, and hardened HTTP security."
-      },
-      "golang-todo-app": {
-        "title": "Golang Todo App",
-        "description": "REST API backend in Go with PostgreSQL and Docker Compose: a single `make start` spins up the database, applies migrations, and launches the service."
       }
     }
   },
