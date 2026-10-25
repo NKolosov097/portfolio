@@ -19,6 +19,12 @@ const isSettledHitTarget = (locator: Locator): Promise<boolean> =>
   })
 
 /**
+ * Ceiling for an animation to come to rest. This gates a click rather than asserting anything, so
+ * it tracks how slow the machine is, not how long the UI is allowed to take.
+ */
+const SETTLE_TIMEOUT = 30_000
+
+/**
  * Clicks once the target has stopped moving. Popups animate into place and the header tab strip
  * re-measures after mount, so a click sent too early lands where the target no longer is.
  */
@@ -27,7 +33,7 @@ export const clickWhenSettled = async (locator: Locator): Promise<void> => {
 
   await locator.scrollIntoViewIfNeeded()
 
-  await expect.poll(() => isSettledHitTarget(locator)).toBe(true)
+  await expect.poll(() => isSettledHitTarget(locator), { timeout: SETTLE_TIMEOUT }).toBe(true)
 
   await locator.click({ force: true })
 }
