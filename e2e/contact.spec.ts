@@ -5,6 +5,7 @@ import ru from '@public/locales/ru.json'
 
 import { LANG_COOKIE_KEY } from '@/helpers/language'
 
+import { clickWhenSettled } from './helpers/interaction'
 import { E2E_BASE_URL } from './helpers/server'
 
 test.describe('contact form', () => {
@@ -282,7 +283,7 @@ test.describe('contact form', () => {
     await page.goBack()
     await expect(page).toHaveURL(/\/$/)
     const contactTab = page.getByRole('tab', { name: en.headerTabs.contact, exact: true })
-    await contactTab.click()
+    await clickWhenSettled(contactTab)
     await expect(page.locator('section#contact')).toBeInViewport()
     await expect(contactTab).toHaveAttribute('aria-selected', 'true')
   })
