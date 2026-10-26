@@ -1,13 +1,23 @@
 import { expect, type Locator } from '@playwright/test'
 
+/**
+ * Gap between the two position reads, in milliseconds. Long enough that any running animation
+ * moves a measurable distance, short enough to stay cheap inside a poll.
+ *
+ * Deliberately a timer rather than `requestAnimationFrame`. Measured in WebKit against this app:
+ * one page runs rAF at ~51 ms per frame, but two contexts side by side push it to ~126 ms and a
+ * loaded CI runner stalls it further - while `setTimeout` holds ~15 ms throughout. A frame-based
+ * probe therefore spends its whole poll budget waiting to be scheduled and reports
+ * `Timeout exceeded while waiting on the predicate` even though the element came to rest long ago.
+ */
+const SETTLE_SAMPLE_MS = 32
+
 /** Resolves to `true` once the element has stopped moving and owns the point a click would land on. */
 const isSettledHitTarget = (locator: Locator): Promise<boolean> =>
-  locator.evaluate(async (node) => {
-    const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-
+  locator.evaluate(async (node, sampleMs: number) => {
     const previous = node.getBoundingClientRect()
 
-    await nextFrame()
+    await new Promise<void>((resolve) => setTimeout(resolve, sampleMs))
 
     const { top, left, width, height } = node.getBoundingClientRect()
 
@@ -16,7 +26,7 @@ const isSettledHitTarget = (locator: Locator): Promise<boolean> =>
     }
 
     return node.contains(document.elementFromPoint(left + width / 2, top + height / 2))
-  })
+  }, SETTLE_SAMPLE_MS)
 
 /**
  * Ceiling for an animation to come to rest. This gates a click rather than asserting anything, so
