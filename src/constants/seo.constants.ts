@@ -37,7 +37,7 @@ export const AUTHOR_SKILLS = [
   'Zustand',
   'Redux Toolkit',
   'PostgreSQL',
-  'Prisma',
+  'Drizzle ORM',
 ]
 
 /** Search keywords describing the portfolio and its owner. */
