@@ -3,7 +3,6 @@ import { cookies, headers } from 'next/headers'
 import { ToastContainer } from 'react-toastify'
 import type { Metadata, Viewport } from 'next'
 
-import '@gravity-ui/uikit/styles/fonts.css'
 import '@gravity-ui/uikit/styles/styles.css'
 import '@/styles/globals.css'
 
