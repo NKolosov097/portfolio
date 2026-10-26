@@ -41,7 +41,13 @@ const SETTLE_TIMEOUT = 30_000
 export const clickWhenSettled = async (locator: Locator): Promise<void> => {
   await expect(locator).toBeVisible()
 
-  await locator.scrollIntoViewIfNeeded()
+  /**
+   * A DOM scroll rather than `scrollIntoViewIfNeeded`, which first waits for Playwright's own
+   * stability check - two matching bounding boxes an animation frame apart. The hero runs a
+   * permanent canvas animation, and frame scheduling degrades under concurrency, so that wait can
+   * outlast the whole test budget. The probe below already covers coming to rest.
+   */
+  await locator.evaluate((node) => node.scrollIntoView({ block: 'center', behavior: 'instant' }))
 
   await expect.poll(() => isSettledHitTarget(locator), { timeout: SETTLE_TIMEOUT }).toBe(true)
 
