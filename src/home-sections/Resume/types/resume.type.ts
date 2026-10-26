@@ -1,5 +1,16 @@
 import { JSX } from 'react'
 
+export interface IToolLogo {
+  /** Stable slug used as the React key and QA anchor (`data-key`). */
+  id: string
+  /** Human-readable tool name shown beneath the logo and used as the image alt text. */
+  title: string
+  /** Public path of the logo asset. */
+  src: string
+  /** Rendered width in pixels; defaults to the square grid size for marks that are not 2:3 or wider. */
+  width?: number
+}
+
 export interface IFavoriteTool {
   /** Stable slug used as the React key and QA anchor (`data-key`). */
   id: string
