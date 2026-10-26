@@ -2,6 +2,18 @@ import { IProject } from '@/home-sections/Portfolio/types/portfolio.type'
 
 export const PROJECTS: IProject[] = [
   {
+    id: 'clinical-cases',
+    img: 'https://opengraph.githubassets.com/1/NKolosov097/clinical-cases',
+    href: 'https://github.com/NKolosov097/clinical-cases',
+    descriptionKey: 'portfolio.projects.clinical-cases.description',
+    tags: [
+      { id: 'clinical-cases-nextjs', title: 'Next.js 16' },
+      { id: 'clinical-cases-fastapi', title: 'FastAPI' },
+      { id: 'clinical-cases-postgresql', title: 'PostgreSQL' },
+      { id: 'clinical-cases-gemini', title: 'Gemini' },
+    ],
+  },
+  {
     id: 'nk-meet',
     img: 'https://opengraph.githubassets.com/1/NKolosov097/nk-meet',
     href: 'https://github.com/NKolosov097/nk-meet',
@@ -35,18 +47,6 @@ export const PROJECTS: IProject[] = [
       { id: 'auth-service-postgresql', title: 'PostgreSQL' },
       { id: 'auth-service-jwt', title: 'JWT' },
       { id: 'auth-service-oauth2', title: 'OAuth2' },
-    ],
-  },
-  {
-    id: 'golang-todo-app',
-    img: 'https://opengraph.githubassets.com/1/NKolosov097/golang-todo-app',
-    href: 'https://github.com/NKolosov097/golang-todo-app',
-    descriptionKey: 'portfolio.projects.golang-todo-app.description',
-    tags: [
-      { id: 'golang-todo-app-go', title: 'Go' },
-      { id: 'golang-todo-app-postgresql', title: 'PostgreSQL' },
-      { id: 'golang-todo-app-docker', title: 'Docker' },
-      { id: 'golang-todo-app-rest-api', title: 'REST API' },
     ],
   },
 ]
