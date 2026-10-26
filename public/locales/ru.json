@@ -56,6 +56,10 @@
   "portfolio": {
     "header": "Можете ознакомиться с моими проектами",
     "projects": {
+      "clinical-cases": {
+        "title": "Clinical Cases",
+        "description": "Тренажёр клинических случаев на синтетических данных: структурная разметка с помощью Gemini и обязательное ревью автора перед публикацией, детерминированная проверка ответа по точному совпадению и OpenAPI-контракт, расхождение с которым роняет CI - FastAPI, Next.js 16 и PostgreSQL на Cloud Run."
+      },
       "protein-web": {
         "title": "Protein Web",
         "description": "Интерактивная игра про drug discovery: направляйте молекулы в реальные белки-мишени рака с живой 3D-визуализацией и физической оценкой связывания."
@@ -67,10 +71,6 @@
       "auth-service": {
         "title": "Auth Service",
         "description": "Микросервис аутентификации BLOB на Go: вход по паролю и через соцсети, ротация JWT-сессий, восстановление аккаунта, rate-limiting и усиленная HTTP-безопасность."
-      },
-      "golang-todo-app": {
-        "title": "Golang Todo App",
-        "description": "REST API-бэкенд на Go с PostgreSQL и Docker Compose: одна команда `make start` поднимает базу, применяет миграции и запускает сервис."
       }
     }
   },
