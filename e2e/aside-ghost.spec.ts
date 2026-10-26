@@ -72,7 +72,12 @@ test.describe('aside ghost', () => {
 
     await trigger.click()
 
-    const restartResult = trigger.evaluate((node) => {
+    /**
+     * The restart click is dispatched inside the page, right after the listener that observes it.
+     * Driving it from the test instead would race the `evaluate` round trip: when the click wins,
+     * the listener is registered too late, nothing ever resolves, and the test hangs to its budget.
+     */
+    const restartResult = await trigger.evaluate((node: HTMLButtonElement) => {
       const previous = node
         .getAnimations({ subtree: true })
         .find((animation) => animation.id === 'ghost-tickle-body')
@@ -99,12 +104,12 @@ test.describe('aside ghost', () => {
           },
           { once: true },
         )
+
+        node.click()
       })
     })
 
-    await trigger.click()
-
-    expect(await restartResult).toEqual({ cancelledPrevious: true, startedNew: true })
+    expect(restartResult).toEqual({ cancelledPrevious: true, startedNew: true })
   })
 
   test('folds toward its center without marks and settles without remounting', async ({ page }) => {
