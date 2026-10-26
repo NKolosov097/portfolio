@@ -49,7 +49,9 @@ export const handleContactNotificationCron = async (
   try {
     const result = await dependencies.run()
     return Response.json({ ok: true, ...result }, { headers: NO_STORE_HEADERS })
-  } catch {
+  } catch (error) {
+    // The response stays opaque to the caller; the cause belongs in the runtime log, not the body.
+    console.error('Contact notification cron failed', error)
     return Response.json(
       { ok: false, code: 'retry_unavailable' },
       { status: 500, headers: NO_STORE_HEADERS },
@@ -73,7 +75,9 @@ export const handleContactOperationsStatus = async <T>(
       { ok: true, ...(await dependencies.load()) },
       { headers: NO_STORE_HEADERS },
     )
-  } catch {
+  } catch (error) {
+    // Same reasoning as the cron handler: an unexplained 503 is what hid this failure for weeks.
+    console.error('Contact operations status failed', error)
     return Response.json(
       { ok: false, database: 'unavailable' },
       { status: 503, headers: NO_STORE_HEADERS },
