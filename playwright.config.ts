@@ -1,6 +1,27 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices, type Project } from '@playwright/test'
 
 import { E2E_BASE_URL } from './e2e/helpers/server'
+
+/** The DOOM specs, matched by file name rather than listed one by one. */
+const DOOM_SPECS = /doom-.*\.spec\.ts$/
+
+/**
+ * Browser projects allowed to boot DOOM: one engine each, plus one touch profile. Every other
+ * project skips those specs.
+ *
+ * Booting DOOM fetches a 6.8 MB WASM build, instantiates it and then burns a core on a
+ * `requestAnimationFrame` loop for the rest of the test. Across the full matrix that was 60 of the
+ * suite's 744 tests, which starved two CI workers badly enough to time out unrelated specs - a
+ * different one almost every run. The game's behaviour is engine-dependent, not viewport-dependent,
+ * so the remaining profiles were paying that cost for no extra signal.
+ */
+const DOOM_PROJECTS = new Set(['chromium', 'firefox', 'safari', 'mobile-chrome'])
+
+/** Keeps DOOM off every project outside the allowlist without repeating the pattern per entry. */
+const withDoomBudget = (projects: Project[]): Project[] =>
+  projects.map((project) =>
+    DOOM_PROJECTS.has(project.name ?? '') ? project : { ...project, testIgnore: DOOM_SPECS },
+  )
 
 export default defineConfig({
   testDir: './e2e',
@@ -14,7 +35,7 @@ export default defineConfig({
     baseURL: E2E_BASE_URL,
     trace: 'on-first-retry',
   },
-  projects: [
+  projects: withDoomBudget([
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
@@ -36,7 +57,7 @@ export default defineConfig({
       name: 'near-square-safari',
       use: { ...devices['Desktop Safari'], viewport: { width: 984, height: 1016 } },
     },
-  ],
+  ]),
   /**
    * The server lifecycle lives in these hooks rather than Playwright's `webServer`, which cannot
    * stop `next start` on Windows: it re-spawns itself, survives the teardown kill and leaves the

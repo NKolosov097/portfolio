@@ -305,7 +305,15 @@ iPhone 15 and a narrow-viewport Firefox on phones, and the sizes in between - an
 portrait, a Galaxy Tab S4 in landscape, the Galaxy Z Fold 7's unfolded (984x1016, nearly square)
 and cover (360x764) screens, a tablet-width Firefox, and WebKit at the foldable's near-square
 ratio. The last two are viewport-only stand-ins: no foldable exists for Gecko or WebKit, and
-Playwright ships tablet descriptors for Chromium and WebKit alone. Two caveats worth knowing:
+Playwright ships tablet descriptors for Chromium and WebKit alone.
+
+The one exception is the DOOM specs (`e2e/doom-*.spec.ts`), which run on `chromium`, `firefox`,
+`safari` and `mobile-chrome` only - see `DOOM_PROJECTS` in `playwright.config.ts`. Each boot
+fetches a 6.8 MB WASM build and then holds a core on a render loop, and across the full matrix
+that starved the two CI workers into timing out unrelated specs. The game's behaviour is
+engine-dependent, not viewport-dependent, so the other profiles paid that cost for no signal.
+
+Two caveats worth knowing:
 
 - Playwright's **WebKit is not Safari** - it omits Apple's proprietary layer, and real Safari can
   only be driven on macOS. Treat it as an engine-level check, not a Safari guarantee.
