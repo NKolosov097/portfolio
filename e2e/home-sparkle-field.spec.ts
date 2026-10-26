@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 
 import en from '@public/locales/en.json'
 
+import { clickWhenSettled } from './helpers/interaction'
+
 import { ETabID } from '@/constants/header.constants'
 
 test.describe('home sparkle field', () => {
@@ -43,7 +45,7 @@ test.describe('home sparkle field', () => {
 
     await expect(field).toHaveAttribute('data-ready', 'true')
 
-    await page.getByRole('tab', { name: en.headerTabs.resume }).click()
+    await clickWhenSettled(page.getByRole('tab', { name: en.headerTabs.resume }))
     await expect(page.locator(`section#${ETabID.resume}`)).toBeInViewport({ timeout: 10_000 })
 
     await expect(field).toHaveAttribute('data-running', 'false', { timeout: 10_000 })
