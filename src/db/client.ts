@@ -27,8 +27,16 @@ export const createContactPool = (connectionString: string, max = 8) => {
 export const getContactPool = () => {
   if (globalDatabase.contactPool) return globalDatabase.contactPool
   const connectionString = resolveContactDatabaseUrl()
-  if (!connectionString || connectionString.startsWith('prisma://'))
-    throw new Error('contact database unavailable')
+  // Name the failed condition: both spellings surface as the same opaque 500 to the caller, and
+  // telling them apart in the log is the difference between "set the variable" and "it is stale".
+  if (!connectionString)
+    throw new Error(
+      'contact database unavailable: neither CONTACT_DB_DATABASE_URL nor DATABASE_URL is set',
+    )
+  if (connectionString.startsWith('prisma://'))
+    throw new Error(
+      'contact database unavailable: the configured URL is a prisma:// Accelerate URL, which needs a direct postgres:// connection',
+    )
   const pool = createContactPool(connectionString)
   globalDatabase.contactPool = pool
   return pool
