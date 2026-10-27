@@ -120,3 +120,19 @@ degrees, 2.6 degrees twenty milliseconds later, and the same five-degree peak. T
 cover it - the initial-Halloween case pins the full lead by asserting neutral at arrival minus 40ms
 and clearly past neutral at arrival, and the short-reversal case asserts the swing has begun by
 arrival without depending on how much travel was left.
+
+## Splitting the depth checks
+
+The masked-pixel check bundled four independent claims behind one budget: that travel reaches each
+waypoint, that switching depth at the outboard apex changes no pixel, that the body occludes part of
+the lantern on the inward leg, and that nothing of it remains at the end. Together they ran eleven
+seeks and eight clipped screenshots in sequence.
+
+On CI's Linux WebKit that work is roughly nine times slower than locally - 10s became more than 90s
+even after the test was marked slow, and one attempt took the web process down rather than merely
+timing out. The three largest WebKit profiles failed while the phone-sized one passed.
+
+Split it one claim per test over a shared staging helper. Each gets its own budget, they run in
+parallel, and no single page accumulates eight screenshots. Measured per test afterwards: 3.7s to
+6.3s locally on WebKit, against a budget that stays tripled for the headroom CI needs. Coverage is
+unchanged - the same seeks, the same comparisons, the same two clip regions.

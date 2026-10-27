@@ -41,6 +41,62 @@ function countRunningVisibleAnimations(node: Element): number {
   }).length
 }
 
+/**
+ * Stages a stowing gesture for the depth checks: pins the mascot at fixed pixels and freezes its
+ * idle loops so a clipped screenshot captures only the masked artwork, then starts the stow and
+ * hands back a seek helper plus the two regions the comparisons use. Shared because the checks are
+ * split one concern per test - together they overran the budget on CI's slower WebKit builds, and
+ * once took the web process down with them.
+ */
+async function stageLanternGesture(page: import('@playwright/test').Page) {
+  await page.goto('/')
+  const aside = await revealAside(page)
+  const ghost = aside.getByTestId('aside-ghost')
+  const travel = aside.getByTestId('aside-ghost-lantern-travel')
+  await ghost.evaluate((node) => {
+    node.setAttribute('style', 'position:fixed;left:100px;top:100px;z-index:999999')
+    for (const animation of node.getAnimations({ subtree: true })) {
+      animation.pause()
+      if (animation.effect?.getTiming().iterations === Infinity) animation.currentTime = 0
+    }
+  })
+  await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+  /** Seeks both persistent tracks together while holding the separate settling inertia steady. */
+  const seekGesture = async (phase: number, depthPhase = phase) => {
+    await ghost.evaluate(
+      (node, sample) => {
+        for (const animation of node.getAnimations({ subtree: true })) {
+          animation.pause()
+          if (animation.id === 'lantern-gesture-travel') animation.currentTime = sample.phase * 900
+          if (animation.id === 'lantern-gesture-depth')
+            animation.currentTime = sample.depthPhase * 900
+          if (animation.id === 'lantern-exit') animation.currentTime = 90
+        }
+      },
+      { phase, depthPhase },
+    )
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    )
+  }
+  const box = await ghost.boundingBox()
+  if (!box) throw new Error('Expected visible ghost bounds.')
+  return {
+    ghost,
+    travel,
+    seekGesture,
+    /** Covers the mascot plus the margin the lantern reaches outside its 16x16 viewBox. */
+    aroundGhost: { x: Math.floor(box.x - 10), y: Math.floor(box.y - 15), width: 100, height: 90 },
+    /** The strip past the right outline, where only the outboard lantern can draw anything. */
+    rightOfGhost: {
+      x: Math.ceil(box.x + box.width + 3),
+      y: Math.floor(box.y - 15),
+      width: 35,
+      height: 90,
+    },
+  }
+}
+
 /** Let finite lantern presentation settle before measuring its steady artwork. */
 async function revealAside(page: import('@playwright/test').Page) {
   const aside = await revealAsideImmediately(page)
@@ -753,52 +809,9 @@ test.describe('aside ghost', () => {
     )
     await expect(swing).toHaveCSS('transform', before)
   })
-  test('turns outboard then returns behind the filled moving body mask', async ({ page }) => {
-    /*
-     * Ten clipped screenshots, each re-waiting for fonts, overrun the default budget on the larger
-     * WebKit profiles. The work is inherent to comparing masked pixels at seven phases.
-     */
+  test('reaches every travel waypoint on its way around the body', async ({ page }) => {
     test.slow()
-    await page.goto('/')
-    const aside = await revealAside(page)
-    const ghost = aside.getByTestId('aside-ghost')
-    const travel = aside.getByTestId('aside-ghost-lantern-travel')
-    const depth = ghost.getByTestId('aside-ghost-lantern-depth')
-    // Fixed pixels isolate the masked artwork from surrounding text and drawer movement.
-    await ghost.evaluate((node) => {
-      node.setAttribute('style', 'position:fixed;left:100px;top:100px;z-index:999999')
-      for (const animation of node.getAnimations({ subtree: true })) {
-        animation.pause()
-        if (animation.effect?.getTiming().iterations === Infinity) animation.currentTime = 0
-      }
-    })
-    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
-    // Seek both persistent tracks together while holding separate settling inertia steady.
-    const seekGesture = async (phase: number, depthPhase = phase) => {
-      await ghost.evaluate(
-        (node, sample) => {
-          for (const animation of node.getAnimations({ subtree: true })) {
-            animation.pause()
-            if (animation.id === 'lantern-gesture-travel')
-              animation.currentTime = sample.phase * 900
-            if (animation.id === 'lantern-gesture-depth')
-              animation.currentTime = sample.depthPhase * 900
-            if (animation.id === 'lantern-exit') animation.currentTime = 90
-          }
-        },
-        { phase, depthPhase },
-      )
-      await page.evaluate(
-        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-      )
-    }
-    // Include the outboard turn beyond the SVG viewport instead of cropping it away.
-    const box = await ghost.boundingBox()
-    if (!box) throw new Error('Expected visible ghost bounds.')
-    const capture = () =>
-      page.screenshot({
-        clip: { x: Math.floor(box.x - 10), y: Math.floor(box.y - 15), width: 100, height: 90 },
-      })
+    const { travel, seekGesture } = await stageLanternGesture(page)
     const positions = []
     for (const phase of GESTURE_WAYPOINT_PHASES) {
       await seekGesture(phase)
@@ -811,31 +824,46 @@ test.describe('aside ghost', () => {
     expect(positions[3]).toBeCloseTo(5.5)
     expect(positions[4]).toBeCloseTo(2)
     expect(positions[6]).toBeCloseTo(-5)
+  })
+
+  test('switches depth while the lantern is clear of the body', async ({ page }) => {
+    test.slow()
+    const { travel, seekGesture, rightOfGhost } = await stageLanternGesture(page)
     await seekGesture(OUTBOARD_PHASE, 0)
-    const outsideClip = {
-      x: Math.ceil(box.x + box.width + 3),
-      y: Math.floor(box.y - 15),
-      width: 35,
-      height: 90,
-    }
-    const outboardFront = await page.screenshot({ clip: outsideClip })
+    const inFront = await page.screenshot({ clip: rightOfGhost })
     await seekGesture(OUTBOARD_PHASE, 1)
-    expect((await page.screenshot({ clip: outsideClip })).equals(outboardFront)).toBe(true)
+    // Fully outboard, so moving the lantern behind the silhouette must change no visible pixel.
+    expect((await page.screenshot({ clip: rightOfGhost })).equals(inFront)).toBe(true)
     await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
-    expect((await page.screenshot({ clip: outsideClip })).equals(outboardFront)).toBe(false)
-    await travel.evaluate((node) => node.removeAttribute('visibility'))
+    // Those pixels really are the lantern, not an empty strip either comparison would satisfy.
+    expect((await page.screenshot({ clip: rightOfGhost })).equals(inFront)).toBe(false)
+  })
+
+  test('lets the body occlude part of the lantern on the inward leg', async ({ page }) => {
+    test.slow()
+    const { travel, seekGesture, aroundGhost } = await stageLanternGesture(page)
+    const capture = () => page.screenshot({ clip: aroundGhost })
     await seekGesture(INWARD_PHASE)
-    const partial = await capture()
+    const occluded = await capture()
     await seekGesture(INWARD_PHASE, 0)
-    expect((await capture()).equals(partial)).toBe(false)
+    // Drawing the same pose in front instead differs, so the body is doing the hiding.
+    expect((await capture()).equals(occluded)).toBe(false)
     await seekGesture(INWARD_PHASE)
     await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
-    expect(await capture()).not.toEqual(partial)
-    await travel.evaluate((node) => node.removeAttribute('visibility'))
+    // Part of it is still drawn here, so removing it is not a no-op.
+    expect((await capture()).equals(occluded)).toBe(false)
+  })
+
+  test('leaves no lantern pixels once it is behind the body', async ({ page }) => {
+    test.slow()
+    const { ghost, travel, seekGesture, aroundGhost } = await stageLanternGesture(page)
+    const capture = () => page.screenshot({ clip: aroundGhost })
     await seekGesture(1)
     const behind = await capture()
     await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
+    // Matches hiding the subtree outright, which is the strongest statement of full occlusion.
     expect((await capture()).equals(behind)).toBe(true)
+    const depth = ghost.getByTestId('aside-ghost-lantern-depth')
     expect(await depth.evaluate((node) => getComputedStyle(node).opacity)).toBe('1')
   })
 
