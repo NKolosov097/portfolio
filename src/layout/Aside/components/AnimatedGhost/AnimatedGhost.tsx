@@ -143,22 +143,40 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     if (isPresent || hasPresentedRef.current) {
       hasPresentedRef.current ||= isPresent
       if (!preference.matches) {
-        const angles = isPresent ? [-18, 11, -6, 2, 0] : [12, -17, 7, -2, 0]
-        const offsets = isPresent ? [0.22, 0.47, 0.68, 0.85, 1] : [0.2, 0.45, 0.68, 0.85, 1]
-        animation = node.animate(
-          [
-            { transform: getComputedStyle(node).transform, offset: 0 },
-            ...angles.map((angle, index) => ({
-              transform: `rotate(${angle}deg)`,
-              offset: offsets[index],
-            })),
-          ],
-          {
-            duration: isPresent ? 1500 : 650,
-            easing: isPresent ? 'linear' : 'ease-out',
-            fill: 'none',
-          },
+        const remaining = Math.min(
+          1200,
+          Math.max(0, Number(gestureTravelRef.current?.currentTime ?? 0)),
         )
+        const duration = isPresent ? remaining + 350 : 120
+        const keyframes: Keyframe[] = [{ transform: getComputedStyle(node).transform, offset: 0 }]
+        if (isPresent) {
+          if (remaining > 0) {
+            keyframes.push(
+              { transform: 'rotate(0deg)', offset: Math.min(120, remaining) / duration },
+              { transform: 'rotate(0deg)', offset: remaining / duration, easing: 'ease-in-out' },
+            )
+          }
+          keyframes.push(
+            {
+              transform: 'rotate(5deg)',
+              offset: (remaining + 100) / duration,
+              easing: 'ease-in-out',
+            },
+            {
+              transform: 'rotate(-2deg)',
+              offset: (remaining + 230) / duration,
+              easing: 'ease-in-out',
+            },
+            { transform: 'rotate(0deg)', offset: 1 },
+          )
+        } else {
+          keyframes.push({ transform: 'rotate(0deg)', offset: 1 })
+        }
+        animation = node.animate(keyframes, {
+          duration,
+          easing: isPresent ? 'linear' : 'ease-out',
+          fill: 'none',
+        })
         animation.id = isPresent ? 'lantern-enter' : 'lantern-exit'
         animation.onfinish = () => {
           node.style.transform = ''

@@ -578,7 +578,7 @@ test.describe('aside ghost', () => {
       Element.prototype.animate = new Proxy(original, {
         apply(target, node, args) {
           const animation = Reflect.apply(target, node, args) as Animation
-          if (typeof args[1] === 'object' && args[1]?.duration === 1500) animation.pause()
+          if (typeof args[1] === 'object' && args[1]?.duration === 1550) animation.pause()
           return animation
         },
       })
@@ -598,16 +598,18 @@ test.describe('aside ghost', () => {
     const poses = await inertia.evaluate((node) => {
       const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
       if (!animation) throw new Error('Expected initial lantern inertia.')
-      return [0, 330, 705, 1500].map((time) => {
+      return [0, 600, 1200, 1300, 1430, 1550].map((time) => {
         animation.currentTime = time
         const matrix = new DOMMatrix(getComputedStyle(node).transform)
         return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
       })
     })
     expect(poses[0]).toBeCloseTo(0)
-    expect(poses[1]).toBeLessThan(0)
-    expect(poses[2]).toBeGreaterThan(0)
-    expect(poses[3]).toBeCloseTo(0)
+    expect(poses[1]).toBeCloseTo(0)
+    expect(poses[2]).toBeCloseTo(0)
+    expect(poses[3]).toBeCloseTo(5)
+    expect(poses[4]).toBeCloseTo(-2)
+    expect(poses[5]).toBeCloseTo(0)
     await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
   })
 
@@ -845,5 +847,61 @@ test.describe('aside ghost', () => {
         { time: 1200, running: false },
         { time: 1200, running: false },
       ])
+  })
+  test('keeps inertia neutral at the outboard turn and settles only after arrival', async ({
+    page,
+  }) => {
+    // Hold the short neutralization long enough to inspect it on slower WebKit workers.
+    await page.addInitScript(() => {
+      Element.prototype.animate = new Proxy(Element.prototype.animate, {
+        apply(target, node, args) {
+          const animation = Reflect.apply(target, node, args) as Animation
+          if (typeof args[1] === 'object' && args[1]?.duration === 120) animation.pause()
+          return animation
+        },
+      })
+    })
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    const exit = await inertia.evaluate((node) => {
+      const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-exit')
+      if (!animation) throw new Error('Expected exit neutralization.')
+      const timing = animation.effect?.getTiming()
+      const frames = (animation.effect as KeyframeEffect).getKeyframes()
+      return { duration: timing?.duration, frames: frames.map((frame) => frame.transform) }
+    })
+    expect(exit.duration).toBe(120)
+    expect(exit.frames.at(-1)).toBe('rotate(0deg)')
+    await inertia.evaluate((node) =>
+      node
+        .getAnimations()
+        .find((animation) => animation.id === 'lantern-exit')
+        ?.finish(),
+    )
+    await expect.poll(() => inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
+    await expect(inertia).toHaveCSS('transform', 'none')
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    const result = await inertia.evaluate((node) => {
+      const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
+      if (!animation || !animation.effect) throw new Error('Expected return settling.')
+      animation.pause()
+      const duration = Number(animation.effect.getTiming().duration)
+      const arrival = duration - 350
+      const angles = [Math.min(200, arrival), arrival, arrival + 100, arrival + 230, duration].map(
+        (time) => {
+          animation.currentTime = time
+          const matrix = new DOMMatrix(getComputedStyle(node).transform)
+          return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
+        },
+      )
+      return { duration, arrival, angles }
+    })
+    expect(result.angles[0]).toBeCloseTo(0)
+    expect(result.angles[1]).toBeCloseTo(0)
+    expect(result.angles[2]).toBeCloseTo(5)
+    expect(result.angles[3]).toBeCloseTo(-2)
+    expect(result.angles[4]).toBeCloseTo(0)
   })
 })
