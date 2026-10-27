@@ -66,3 +66,33 @@ Keyframe offsets are no longer timeline fractions, so focused checks seek the ea
 waypoints: 0, .301, .41, .427, .549, .78 and 1. A speed-continuity check guards the regression
 directly by sampling the paused travel track and asserting the cruising middle never drops below
 60% of its peak.
+
+## Immediate start and carried inertia
+
+Two further corrections, both inside the existing 900ms gesture and the accepted path.
+
+The symmetric `ease-in-out` envelope spent its first 180ms below half speed, covering 0.42 units -
+about one pixel at mascot size - so stowing read as a pause before anything happened. Replace it
+with `cubic-bezier(0.15, 0, 0.7, 1)`: a short ramp-in reaches half speed in roughly two frames and
+1.37 units by 100ms, while the longer tail still brings the lantern to rest without a snap. Peak
+speed drops from 33 to 25 units per second, so the motion is calmer as well as more immediate. On
+entry the envelope is reversed, which puts the slow part where the lantern is still hidden behind
+the body and the quick part at arrival, feeding the existing settling tail.
+
+A hanging lantern also trails the hand that carries it, and the travel group alone could not express
+that: its origin is the viewBox corner, not the handle. Add a third track on its own group between
+the lantern and the settling wrapper, sharing the handle pivot with the idle swing. It is driven
+with the same currentTime, playbackRate and play commands as travel and depth, so reversal, reduced
+motion and cleanup need no separate handling.
+
+Its offsets are plain time fractions on a linear track, because a lag answers to acceleration rather
+than to distance along the path. It holds exactly zero through the outward leg and the outboard
+turn, honouring the earlier rejection of a swing there, then builds to -5 degrees as the hand sweeps
+the lantern left behind the back, crosses back through zero and settles. The build-up and the
+crossing both fall inside the window where the lantern is still drawn: it is fully occluded only
+past 72% of the gesture, and the swing peaks at 53%, with the lantern at x=1.8.
+
+Waypoint seek fractions move with the envelope, to 0, .204, .33, .347, .5097, .75 and 1. Two focused
+checks guard this: one asserts the travel covers more than one unit in its first 100ms and never
+drops below 60% of peak speed through the cruise, the other asserts the lag is neutral at rest, on
+the outward leg and at the turn, negative on the rear sweep, and back to zero at the end.

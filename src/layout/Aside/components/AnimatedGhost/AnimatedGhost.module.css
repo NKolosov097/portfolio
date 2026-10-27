@@ -1,4 +1,3 @@
-/* Lets the sway and breathe transforms spill past the 16x16 viewBox without clipping. */
 .trigger {
   display: inline-flex;
   padding: 0;
@@ -14,6 +13,7 @@
   outline-offset: 3px;
 }
 
+/* Lets the sway and breathe transforms spill past the 16x16 viewBox without clipping. */
 .ghost {
   overflow: visible;
   animation: ghost-bob 3.2s ease-in-out infinite;
@@ -128,16 +128,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ghost,
-  .sway,
-  .breathe,
-  .eyeLook,
-  .eyeBlink {
-    animation: none;
-  }
-}
-
 .lanternMask {
   mask-type: luminance;
 }
@@ -148,7 +138,10 @@
   transform: translate(-5px, -4.2px);
 }
 
-.lanternInertia {
+/* SVG viewBox coordinates anchor every lantern rotation at the top of the handle. */
+.lanternLag,
+.lanternInertia,
+.lanternSwing {
   transform-box: view-box;
   transform-origin: 12.15px 6.1px;
 }
@@ -162,10 +155,7 @@
   filter: blur(0.55px);
 }
 
-/* SVG viewBox coordinates anchor the swing at the top of the handle. */
 .lanternSwing {
-  transform-box: view-box;
-  transform-origin: 12.15px 6.1px;
   animation: lantern-swing 4.6s ease-in-out infinite;
 }
 
@@ -255,6 +245,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ghost,
+  .sway,
+  .breathe,
+  .eyeLook,
+  .eyeBlink,
   .lanternSwing,
   :global(html[data-appearance='halloween']) .lanternLight,
   :global(html[data-appearance='halloween']) .lanternHalo {

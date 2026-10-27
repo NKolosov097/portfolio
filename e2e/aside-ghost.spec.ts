@@ -20,13 +20,13 @@ const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
  * Timeline fractions that land on the travel waypoints. One ease spans the whole gesture, so
  * these are the eased positions of the keyframe offsets rather than the offsets themselves.
  */
-const GESTURE_WAYPOINT_PHASES = [0, 0.301, 0.41, 0.427, 0.549, 0.78, 1]
+const GESTURE_WAYPOINT_PHASES = [0, 0.204, 0.33, 0.347, 0.5097, 0.75, 1]
 
 /** Middle of the outboard dwell, where switching depth must change no visible pixel. */
-const OUTBOARD_PHASE = 0.418
+const OUTBOARD_PHASE = 0.337
 
 /** The inward rear leg, where the body already occludes part of the lantern. */
-const INWARD_PHASE = 0.549
+const INWARD_PHASE = 0.5097
 
 /**
  * Counts idle layers the visitor can actually see. The occlusion mask carries its own copy of the
@@ -836,29 +836,67 @@ test.describe('aside ghost', () => {
     await page.goto('/')
     const aside = await revealAside(page)
     const travel = aside.getByTestId('aside-ghost-lantern-travel')
-    const speeds = await travel.evaluate((node) => {
+    const { speeds, unitsTravelledBy100Ms } = await travel.evaluate((node) => {
       const animation = node
         .getAnimations()
         .find((candidate) => candidate.id === 'lantern-gesture-travel')
       if (!animation) throw new Error('Expected the travel track.')
       animation.pause()
-      const points: [number, number][] = []
-      for (let time = 0; time <= 900; time += 5) {
+      const readPoint = (time: number): [number, number] => {
         animation.currentTime = time
         const { e, f } = new DOMMatrix(getComputedStyle(node).transform)
-        points.push([e, f])
+        return [e, f]
       }
-      return points
-        .slice(1)
-        .map(([x, y], index) => Math.hypot(x - points[index][0], y - points[index][1]) / 5)
+      const points: [number, number][] = []
+      for (let time = 0; time <= 900; time += 5) points.push(readPoint(time))
+      const [earlyX, earlyY] = readPoint(100)
+      return {
+        speeds: points
+          .slice(1)
+          .map(([x, y], index) => Math.hypot(x - points[index][0], y - points[index][1]) / 5),
+        unitsTravelledBy100Ms: Math.hypot(earlyX, earlyY),
+      }
     })
     // The envelope tapers both ends to rest on purpose, so only the cruising middle is compared.
     const middle = speeds.slice(Math.round(speeds.length * 0.25), Math.round(speeds.length * 0.75))
     // Per-segment easing used to drop the lantern to a near standstill at every waypoint.
     expect(Math.min(...middle)).toBeGreaterThan(Math.max(...middle) * 0.6)
+    // A long ramp-in read as a delay before the stow began: it covered 0.42 units in this window.
+    expect(unitsTravelledBy100Ms).toBeGreaterThan(1)
   })
 
-  test('keeps both owned gesture tracks at the endpoint after an immediate reversal', async ({
+  test('trails the lantern behind the carrying hand without swinging at the turn', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const lag = aside.getByTestId('aside-ghost-lantern-lag')
+    const angles = await lag.evaluate((node) => {
+      const animation = node
+        .getAnimations()
+        .find((candidate) => candidate.id === 'lantern-gesture-lag')
+      if (!animation) throw new Error('Expected the lag track.')
+      animation.pause()
+      const read = (time: number) => {
+        animation.currentTime = time
+        const matrix = new DOMMatrix(getComputedStyle(node).transform)
+        return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
+      }
+      // The outward leg and the turn, then the rear sweep where the lantern is still visible.
+      return [0, 180, 300, 480, 600, 900].map(read)
+    })
+    const [atRest, outward, atTurn, onSweep, onRecovery, atEnd] = angles
+    // An alternating swing at the outboard turn was rejected before; it must stay neutral there.
+    expect(atRest).toBeCloseTo(0)
+    expect(outward).toBeCloseTo(0)
+    expect(atTurn).toBeCloseTo(0)
+    // Negative rotation holds the lantern back on the right while the hand sweeps left.
+    expect(onSweep).toBeLessThan(-3)
+    expect(onRecovery).toBeGreaterThan(onSweep)
+    expect(atEnd).toBeCloseTo(0)
+  })
+
+  test('keeps every owned gesture track at the endpoint after an immediate reversal', async ({
     page,
   }) => {
     await page.goto('/')
@@ -892,6 +930,7 @@ test.describe('aside ghost', () => {
         ),
       )
       .toEqual([
+        { time: 900, running: false },
         { time: 900, running: false },
         { time: 900, running: false },
       ])
