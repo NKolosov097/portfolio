@@ -13,6 +13,12 @@ import { AppearanceContext } from '@/contexts/appearance'
 /** Full length of the reversible around-the-body lantern gesture. */
 const GESTURE_DURATION_MS = 900
 
+/** Time the settling wrapper takes to neutralise a pose left over from an interrupted gesture. */
+const SETTLE_NEUTRAL_MS = 90
+
+/** The settle starts this far before the hand stops, so the lag builds while it is still slowing. */
+const SETTLE_LEAD_MS = 40
+
 /**
  * One envelope over the whole arc: per-segment easing stalled the lantern at every waypoint. The
  * short ramp-in starts the gesture within two frames, so stowing reads as immediate rather than
@@ -184,13 +190,24 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
           GESTURE_DURATION_MS,
           Math.max(0, Number(gestureTravelRef.current?.currentTime ?? 0)),
         )
-        const duration = isPresent ? remaining + 250 : 90
+        const duration = isPresent ? remaining + 250 : SETTLE_NEUTRAL_MS
         const keyframes: Keyframe[] = [{ transform: getComputedStyle(node).transform, offset: 0 }]
         if (isPresent) {
           if (remaining > 0) {
+            const neutralAt = Math.min(SETTLE_NEUTRAL_MS, remaining)
+            /**
+             * The lantern leaves neutral at full angular speed, the way a pendulum does the instant
+             * its support stops, and starts just before the hand finishes its last crawl. Easing
+             * into this segment instead held it motionless for about three frames, which read as
+             * the shake arriving late rather than as part of the stop.
+             */
             keyframes.push(
-              { transform: 'rotate(0deg)', offset: Math.min(90, remaining) / duration },
-              { transform: 'rotate(0deg)', offset: remaining / duration, easing: 'ease-in-out' },
+              { transform: 'rotate(0deg)', offset: neutralAt / duration },
+              {
+                transform: 'rotate(0deg)',
+                offset: Math.max(neutralAt, remaining - SETTLE_LEAD_MS) / duration,
+                easing: 'ease-out',
+              },
             )
           }
           keyframes.push(

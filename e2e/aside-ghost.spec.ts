@@ -609,18 +609,22 @@ test.describe('aside ghost', () => {
     const poses = await inertia.evaluate((node) => {
       const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
       if (!animation) throw new Error('Expected initial lantern inertia.')
-      return [0, 450, 900, 970, 1065, 1150].map((time) => {
+      // 900ms is the arrival; the swing leads it by 40ms, so 860 is the last neutral moment.
+      return [0, 450, 860, 900, 970, 1065, 1150].map((time) => {
         animation.currentTime = time
         const matrix = new DOMMatrix(getComputedStyle(node).transform)
         return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
       })
     })
-    expect(poses[0]).toBeCloseTo(0)
-    expect(poses[1]).toBeCloseTo(0)
-    expect(poses[2]).toBeCloseTo(0)
-    expect(poses[3]).toBeCloseTo(5)
-    expect(poses[4]).toBeCloseTo(-2)
-    expect(poses[5]).toBeCloseTo(0)
+    const [start, onTravel, atLead, atArrival, atPeak, atRebound, atRest] = poses
+    expect(start).toBeCloseTo(0)
+    expect(onTravel).toBeCloseTo(0)
+    expect(atLead).toBeCloseTo(0)
+    // Easing into the swing left the lantern still for about three frames after it stopped.
+    expect(atArrival).toBeGreaterThan(1.5)
+    expect(atPeak).toBeCloseTo(5)
+    expect(atRebound).toBeCloseTo(-2)
+    expect(atRest).toBeCloseTo(0)
     await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
   })
 
@@ -935,7 +939,7 @@ test.describe('aside ghost', () => {
         { time: 900, running: false },
       ])
   })
-  test('keeps inertia neutral at the outboard turn and settles only after arrival', async ({
+  test('keeps inertia neutral at the outboard turn and swings as the lantern stops', async ({
     page,
   }) => {
     // Hold the short neutralization long enough to inspect it on slower WebKit workers.
@@ -976,19 +980,33 @@ test.describe('aside ghost', () => {
       animation.pause()
       const duration = Number(animation.effect.getTiming().duration)
       const arrival = duration - 250
-      const angles = [Math.min(200, arrival), arrival, arrival + 70, arrival + 165, duration].map(
-        (time) => {
-          animation.currentTime = time
-          const matrix = new DOMMatrix(getComputedStyle(node).transform)
-          return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
-        },
-      )
+      // The swing leads the stop by 40ms, so neutral is asserted before that lead begins.
+      const angles = [
+        Math.min(200, arrival - 40),
+        arrival - 40,
+        arrival,
+        arrival + 70,
+        arrival + 165,
+        duration,
+      ].map((time) => {
+        animation.currentTime = time
+        const matrix = new DOMMatrix(getComputedStyle(node).transform)
+        return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
+      })
       return { duration, arrival, angles }
     })
-    expect(result.angles[0]).toBeCloseTo(0)
-    expect(result.angles[1]).toBeCloseTo(0)
-    expect(result.angles[2]).toBeCloseTo(5)
-    expect(result.angles[3]).toBeCloseTo(-2)
-    expect(result.angles[4]).toBeCloseTo(0)
+    const [onTravel, atLead, atArrival, atPeak, atRebound, atRest] = result.angles
+    expect(onTravel).toBeCloseTo(0)
+    expect(atLead).toBeCloseTo(0)
+    /**
+     * Easing into the swing left the lantern still for about three frames after it stopped. This
+     * reversal leaves little travel, so the lead is squeezed against the neutralisation window and
+     * only its direction is asserted; the initial-Halloween check pins the full-gesture lead.
+     */
+    expect(atArrival).toBeGreaterThan(0.5)
+    expect(atArrival).toBeLessThan(atPeak)
+    expect(atPeak).toBeCloseTo(5)
+    expect(atRebound).toBeCloseTo(-2)
+    expect(atRest).toBeCloseTo(0)
   })
 })

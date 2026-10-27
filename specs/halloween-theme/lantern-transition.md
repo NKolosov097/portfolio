@@ -96,3 +96,27 @@ Waypoint seek fractions move with the envelope, to 0, .204, .33, .347, .5097, .7
 checks guard this: one asserts the travel covers more than one unit in its first 100ms and never
 drops below 60% of peak speed through the cruise, the other asserts the lag is neutral at rest, on
 the outward leg and at the turn, negative on the rear sweep, and back to zero at the end.
+
+## Settling without a pause
+
+Held in front of the ghost, the lantern began its settling shake a few frames after it had already
+stopped, which read as a separate twitch rather than as part of the stop. Per-frame measurement
+placed the travel at rest around 997ms and the first rotation at 1031ms, reaching one degree only
+near 1035ms.
+
+The cause was the easing on the segment that leaves neutral: `ease-in-out` starts at zero angular
+speed, so the lantern stood still while the curve built up. A pendulum does the opposite - its
+angular speed is highest at the instant the support stops, and zero only at the extremes of the
+swing. Switch that one segment to `ease-out` and start it `SETTLE_LEAD_MS` before the hand finishes
+its last crawl, because the lag builds while the hand is still slowing rather than after it has
+stopped. The peak, the rebound and the total length are unchanged, and the remaining segments keep
+`ease-in-out`, which is correct between two extremes.
+
+The lead is clamped to the neutralisation window, so a reversal that leaves little travel still
+finishes neutralising a leftover pose before the swing starts rather than reordering keyframes.
+
+Measured after the change: the travel reaches rest around 960ms with the rotation already at 0.5
+degrees, 2.6 degrees twenty milliseconds later, and the same five-degree peak. Two focused checks
+cover it - the initial-Halloween case pins the full lead by asserting neutral at arrival minus 40ms
+and clearly past neutral at arrival, and the short-reversal case asserts the swing has begun by
+arrival without depending on how much travel was left.
