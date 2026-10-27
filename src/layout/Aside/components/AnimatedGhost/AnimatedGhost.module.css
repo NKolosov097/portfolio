@@ -141,12 +141,23 @@
 .lanternTravel {
   transform-box: view-box;
   transform-origin: 0 0;
-  transform: translate(-9px, -0.6px);
+  transform: translateX(9px);
   transition: transform 520ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .lanternTravel[data-present='true'] {
-  transform: translate(0, 0);
+  transform: translateX(0);
+}
+
+.lanternArc {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transform: translateY(-2px);
+  transition: transform 520ms cubic-bezier(0.15, 0.8, 0.2, 1);
+}
+
+.lanternTravel[data-present='true'] .lanternArc {
+  transform: translateY(0);
 }
 
 .lanternInertia {
@@ -256,7 +267,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lanternTravel {
+  .lanternTravel,
+  .lanternArc {
     transition: none;
   }
 

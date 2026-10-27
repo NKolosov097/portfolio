@@ -429,9 +429,9 @@ test.describe('aside ghost', () => {
       .getByTestId('aside-ghost')
       .getByTestId('aside-ghost-lantern')
 
-    await expect(originalLantern.locator('..')).toHaveCSS(
+    await expect(originalLantern.locator('../..')).toHaveCSS(
       'transform',
-      'matrix(1, 0, 0, 1, -9, -0.6)',
+      'matrix(1, 0, 0, 1, 9, 0)',
     )
   })
 
@@ -620,7 +620,11 @@ test.describe('aside ghost', () => {
     const ghost = aside.getByTestId('aside-ghost')
     const travel = aside.getByTestId('aside-ghost-lantern-travel')
     await expect(travel).toHaveAttribute('data-present', 'false')
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -9, -0.6)')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 9, 0)')
+    await expect(aside.getByTestId('aside-ghost-lantern-arc')).toHaveCSS(
+      'transform',
+      'matrix(1, 0, 0, 1, 0, -2)',
+    )
     expect(
       await aside
         .getByTestId('aside-ghost-lantern-inertia')
@@ -655,8 +659,8 @@ test.describe('aside ghost', () => {
       if (animation) animation.currentTime = 260
       return new DOMMatrix(getComputedStyle(node).transform).e
     })
-    expect(before).toBeLessThan(0)
-    expect(before).toBeGreaterThan(-9)
+    expect(before).toBeGreaterThan(0)
+    expect(before).toBeLessThan(9)
     await toggle.dispatchEvent('click')
     await expect(travel).toHaveAttribute('data-present', 'true')
     await aside.getByTestId('aside-ghost-trigger').click()
@@ -672,7 +676,7 @@ test.describe('aside ghost', () => {
       )
       .toBe(0)
     await toggle.dispatchEvent('click')
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -9, -0.6)')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 9, 0)')
     await toggle.dispatchEvent('click')
     await page.goto('/?lantern-remount=1')
     expect(errors).toEqual([])
@@ -687,7 +691,7 @@ test.describe('aside ghost', () => {
     const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -9, -0.6)')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 9, 0)')
     await expect.poll(() => inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
     await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
@@ -717,5 +721,54 @@ test.describe('aside ghost', () => {
       'retained-lantern-swing',
     )
     await expect(swing).toHaveCSS('transform', before)
+  })
+  test('stows along a curved outer side path without crossing the ghost center', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    const poses = []
+    for (const time of [0, 130, 260, 390, 520]) {
+      await travel.evaluate((node, ms) => {
+        const arc = node.querySelector('[data-testid="aside-ghost-lantern-arc"]')
+        if (!arc) throw new Error('Expected side arc wrapper.')
+        for (const wrapper of [node, arc]) {
+          for (const animation of wrapper.getAnimations()) {
+            animation.pause()
+            animation.currentTime = ms
+          }
+        }
+      }, time)
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      )
+      poses.push(
+        await travel.evaluate((node) => {
+          const arc = node.querySelector('[data-testid="aside-ghost-lantern-arc"]')
+          if (!arc) throw new Error('Expected side arc wrapper.')
+          return {
+            x: new DOMMatrix(getComputedStyle(node).transform).e,
+            y: new DOMMatrix(getComputedStyle(arc).transform).f,
+          }
+        }),
+      )
+    }
+    expect(poses[0].x).toBeCloseTo(0)
+    expect(poses[0].y).toBeCloseTo(0)
+    expect(poses[4].x).toBeCloseTo(9)
+    expect(poses[4].y).toBeCloseTo(-2)
+    for (let index = 1; index < poses.length; index += 1) {
+      expect(poses[index].x).toBeGreaterThan(poses[index - 1].x)
+      expect(poses[index].y).toBeLessThan(poses[index - 1].y)
+    }
+    expect(-poses[1].y / 2).toBeGreaterThan(poses[1].x / 9 + 0.2)
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
+    await expect(aside.getByTestId('aside-ghost-lantern-arc')).toHaveCSS(
+      'transform',
+      'matrix(1, 0, 0, 1, 0, 0)',
+    )
   })
 })

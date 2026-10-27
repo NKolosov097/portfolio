@@ -166,7 +166,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
             preserveAspectRatio="xMidYMid meet"
           />
           <clipPath id={`${lanternId}-occlusion`} clipPathUnits="userSpaceOnUse">
-            <path d="M7.5 -4Q9.5 8 7.5 24H30V-4Z" />
+            <path d="M-4 -4H16.4Q15.6 8 16.4 24H-4Z" />
           </clipPath>
           <clipPath id={`${lanternId}-glass`} clipPathUnits="userSpaceOnUse">
             <polygon points="370,610 445,575 560,560 690,578 778,610 778,1115 370,1115" />
@@ -201,36 +201,38 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
               data-testid="aside-ghost-lantern-travel"
               data-present={isPresent}
             >
-              {/* Swing inside the positioning group so the handle stays attached to the hand. */}
-              <g
-                className={styles.lantern}
-                data-testid="aside-ghost-lantern"
-                aria-hidden="true"
-                transform="translate(1.2 1.1) scale(0.9)"
-              >
+              <g className={styles.lanternArc} data-testid="aside-ghost-lantern-arc">
+                {/* Swing inside the positioning group so the handle stays attached to the hand. */}
                 <g
-                  ref={inertiaRef}
-                  className={styles.lanternInertia}
-                  data-testid="aside-ghost-lantern-inertia"
+                  className={styles.lantern}
+                  data-testid="aside-ghost-lantern"
+                  aria-hidden="true"
+                  transform="translate(1.2 1.1) scale(0.9)"
                 >
-                  <g className={styles.lanternSwing} data-testid="aside-ghost-lantern-swing">
-                    <circle
-                      className={styles.lanternHalo}
-                      cx="12.15"
-                      cy="12.4"
-                      r="3.6"
-                      fill={`url(#${lanternId}-halo)`}
-                      opacity="0.24"
-                    />
-                    <g transform="translate(8.006 5.8784) scale(0.007387)">
-                      <use href={`#${lanternId}-image`} filter="brightness(1.1)" />
-                      <g
-                        className={styles.lanternLight}
-                        data-testid="aside-ghost-lantern-light"
-                        clipPath={`url(#${lanternId}-glass)`}
-                        pointerEvents="none"
-                      >
-                        <use href={`#${lanternId}-image`} filter="brightness(1.3)" />
+                  <g
+                    ref={inertiaRef}
+                    className={styles.lanternInertia}
+                    data-testid="aside-ghost-lantern-inertia"
+                  >
+                    <g className={styles.lanternSwing} data-testid="aside-ghost-lantern-swing">
+                      <circle
+                        className={styles.lanternHalo}
+                        cx="12.15"
+                        cy="12.4"
+                        r="3.6"
+                        fill={`url(#${lanternId}-halo)`}
+                        opacity="0.24"
+                      />
+                      <g transform="translate(8.006 5.8784) scale(0.007387)">
+                        <use href={`#${lanternId}-image`} filter="brightness(1.1)" />
+                        <g
+                          className={styles.lanternLight}
+                          data-testid="aside-ghost-lantern-light"
+                          clipPath={`url(#${lanternId}-glass)`}
+                          pointerEvents="none"
+                        >
+                          <use href={`#${lanternId}-image`} filter="brightness(1.3)" />
+                        </g>
                       </g>
                     </g>
                   </g>
