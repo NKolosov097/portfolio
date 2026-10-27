@@ -316,8 +316,8 @@ footer,
 @media screen and (width <= 1024px) {
   html,
   body {
-    /* Taller than desktop to reserve room for the globe + appearance switch stacked in a column. */
-    --header-height: 128px;
+    /* Only the tab row: the controls are out of flow and overlay the content below it. */
+    --header-height: 60px;
     --aside-width: 0;
     --aside-max-height: 100vh;
     --body-horizontal-gap: 0;

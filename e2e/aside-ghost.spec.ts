@@ -754,6 +754,11 @@ test.describe('aside ghost', () => {
     await expect(swing).toHaveCSS('transform', before)
   })
   test('turns outboard then returns behind the filled moving body mask', async ({ page }) => {
+    /*
+     * Ten clipped screenshots, each re-waiting for fonts, overrun the default budget on the larger
+     * WebKit profiles. The work is inherent to comparing masked pixels at seven phases.
+     */
+    test.slow()
     await page.goto('/')
     const aside = await revealAside(page)
     const ghost = aside.getByTestId('aside-ghost')
@@ -973,6 +978,19 @@ test.describe('aside ghost', () => {
     )
     await expect.poll(() => inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
     await expect(inertia).toHaveCSS('transform', 'none')
+    /*
+     * Park the stow at its endpoint before drawing the lantern back out. Otherwise the travel left
+     * when the second click lands depends on how fast the runner got here, and with it both the
+     * settle duration and how much of the 40ms lead survives the neutralisation window.
+     */
+    await aside.getByTestId('aside-ghost').evaluate((node) => {
+      for (const animation of node.getAnimations({ subtree: true })) {
+        if (animation.id.startsWith('lantern-gesture-')) {
+          animation.pause()
+          animation.currentTime = 900
+        }
+      }
+    })
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
     const result = await inertia.evaluate((node) => {
       const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
@@ -998,12 +1016,8 @@ test.describe('aside ghost', () => {
     const [onTravel, atLead, atArrival, atPeak, atRebound, atRest] = result.angles
     expect(onTravel).toBeCloseTo(0)
     expect(atLead).toBeCloseTo(0)
-    /**
-     * Easing into the swing left the lantern still for about three frames after it stopped. This
-     * reversal leaves little travel, so the lead is squeezed against the neutralisation window and
-     * only its direction is asserted; the initial-Halloween check pins the full-gesture lead.
-     */
-    expect(atArrival).toBeGreaterThan(0.5)
+    // Easing into the swing left the lantern still for about three frames after it stopped.
+    expect(atArrival).toBeGreaterThan(1.5)
     expect(atArrival).toBeLessThan(atPeak)
     expect(atPeak).toBeCloseTo(5)
     expect(atRebound).toBeCloseTo(-2)

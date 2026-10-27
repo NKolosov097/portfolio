@@ -1,10 +1,10 @@
-/* Desktop: a wide pill so the thumb has room to slide horizontally. */
+/* The track runs vertically at every width, so the button is taller than it is wide. */
 .switch {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 44px;
+  width: 44px;
+  height: 64px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -19,8 +19,8 @@
 
 .track {
   position: relative;
-  width: 58px;
-  height: 28px;
+  width: 28px;
+  height: 60px;
   border-radius: 14px;
   background-color: var(--root-bg-color);
   border: 1px solid rgb(255 255 255 / 25%);
@@ -52,13 +52,13 @@
 }
 
 .switch[aria-checked='true'] .thumb {
-  transform: translateX(2px);
+  transform: translateY(0);
   color: var(--halloween-ember, #ffb565);
 }
 
-/* Checked (halloween) rests at the left; unchecked slides right across the track. */
+/* Checked (halloween) rests at the top; unchecked slides down the track. */
 .switch[aria-checked='false'] .thumb {
-  transform: translateX(28px);
+  transform: translateY(32px);
 }
 
 .pumpkin {
@@ -79,32 +79,5 @@
   .thumb,
   .pumpkin {
     transition: none;
-  }
-}
-
-@media screen and (width <= 1024px) {
-  /* Rotated layout: the track runs vertically, so the button swaps its own width/height. */
-  .switch {
-    width: 44px;
-    height: 64px;
-  }
-
-  .track {
-    width: 28px;
-    height: 60px;
-  }
-
-  .thumb {
-    width: 24px;
-    height: 24px;
-  }
-
-  .switch[aria-checked='true'] .thumb {
-    transform: translateY(0);
-  }
-
-  /* Explicitly overrides the desktop translateX so the thumb only moves on the Y axis here. */
-  .switch[aria-checked='false'] .thumb {
-    transform: translateY(32px);
   }
 }

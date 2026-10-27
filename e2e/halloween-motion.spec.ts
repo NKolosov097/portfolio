@@ -209,6 +209,9 @@ test.describe('halloween hero motion', () => {
   test('keeps eighteen rising sparks behind the pumpkin with continuous coverage and invisible resets', async ({
     page,
   }) => {
+    // Sampling eighteen sparks across the cycle fills most of the default budget on larger WebKit
+    // profiles on its own, and overran it whenever a parallel worker competed for the CPU.
+    test.slow()
     await page.goto('/')
     await expect(page.getByTestId('halloween-scene')).toHaveAttribute('data-ready', 'true')
     const sparks = page.getByTestId('halloween-spark')
@@ -314,8 +317,13 @@ test.describe('halloween hero motion', () => {
     expect(new Set(hrefs).size).toBe(3)
     const pumpkin = scene.locator('defs image[data-asset="pumpkin"]')
     await expect(pumpkin).toHaveAttribute('href', /\/layer-pumpkin\.(avif|webp)$/)
+    /*
+     * Chromium decodes AVIF everywhere, so it must keep the primary format. WebKit is not asserted
+     * by name: the Linux build decodes AVIF while the Windows one does not, so pinning it to WebP
+     * made the result depend on the runner's codec support rather than on this code. The fallback
+     * itself is covered deterministically by the sibling test that aborts the AVIF request.
+     */
     if (browserName === 'chromium') await expect(pumpkin).toHaveAttribute('href', /\.avif$/)
-    if (browserName === 'webkit') await expect(pumpkin).toHaveAttribute('href', /\.webp$/)
     expect(
       await pumpkin.evaluate(async (node) => {
         const image = new Image()
