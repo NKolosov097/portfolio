@@ -24,6 +24,10 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
   const { appearance } = useContext(AppearanceContext)
   const [isLanternReady, setIsLanternReady] = useState(false)
   const inertiaRef = useRef<SVGGElement>(null)
+  const travelRef = useRef<SVGGElement>(null)
+  const depthRef = useRef<SVGGElement>(null)
+  const gestureTravelRef = useRef<Animation | null>(null)
+  const gestureDepthRef = useRef<Animation | null>(null)
   const hasPresentedRef = useRef(false)
   const isPresent = isLanternReady && appearance === EAppearance.halloween
   const [lanternSource, setLanternSource] = useState('/assets/img/halloween/lantern.avif')
@@ -55,6 +59,81 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     }
   }, [])
 
+  // A shared reversible timeline carries the lantern around the body before the rear return.
+  useEffect(() => {
+    const travel = travelRef.current
+    const depth = depthRef.current
+    if (!travel || !depth) return
+    const movement = travel.animate(
+      [
+        { transform: 'translate(0, 0)', offset: 0, easing: 'ease-in-out' },
+        { transform: 'translate(4px, -1.2px)', offset: 0.25, easing: 'ease-in-out' },
+        { transform: 'translate(7px, -2px)', offset: 0.42, easing: 'ease-in-out' },
+        { transform: 'translate(7px, -2.6px)', offset: 0.55, easing: 'ease-in-out' },
+        { transform: 'translate(2px, -3px)', offset: 0.72, easing: 'ease-in-out' },
+        { transform: 'translate(-5px, -4.2px)', offset: 1 },
+      ],
+      { duration: 1200, easing: 'linear', fill: 'both' },
+    )
+    const occlusion = depth.animate(
+      [
+        { opacity: 0, offset: 0 },
+        { opacity: 0, offset: 0.42 },
+        { opacity: 1, offset: 0.46 },
+        { opacity: 1, offset: 1 },
+      ],
+      { duration: 1200, easing: 'linear', fill: 'both' },
+    )
+    movement.id = 'lantern-gesture-travel'
+    occlusion.id = 'lantern-gesture-depth'
+    for (const animation of [movement, occlusion]) {
+      animation.pause()
+      animation.currentTime = 1200
+    }
+    gestureTravelRef.current = movement
+    gestureDepthRef.current = occlusion
+    return () => {
+      movement.cancel()
+      occlusion.cancel()
+      gestureTravelRef.current = null
+      gestureDepthRef.current = null
+    }
+  }, [])
+
+  // Reverse both owned tracks at their shared progress, or settle immediately for reduced motion.
+  useEffect(() => {
+    const movement = gestureTravelRef.current
+    const depth = gestureDepthRef.current
+    if (!movement || !depth) return
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const endpoint = isPresent ? 0 : 1200
+    // A live preference change settles without replaying the gesture when motion returns.
+    const settleReducedMotion = () => {
+      if (!preference.matches) return
+      for (const animation of [movement, depth]) {
+        animation.pause()
+        animation.currentTime = endpoint
+      }
+    }
+    if (preference.matches) {
+      settleReducedMotion()
+    } else if (Number(movement.currentTime) !== endpoint) {
+      const sharedTime = movement.currentTime
+      for (const animation of [movement, depth]) {
+        animation.currentTime = sharedTime
+        animation.playbackRate = isPresent ? -1 : 1
+        animation.play()
+      }
+    } else {
+      for (const animation of [movement, depth]) {
+        animation.pause()
+        animation.currentTime = endpoint
+      }
+    }
+    preference.addEventListener('change', settleReducedMotion)
+    return () => preference.removeEventListener('change', settleReducedMotion)
+  }, [isPresent])
+
   // Keep settling inertia independent of travel and preserve its pose on rapid reversals.
   useEffect(() => {
     const node = inertiaRef.current
@@ -74,7 +153,11 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
               offset: offsets[index],
             })),
           ],
-          { duration: isPresent ? 850 : 650, easing: 'ease-out', fill: 'none' },
+          {
+            duration: isPresent ? 1500 : 650,
+            easing: isPresent ? 'linear' : 'ease-out',
+            fill: 'none',
+          },
         )
         animation.id = isPresent ? 'lantern-enter' : 'lantern-exit'
         animation.onfinish = () => {
@@ -165,9 +248,27 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
             height="1402"
             preserveAspectRatio="xMidYMid meet"
           />
-          <clipPath id={`${lanternId}-occlusion`} clipPathUnits="userSpaceOnUse">
-            <path d="M-4 -4H16.4Q15.6 8 16.4 24H-4Z" />
-          </clipPath>
+          <mask
+            id={`${lanternId}-occlusion`}
+            className={styles.lanternMask}
+            maskUnits="userSpaceOnUse"
+            x="-12"
+            y="-12"
+            width="48"
+            height="48"
+          >
+            <rect x="-12" y="-12" width="48" height="48" fill="white" />
+            <g ref={depthRef} data-testid="aside-ghost-lantern-depth" opacity="1">
+              <g className={styles.sway}>
+                <g className={styles.breathe}>
+                  <path
+                    fill="black"
+                    d="M10.225 14.407l.686-.859h.001l.144-.18.618-.772a.255.255 0 0 1 .402.006l.593.79.139.185v.001l.392.522a1 1 0 0 0 1.8-.6V8A7 7 0 1 0 1 8v5.399a1.101 1.101 0 0 0 1.806.846l2.61-2.175a.3.3 0 0 1 .424.038l1.936 2.323a1.58 1.58 0 0 0 2.449-.024Z"
+                  />
+                </g>
+              </g>
+            </g>
+          </mask>
           <clipPath id={`${lanternId}-glass`} clipPathUnits="userSpaceOnUse">
             <polygon points="370,610 445,575 560,560 690,578 778,610 778,1115 370,1115" />
           </clipPath>
@@ -195,44 +296,43 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
             </g>
           </g>
 
-          <g clipPath={`url(#${lanternId}-occlusion)`}>
+          <g mask={`url(#${lanternId}-occlusion)`}>
             <g
+              ref={travelRef}
               className={styles.lanternTravel}
               data-testid="aside-ghost-lantern-travel"
               data-present={isPresent}
             >
-              <g className={styles.lanternArc} data-testid="aside-ghost-lantern-arc">
-                {/* Swing inside the positioning group so the handle stays attached to the hand. */}
+              {/* Swing inside the positioning group so the handle stays attached to the hand. */}
+              <g
+                className={styles.lantern}
+                data-testid="aside-ghost-lantern"
+                aria-hidden="true"
+                transform="translate(1.2 1.1) scale(0.9)"
+              >
                 <g
-                  className={styles.lantern}
-                  data-testid="aside-ghost-lantern"
-                  aria-hidden="true"
-                  transform="translate(1.2 1.1) scale(0.9)"
+                  ref={inertiaRef}
+                  className={styles.lanternInertia}
+                  data-testid="aside-ghost-lantern-inertia"
                 >
-                  <g
-                    ref={inertiaRef}
-                    className={styles.lanternInertia}
-                    data-testid="aside-ghost-lantern-inertia"
-                  >
-                    <g className={styles.lanternSwing} data-testid="aside-ghost-lantern-swing">
-                      <circle
-                        className={styles.lanternHalo}
-                        cx="12.15"
-                        cy="12.4"
-                        r="3.6"
-                        fill={`url(#${lanternId}-halo)`}
-                        opacity="0.24"
-                      />
-                      <g transform="translate(8.006 5.8784) scale(0.007387)">
-                        <use href={`#${lanternId}-image`} filter="brightness(1.1)" />
-                        <g
-                          className={styles.lanternLight}
-                          data-testid="aside-ghost-lantern-light"
-                          clipPath={`url(#${lanternId}-glass)`}
-                          pointerEvents="none"
-                        >
-                          <use href={`#${lanternId}-image`} filter="brightness(1.3)" />
-                        </g>
+                  <g className={styles.lanternSwing} data-testid="aside-ghost-lantern-swing">
+                    <circle
+                      className={styles.lanternHalo}
+                      cx="12.15"
+                      cy="12.4"
+                      r="3.6"
+                      fill={`url(#${lanternId}-halo)`}
+                      opacity="0.24"
+                    />
+                    <g transform="translate(8.006 5.8784) scale(0.007387)">
+                      <use href={`#${lanternId}-image`} filter="brightness(1.1)" />
+                      <g
+                        className={styles.lanternLight}
+                        data-testid="aside-ghost-lantern-light"
+                        clipPath={`url(#${lanternId}-glass)`}
+                        pointerEvents="none"
+                      >
+                        <use href={`#${lanternId}-image`} filter="brightness(1.3)" />
                       </g>
                     </g>
                   </g>

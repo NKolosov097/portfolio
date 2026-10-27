@@ -138,26 +138,14 @@
   }
 }
 
+.lanternMask {
+  mask-type: luminance;
+}
+
 .lanternTravel {
   transform-box: view-box;
   transform-origin: 0 0;
-  transform: translateX(9px);
-  transition: transform 520ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.lanternTravel[data-present='true'] {
-  transform: translateX(0);
-}
-
-.lanternArc {
-  transform-box: view-box;
-  transform-origin: 0 0;
-  transform: translateY(-2px);
-  transition: transform 520ms cubic-bezier(0.15, 0.8, 0.2, 1);
-}
-
-.lanternTravel[data-present='true'] .lanternArc {
-  transform: translateY(0);
+  transform: translate(-5px, -4.2px);
 }
 
 .lanternInertia {
@@ -267,11 +255,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lanternTravel,
-  .lanternArc {
-    transition: none;
-  }
-
   .lanternSwing,
   :global(html[data-appearance='halloween']) .lanternLight,
   :global(html[data-appearance='halloween']) .lanternHalo {

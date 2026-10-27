@@ -265,9 +265,13 @@ test.describe('aside ghost', () => {
 
     const runningAnimations = await ghost.evaluate(
       (node) =>
-        node
-          .getAnimations({ subtree: true })
-          .filter((animation) => animation.playState === 'running').length,
+        node.getAnimations({ subtree: true }).filter((animation) => {
+          const target = (animation.effect as KeyframeEffect | null)?.target
+          return (
+            animation.playState === 'running' &&
+            !(target instanceof Element && target.closest('mask'))
+          )
+        }).length,
     )
 
     expect(runningAnimations).toBe(EXPECTED_HALLOWEEN_ANIMATION_COUNT)
@@ -429,9 +433,9 @@ test.describe('aside ghost', () => {
       .getByTestId('aside-ghost')
       .getByTestId('aside-ghost-lantern')
 
-    await expect(originalLantern.locator('../..')).toHaveCSS(
+    await expect(originalLantern.locator('..')).toHaveCSS(
       'transform',
-      'matrix(1, 0, 0, 1, 9, 0)',
+      'matrix(1, 0, 0, 1, -5, -4.2)',
     )
   })
 
@@ -574,7 +578,7 @@ test.describe('aside ghost', () => {
       Element.prototype.animate = new Proxy(original, {
         apply(target, node, args) {
           const animation = Reflect.apply(target, node, args) as Animation
-          if (typeof args[1] === 'object' && args[1]?.duration === 850) animation.pause()
+          if (typeof args[1] === 'object' && args[1]?.duration === 1500) animation.pause()
           return animation
         },
       })
@@ -594,7 +598,7 @@ test.describe('aside ghost', () => {
     const poses = await inertia.evaluate((node) => {
       const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
       if (!animation) throw new Error('Expected initial lantern inertia.')
-      return [0, 100, 250, 850].map((time) => {
+      return [0, 330, 705, 1500].map((time) => {
         animation.currentTime = time
         const matrix = new DOMMatrix(getComputedStyle(node).transform)
         return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
@@ -620,11 +624,7 @@ test.describe('aside ghost', () => {
     const ghost = aside.getByTestId('aside-ghost')
     const travel = aside.getByTestId('aside-ghost-lantern-travel')
     await expect(travel).toHaveAttribute('data-present', 'false')
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 9, 0)')
-    await expect(aside.getByTestId('aside-ghost-lantern-arc')).toHaveCSS(
-      'transform',
-      'matrix(1, 0, 0, 1, 0, -2)',
-    )
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -5, -4.2)')
     expect(
       await aside
         .getByTestId('aside-ghost-lantern-inertia')
@@ -635,11 +635,25 @@ test.describe('aside ghost', () => {
       node.setAttribute('style', 'position:fixed;left:100px;top:100px')
     })
     await page.evaluate(() => document.fonts.ready)
+    await expect
+      .poll(() =>
+        ghost.locator('defs image').evaluate(async (node) => {
+          const image = new Image()
+          image.src = node.getAttribute('href') ?? ''
+          return image.decode().then(
+            () => true,
+            () => false,
+          )
+        }),
+      )
+      .toBe(true)
     const occluded = await ghost.screenshot()
     await travel.evaluate((node) => {
       node.setAttribute('visibility', 'hidden')
     })
-    expect(await ghost.screenshot()).toEqual(occluded)
+    expect(await ghost.screenshot({ path: '.playwright-mcp/gesture-test-baseline.png' })).toEqual(
+      occluded,
+    )
   })
 
   test('stows, reverses and redraws the lantern continuously while tickled', async ({ page }) => {
@@ -660,7 +674,7 @@ test.describe('aside ghost', () => {
       return new DOMMatrix(getComputedStyle(node).transform).e
     })
     expect(before).toBeGreaterThan(0)
-    expect(before).toBeLessThan(9)
+    expect(before).toBeLessThan(7)
     await toggle.dispatchEvent('click')
     await expect(travel).toHaveAttribute('data-present', 'true')
     await aside.getByTestId('aside-ghost-trigger').click()
@@ -676,7 +690,7 @@ test.describe('aside ghost', () => {
       )
       .toBe(0)
     await toggle.dispatchEvent('click')
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 9, 0)')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -5, -4.2)')
     await toggle.dispatchEvent('click')
     await page.goto('/?lantern-remount=1')
     expect(errors).toEqual([])
@@ -691,7 +705,7 @@ test.describe('aside ghost', () => {
     const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 9, 0)')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -5, -4.2)')
     await expect.poll(() => inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
     await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
@@ -722,53 +736,114 @@ test.describe('aside ghost', () => {
     )
     await expect(swing).toHaveCSS('transform', before)
   })
-  test('stows along a curved outer side path without crossing the ghost center', async ({
+  test('turns outboard then returns behind the filled moving body mask', async ({ page }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const ghost = aside.getByTestId('aside-ghost')
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    const depth = ghost.getByTestId('aside-ghost-lantern-depth')
+    // Fixed pixels isolate the masked artwork from surrounding text and drawer movement.
+    await ghost.evaluate((node) => {
+      node.setAttribute('style', 'position:fixed;left:100px;top:100px;z-index:999999')
+      for (const animation of node.getAnimations({ subtree: true })) {
+        animation.pause()
+        if (animation.effect?.getTiming().iterations === Infinity) animation.currentTime = 0
+      }
+    })
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    // Seek both persistent tracks together while holding separate settling inertia steady.
+    const seekGesture = async (phase: number, depthPhase = phase) => {
+      await ghost.evaluate(
+        (node, sample) => {
+          for (const animation of node.getAnimations({ subtree: true })) {
+            animation.pause()
+            if (animation.id === 'lantern-gesture-travel')
+              animation.currentTime = sample.phase * 1200
+            if (animation.id === 'lantern-gesture-depth')
+              animation.currentTime = sample.depthPhase * 1200
+            if (animation.id === 'lantern-exit') animation.currentTime = 650
+          }
+        },
+        { phase, depthPhase },
+      )
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      )
+    }
+    // Include the outboard turn beyond the SVG viewport instead of cropping it away.
+    const box = await ghost.boundingBox()
+    if (!box) throw new Error('Expected visible ghost bounds.')
+    const capture = () =>
+      page.screenshot({
+        clip: { x: Math.floor(box.x - 10), y: Math.floor(box.y - 15), width: 100, height: 90 },
+      })
+    const positions = []
+    for (const phase of [0, 0.25, 0.42, 0.55, 0.72, 0.88, 1]) {
+      await seekGesture(phase)
+      positions.push(
+        await travel.evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).e),
+      )
+    }
+    expect(positions[0]).toBeCloseTo(0)
+    expect(positions[2]).toBeCloseTo(7)
+    expect(positions[3]).toBeCloseTo(7)
+    expect(positions[4]).toBeCloseTo(2)
+    expect(positions[6]).toBeCloseTo(-5)
+    await seekGesture(0.42, 0)
+    const outboardFront = await capture()
+    await seekGesture(0.42, 1)
+    expect((await capture()).equals(outboardFront)).toBe(true)
+    await seekGesture(0.72)
+    const partial = await capture()
+    await seekGesture(0.72, 0)
+    expect((await capture()).equals(partial)).toBe(false)
+    await seekGesture(0.72)
+    await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
+    expect(await capture()).not.toEqual(partial)
+    await travel.evaluate((node) => node.removeAttribute('visibility'))
+    await seekGesture(1)
+    const behind = await capture()
+    await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
+    expect((await capture()).equals(behind)).toBe(true)
+    expect(await depth.evaluate((node) => getComputedStyle(node).opacity)).toBe('1')
+  })
+
+  test('keeps both owned gesture tracks at the endpoint after an immediate reversal', async ({
     page,
   }) => {
     await page.goto('/')
     const aside = await revealAside(page)
     const travel = aside.getByTestId('aside-ghost-lantern-travel')
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
-    const poses = []
-    for (const time of [0, 130, 260, 390, 520]) {
-      await travel.evaluate((node, ms) => {
-        const arc = node.querySelector('[data-testid="aside-ghost-lantern-arc"]')
-        if (!arc) throw new Error('Expected side arc wrapper.')
-        for (const wrapper of [node, arc]) {
-          for (const animation of wrapper.getAnimations()) {
-            animation.pause()
-            animation.currentTime = ms
-          }
+    await expect(travel).toHaveAttribute('data-present', 'false')
+    await travel.evaluate((node) => {
+      const ghost = node.closest('svg')
+      if (!ghost) throw new Error('Expected ghost SVG.')
+      for (const animation of ghost.getAnimations({ subtree: true })) {
+        if (animation.id.startsWith('lantern-gesture-')) {
+          animation.pause()
+          animation.currentTime = 1200
         }
-      }, time)
-      await page.evaluate(
-        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-      )
-      poses.push(
-        await travel.evaluate((node) => {
-          const arc = node.querySelector('[data-testid="aside-ghost-lantern-arc"]')
-          if (!arc) throw new Error('Expected side arc wrapper.')
-          return {
-            x: new DOMMatrix(getComputedStyle(node).transform).e,
-            y: new DOMMatrix(getComputedStyle(arc).transform).f,
-          }
-        }),
-      )
-    }
-    expect(poses[0].x).toBeCloseTo(0)
-    expect(poses[0].y).toBeCloseTo(0)
-    expect(poses[4].x).toBeCloseTo(9)
-    expect(poses[4].y).toBeCloseTo(-2)
-    for (let index = 1; index < poses.length; index += 1) {
-      expect(poses[index].x).toBeGreaterThan(poses[index - 1].x)
-      expect(poses[index].y).toBeLessThan(poses[index - 1].y)
-    }
-    expect(-poses[1].y / 2).toBeGreaterThan(poses[1].x / 9 + 0.2)
+      }
+    })
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
-    await expect(aside.getByTestId('aside-ghost-lantern-arc')).toHaveCSS(
-      'transform',
-      'matrix(1, 0, 0, 1, 0, 0)',
-    )
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await expect(travel).toHaveAttribute('data-present', 'false')
+    await expect
+      .poll(() =>
+        aside.getByTestId('aside-ghost').evaluate((node) =>
+          node
+            .getAnimations({ subtree: true })
+            .filter((animation) => animation.id.startsWith('lantern-gesture-'))
+            .map((animation) => ({
+              time: animation.currentTime,
+              running: animation.playState === 'running',
+            })),
+        ),
+      )
+      .toEqual([
+        { time: 1200, running: false },
+        { time: 1200, running: false },
+      ])
   })
 })
