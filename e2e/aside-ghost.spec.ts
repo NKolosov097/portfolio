@@ -578,7 +578,7 @@ test.describe('aside ghost', () => {
       Element.prototype.animate = new Proxy(original, {
         apply(target, node, args) {
           const animation = Reflect.apply(target, node, args) as Animation
-          if (typeof args[1] === 'object' && args[1]?.duration === 1550) animation.pause()
+          if (typeof args[1] === 'object' && args[1]?.duration === 1150) animation.pause()
           return animation
         },
       })
@@ -598,7 +598,7 @@ test.describe('aside ghost', () => {
     const poses = await inertia.evaluate((node) => {
       const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
       if (!animation) throw new Error('Expected initial lantern inertia.')
-      return [0, 600, 1200, 1300, 1430, 1550].map((time) => {
+      return [0, 450, 900, 970, 1065, 1150].map((time) => {
         animation.currentTime = time
         const matrix = new DOMMatrix(getComputedStyle(node).transform)
         return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
@@ -676,7 +676,7 @@ test.describe('aside ghost', () => {
       return new DOMMatrix(getComputedStyle(node).transform).e
     })
     expect(before).toBeGreaterThan(0)
-    expect(before).toBeLessThan(7)
+    expect(before).toBeLessThan(5.5)
     await toggle.dispatchEvent('click')
     await expect(travel).toHaveAttribute('data-present', 'true')
     await aside.getByTestId('aside-ghost-trigger').click()
@@ -760,10 +760,10 @@ test.describe('aside ghost', () => {
           for (const animation of node.getAnimations({ subtree: true })) {
             animation.pause()
             if (animation.id === 'lantern-gesture-travel')
-              animation.currentTime = sample.phase * 1200
+              animation.currentTime = sample.phase * 900
             if (animation.id === 'lantern-gesture-depth')
-              animation.currentTime = sample.depthPhase * 1200
-            if (animation.id === 'lantern-exit') animation.currentTime = 650
+              animation.currentTime = sample.depthPhase * 900
+            if (animation.id === 'lantern-exit') animation.currentTime = 90
           }
         },
         { phase, depthPhase },
@@ -787,14 +787,23 @@ test.describe('aside ghost', () => {
       )
     }
     expect(positions[0]).toBeCloseTo(0)
-    expect(positions[2]).toBeCloseTo(7)
-    expect(positions[3]).toBeCloseTo(7)
+    expect(positions[2]).toBeCloseTo(5.5)
+    expect(positions[3]).toBeCloseTo(5.5)
     expect(positions[4]).toBeCloseTo(2)
     expect(positions[6]).toBeCloseTo(-5)
     await seekGesture(0.42, 0)
-    const outboardFront = await capture()
+    const outsideClip = {
+      x: Math.ceil(box.x + box.width + 3),
+      y: Math.floor(box.y - 15),
+      width: 35,
+      height: 90,
+    }
+    const outboardFront = await page.screenshot({ clip: outsideClip })
     await seekGesture(0.42, 1)
-    expect((await capture()).equals(outboardFront)).toBe(true)
+    expect((await page.screenshot({ clip: outsideClip })).equals(outboardFront)).toBe(true)
+    await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
+    expect((await page.screenshot({ clip: outsideClip })).equals(outboardFront)).toBe(false)
+    await travel.evaluate((node) => node.removeAttribute('visibility'))
     await seekGesture(0.72)
     const partial = await capture()
     await seekGesture(0.72, 0)
@@ -824,7 +833,7 @@ test.describe('aside ghost', () => {
       for (const animation of ghost.getAnimations({ subtree: true })) {
         if (animation.id.startsWith('lantern-gesture-')) {
           animation.pause()
-          animation.currentTime = 1200
+          animation.currentTime = 900
         }
       }
     })
@@ -844,8 +853,8 @@ test.describe('aside ghost', () => {
         ),
       )
       .toEqual([
-        { time: 1200, running: false },
-        { time: 1200, running: false },
+        { time: 900, running: false },
+        { time: 900, running: false },
       ])
   })
   test('keeps inertia neutral at the outboard turn and settles only after arrival', async ({
@@ -856,7 +865,7 @@ test.describe('aside ghost', () => {
       Element.prototype.animate = new Proxy(Element.prototype.animate, {
         apply(target, node, args) {
           const animation = Reflect.apply(target, node, args) as Animation
-          if (typeof args[1] === 'object' && args[1]?.duration === 120) animation.pause()
+          if (typeof args[1] === 'object' && args[1]?.duration === 90) animation.pause()
           return animation
         },
       })
@@ -872,7 +881,7 @@ test.describe('aside ghost', () => {
       const frames = (animation.effect as KeyframeEffect).getKeyframes()
       return { duration: timing?.duration, frames: frames.map((frame) => frame.transform) }
     })
-    expect(exit.duration).toBe(120)
+    expect(exit.duration).toBe(90)
     expect(exit.frames.at(-1)).toBe('rotate(0deg)')
     await inertia.evaluate((node) =>
       node
@@ -888,8 +897,8 @@ test.describe('aside ghost', () => {
       if (!animation || !animation.effect) throw new Error('Expected return settling.')
       animation.pause()
       const duration = Number(animation.effect.getTiming().duration)
-      const arrival = duration - 350
-      const angles = [Math.min(200, arrival), arrival, arrival + 100, arrival + 230, duration].map(
+      const arrival = duration - 250
+      const angles = [Math.min(200, arrival), arrival, arrival + 70, arrival + 165, duration].map(
         (time) => {
           animation.currentTime = time
           const matrix = new DOMMatrix(getComputedStyle(node).transform)

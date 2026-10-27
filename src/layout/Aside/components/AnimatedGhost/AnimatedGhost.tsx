@@ -67,13 +67,13 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     const movement = travel.animate(
       [
         { transform: 'translate(0, 0)', offset: 0, easing: 'ease-in-out' },
-        { transform: 'translate(4px, -1.2px)', offset: 0.25, easing: 'ease-in-out' },
-        { transform: 'translate(7px, -2px)', offset: 0.42, easing: 'ease-in-out' },
-        { transform: 'translate(7px, -2.6px)', offset: 0.55, easing: 'ease-in-out' },
+        { transform: 'translate(3px, -1.2px)', offset: 0.25, easing: 'ease-in-out' },
+        { transform: 'translate(5.5px, -2px)', offset: 0.42, easing: 'ease-in-out' },
+        { transform: 'translate(5.5px, -2.6px)', offset: 0.55, easing: 'ease-in-out' },
         { transform: 'translate(2px, -3px)', offset: 0.72, easing: 'ease-in-out' },
         { transform: 'translate(-5px, -4.2px)', offset: 1 },
       ],
-      { duration: 1200, easing: 'linear', fill: 'both' },
+      { duration: 900, easing: 'linear', fill: 'both' },
     )
     const occlusion = depth.animate(
       [
@@ -82,13 +82,13 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
         { opacity: 1, offset: 0.46 },
         { opacity: 1, offset: 1 },
       ],
-      { duration: 1200, easing: 'linear', fill: 'both' },
+      { duration: 900, easing: 'linear', fill: 'both' },
     )
     movement.id = 'lantern-gesture-travel'
     occlusion.id = 'lantern-gesture-depth'
     for (const animation of [movement, occlusion]) {
       animation.pause()
-      animation.currentTime = 1200
+      animation.currentTime = 900
     }
     gestureTravelRef.current = movement
     gestureDepthRef.current = occlusion
@@ -106,7 +106,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     const depth = gestureDepthRef.current
     if (!movement || !depth) return
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const endpoint = isPresent ? 0 : 1200
+    const endpoint = isPresent ? 0 : 900
     // A live preference change settles without replaying the gesture when motion returns.
     const settleReducedMotion = () => {
       if (!preference.matches) return
@@ -144,27 +144,27 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
       hasPresentedRef.current ||= isPresent
       if (!preference.matches) {
         const remaining = Math.min(
-          1200,
+          900,
           Math.max(0, Number(gestureTravelRef.current?.currentTime ?? 0)),
         )
-        const duration = isPresent ? remaining + 350 : 120
+        const duration = isPresent ? remaining + 250 : 90
         const keyframes: Keyframe[] = [{ transform: getComputedStyle(node).transform, offset: 0 }]
         if (isPresent) {
           if (remaining > 0) {
             keyframes.push(
-              { transform: 'rotate(0deg)', offset: Math.min(120, remaining) / duration },
+              { transform: 'rotate(0deg)', offset: Math.min(90, remaining) / duration },
               { transform: 'rotate(0deg)', offset: remaining / duration, easing: 'ease-in-out' },
             )
           }
           keyframes.push(
             {
               transform: 'rotate(5deg)',
-              offset: (remaining + 100) / duration,
+              offset: (remaining + 70) / duration,
               easing: 'ease-in-out',
             },
             {
               transform: 'rotate(-2deg)',
-              offset: (remaining + 230) / duration,
+              offset: (remaining + 165) / duration,
               easing: 'ease-in-out',
             },
             { transform: 'rotate(0deg)', offset: 1 },
