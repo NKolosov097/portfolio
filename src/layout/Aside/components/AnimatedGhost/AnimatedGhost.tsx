@@ -10,6 +10,12 @@ import {
 import { EAppearance } from '@/constants/theme.constants'
 import { AppearanceContext } from '@/contexts/appearance'
 
+/** Full length of the reversible around-the-body lantern gesture. */
+const GESTURE_DURATION_MS = 900
+
+/** One envelope over the whole arc: per-segment easing stalled the lantern at every waypoint. */
+const GESTURE_EASING = 'ease-in-out'
+
 interface IAnimatedGhostProps {
   /** Rendered width of the ghost in pixels; mirrors the Gravity icon sizing API. */
   width?: number
@@ -64,31 +70,33 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     const travel = travelRef.current
     const depth = depthRef.current
     if (!travel || !depth) return
+    // Offsets follow path arc length so no waypoint stalls; one envelope shapes the whole arc.
     const movement = travel.animate(
       [
-        { transform: 'translate(0, 0)', offset: 0, easing: 'ease-in-out' },
-        { transform: 'translate(3px, -1.2px)', offset: 0.25, easing: 'ease-in-out' },
-        { transform: 'translate(5.5px, -2px)', offset: 0.42, easing: 'ease-in-out' },
-        { transform: 'translate(5.5px, -2.6px)', offset: 0.55, easing: 'ease-in-out' },
-        { transform: 'translate(2px, -3px)', offset: 0.72, easing: 'ease-in-out' },
+        { transform: 'translate(0, 0)', offset: 0 },
+        { transform: 'translate(3px, -1.2px)', offset: 0.189 },
+        { transform: 'translate(5.5px, -2px)', offset: 0.343 },
+        { transform: 'translate(5.5px, -2.6px)', offset: 0.378 },
+        { transform: 'translate(2px, -3px)', offset: 0.584 },
         { transform: 'translate(-5px, -4.2px)', offset: 1 },
       ],
-      { duration: 900, easing: 'linear', fill: 'both' },
+      { duration: GESTURE_DURATION_MS, easing: GESTURE_EASING, fill: 'both' },
     )
+    // The shared easing keeps this depth switch inside the travel track's outboard dwell.
     const occlusion = depth.animate(
       [
         { opacity: 0, offset: 0 },
-        { opacity: 0, offset: 0.42 },
-        { opacity: 1, offset: 0.46 },
+        { opacity: 0, offset: 0.35 },
+        { opacity: 1, offset: 0.375 },
         { opacity: 1, offset: 1 },
       ],
-      { duration: 900, easing: 'linear', fill: 'both' },
+      { duration: GESTURE_DURATION_MS, easing: GESTURE_EASING, fill: 'both' },
     )
     movement.id = 'lantern-gesture-travel'
     occlusion.id = 'lantern-gesture-depth'
     for (const animation of [movement, occlusion]) {
       animation.pause()
-      animation.currentTime = 900
+      animation.currentTime = GESTURE_DURATION_MS
     }
     gestureTravelRef.current = movement
     gestureDepthRef.current = occlusion
@@ -106,7 +114,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     const depth = gestureDepthRef.current
     if (!movement || !depth) return
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const endpoint = isPresent ? 0 : 900
+    const endpoint = isPresent ? 0 : GESTURE_DURATION_MS
     // A live preference change settles without replaying the gesture when motion returns.
     const settleReducedMotion = () => {
       if (!preference.matches) return
@@ -144,7 +152,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
       hasPresentedRef.current ||= isPresent
       if (!preference.matches) {
         const remaining = Math.min(
-          900,
+          GESTURE_DURATION_MS,
           Math.max(0, Number(gestureTravelRef.current?.currentTime ?? 0)),
         )
         const duration = isPresent ? remaining + 250 : 90

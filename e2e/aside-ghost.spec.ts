@@ -16,6 +16,31 @@ const REDUCED_MOTION_SAMPLE_WINDOW_MS = 1_500
 
 const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
 
+/**
+ * Timeline fractions that land on the travel waypoints. One ease spans the whole gesture, so
+ * these are the eased positions of the keyframe offsets rather than the offsets themselves.
+ */
+const GESTURE_WAYPOINT_PHASES = [0, 0.301, 0.41, 0.427, 0.549, 0.78, 1]
+
+/** Middle of the outboard dwell, where switching depth must change no visible pixel. */
+const OUTBOARD_PHASE = 0.418
+
+/** The inward rear leg, where the body already occludes part of the lantern. */
+const INWARD_PHASE = 0.549
+
+/**
+ * Counts idle layers the visitor can actually see. The occlusion mask carries its own copy of the
+ * body's sway and breathe so the silhouette tracks it, and those duplicates are not visible motion.
+ */
+function countRunningVisibleAnimations(node: Element): number {
+  return node.getAnimations({ subtree: true }).filter((animation) => {
+    const target = (animation.effect as KeyframeEffect | null)?.target
+    return (
+      animation.playState === 'running' && !(target instanceof Element && target.closest('mask'))
+    )
+  }).length
+}
+
 /** Let finite lantern presentation settle before measuring its steady artwork. */
 async function revealAside(page: import('@playwright/test').Page) {
   const aside = await revealAsideImmediately(page)
@@ -263,16 +288,7 @@ test.describe('aside ghost', () => {
 
     await expect(ghost).toBeVisible()
 
-    const runningAnimations = await ghost.evaluate(
-      (node) =>
-        node.getAnimations({ subtree: true }).filter((animation) => {
-          const target = (animation.effect as KeyframeEffect | null)?.target
-          return (
-            animation.playState === 'running' &&
-            !(target instanceof Element && target.closest('mask'))
-          )
-        }).length,
-    )
+    const runningAnimations = await ghost.evaluate(countRunningVisibleAnimations)
 
     expect(runningAnimations).toBe(EXPECTED_HALLOWEEN_ANIMATION_COUNT)
   })
@@ -287,12 +303,7 @@ test.describe('aside ghost', () => {
 
     await expect(ghost).toBeVisible()
 
-    const runningAnimations = await ghost.evaluate(
-      (node) =>
-        node
-          .getAnimations({ subtree: true })
-          .filter((animation) => animation.playState === 'running').length,
-    )
+    const runningAnimations = await ghost.evaluate(countRunningVisibleAnimations)
 
     expect(runningAnimations).toBe(EXPECTED_ANIMATION_COUNT)
   })
@@ -780,7 +791,7 @@ test.describe('aside ghost', () => {
         clip: { x: Math.floor(box.x - 10), y: Math.floor(box.y - 15), width: 100, height: 90 },
       })
     const positions = []
-    for (const phase of [0, 0.25, 0.42, 0.55, 0.72, 0.88, 1]) {
+    for (const phase of GESTURE_WAYPOINT_PHASES) {
       await seekGesture(phase)
       positions.push(
         await travel.evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).e),
@@ -791,7 +802,7 @@ test.describe('aside ghost', () => {
     expect(positions[3]).toBeCloseTo(5.5)
     expect(positions[4]).toBeCloseTo(2)
     expect(positions[6]).toBeCloseTo(-5)
-    await seekGesture(0.42, 0)
+    await seekGesture(OUTBOARD_PHASE, 0)
     const outsideClip = {
       x: Math.ceil(box.x + box.width + 3),
       y: Math.floor(box.y - 15),
@@ -799,16 +810,16 @@ test.describe('aside ghost', () => {
       height: 90,
     }
     const outboardFront = await page.screenshot({ clip: outsideClip })
-    await seekGesture(0.42, 1)
+    await seekGesture(OUTBOARD_PHASE, 1)
     expect((await page.screenshot({ clip: outsideClip })).equals(outboardFront)).toBe(true)
     await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
     expect((await page.screenshot({ clip: outsideClip })).equals(outboardFront)).toBe(false)
     await travel.evaluate((node) => node.removeAttribute('visibility'))
-    await seekGesture(0.72)
+    await seekGesture(INWARD_PHASE)
     const partial = await capture()
-    await seekGesture(0.72, 0)
+    await seekGesture(INWARD_PHASE, 0)
     expect((await capture()).equals(partial)).toBe(false)
-    await seekGesture(0.72)
+    await seekGesture(INWARD_PHASE)
     await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
     expect(await capture()).not.toEqual(partial)
     await travel.evaluate((node) => node.removeAttribute('visibility'))
@@ -817,6 +828,34 @@ test.describe('aside ghost', () => {
     await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
     expect((await capture()).equals(behind)).toBe(true)
     expect(await depth.evaluate((node) => getComputedStyle(node).opacity)).toBe('1')
+  })
+
+  test('carries the lantern at a continuous speed instead of stalling at each waypoint', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    const speeds = await travel.evaluate((node) => {
+      const animation = node
+        .getAnimations()
+        .find((candidate) => candidate.id === 'lantern-gesture-travel')
+      if (!animation) throw new Error('Expected the travel track.')
+      animation.pause()
+      const points: [number, number][] = []
+      for (let time = 0; time <= 900; time += 5) {
+        animation.currentTime = time
+        const { e, f } = new DOMMatrix(getComputedStyle(node).transform)
+        points.push([e, f])
+      }
+      return points
+        .slice(1)
+        .map(([x, y], index) => Math.hypot(x - points[index][0], y - points[index][1]) / 5)
+    })
+    // The envelope tapers both ends to rest on purpose, so only the cruising middle is compared.
+    const middle = speeds.slice(Math.round(speeds.length * 0.25), Math.round(speeds.length * 0.75))
+    // Per-segment easing used to drop the lantern to a near standstill at every waypoint.
+    expect(Math.min(...middle)).toBeGreaterThan(Math.max(...middle) * 0.6)
   })
 
   test('keeps both owned gesture tracks at the endpoint after an immediate reversal', async ({

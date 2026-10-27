@@ -35,3 +35,34 @@ The accepted path, mask, 900ms travel timing, hidden endpoint and existing gentl
 ## Closer, faster tuning
 
 Prototype the new 5.5px maximum reach first (previously 7px), with 900ms travel (previously 1200ms), and the 250ms entry settling tail. Compare native-size and 4x sequences before focused checks. Preserve the accepted body-mask mechanism, path shape, final held/hidden registration and existing small idle swing. Local edge occlusion during the outboard turn is allowed; do not preserve an internal zero-pixel depth-switch criterion at the expense of the requested shorter reach. If the 5.5px prototype creates an artificial frame disappearance, use 6.2px for the two apex poses only after visual comparison. No new controller, geometry wrapper, extra lean or opacity animation. Update existing duration-derived assertions and run only the relevant focused gesture checks after visual acceptance.
+
+## Continuous travel
+
+After the reach was shortened to 5.5 units and travel to 900ms, the arc read as four stops rather
+than one gesture. A per-frame measurement of the live travel transform confirmed the cause before
+any edit: speed collapsed to roughly 1.4 units per second at 180ms, 337ms, 445ms and 602ms - one
+standstill at every waypoint - because each keyframe segment carried its own `ease-in-out`, which
+forces zero velocity at both of its ends. Peak speed also swung about sixfold between segments,
+since the short outboard turn held 13% of the timeline while the long rear leg held 28%.
+
+The correction keeps the accepted path, the 5.5-unit reach, the 900ms duration, the mask mechanism,
+the hidden endpoint, the reversal handling and the 250ms entry settling tail. Only the timing
+changes:
+
+- Remove every per-keyframe easing from the travel track and apply one `ease-in-out` envelope over
+  the whole 900ms instead, so the gesture accelerates once and decelerates once.
+- Distribute keyframe offsets by path arc length - 0, .189, .343, .378, .584, 1 - so each segment
+  receives time in proportion to the distance it covers and no joint changes speed.
+- Give the depth track the identical duration and easing, and move its switch to offsets .35 and
+  .375 so it still completes while the lantern sits at the outboard apex.
+
+Measured result across the full timeline at 2ms resolution: speed rises smoothly from rest to about
+33 units per second, holds that cruise through the turn and the rear leg, then tapers back to rest.
+The only remaining frame-to-frame speed change is a single sample straddling the apex corner, which
+is a chord-measurement artifact rather than motion. Translation now glides to a halt immediately
+before the rotational settle begins, so the two read as one movement.
+
+Keyframe offsets are no longer timeline fractions, so focused checks seek the eased positions of the
+waypoints: 0, .301, .41, .427, .549, .78 and 1. A speed-continuity check guards the regression
+directly by sampling the paused travel track and asserting the cruising middle never drops below
+60% of its peak.
