@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Form } from './Form'
 import { ELanguage } from '@/constants/header.constants'
+import { EAppearance } from '@/constants/theme.constants'
 import { I18nContext } from '@/contexts/i18'
 import { EContactField, EContactSubmissionStatus } from '@/home-sections/Contact/types/contact.type'
 import type { ContactSubmissionState } from '@/home-sections/Contact/types/submission.type'
@@ -174,7 +175,7 @@ beforeEach(async () => {
     root.render(
       createElement(
         Providers,
-        { initialLanguage: ELanguage.en },
+        { initialLanguage: ELanguage.en, initialAppearance: EAppearance.original },
         createElement(Form),
         createElement(LanguageControl),
       ),
@@ -193,7 +194,11 @@ describe('contact form accessibility', () => {
   it('keeps server-rendered controls disabled until hydration can receive their events', () => {
     const shell = document.createElement('div')
     shell.innerHTML = renderToString(
-      createElement(Providers, { initialLanguage: ELanguage.en }, createElement(Form)),
+      createElement(
+        Providers,
+        { initialLanguage: ELanguage.en, initialAppearance: EAppearance.original },
+        createElement(Form),
+      ),
     )
 
     const message = shell.querySelector<HTMLTextAreaElement>('#contact-message')

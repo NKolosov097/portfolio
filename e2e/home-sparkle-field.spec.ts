@@ -5,6 +5,14 @@ import en from '@public/locales/en.json'
 import { clickWhenSettled } from './helpers/interaction'
 
 import { ETabID } from '@/constants/header.constants'
+import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
+
+/** This suite exercises the original sparkle field, which only renders in the original appearance. */
+test.beforeEach(async ({ context }) => {
+  await context.addCookies([
+    { name: APPEARANCE_COOKIE_KEY, value: EAppearance.original, domain: 'localhost', path: '/' },
+  ])
+})
 
 test.describe('home sparkle field', () => {
   test('fades the field in behind the hero', async ({ page }) => {

@@ -65,6 +65,17 @@ body {
   }
 }
 
+/* Seasonal accent only; backgrounds stay near-black so semantic/error colors keep their meaning. */
+html[data-appearance='halloween'],
+html[data-appearance='halloween'] body.g-root {
+  --g-color-line-brand: #ffb565;
+  --g-card-background-color: rgb(58 36 74 / 45%);
+  --halloween-ember: #ffb565;
+  --halloween-haze: #8b5fbf;
+  --root-bg-color: #101012;
+  --aside-bg-color: #101012;
+}
+
 html:has(.g-modal_open) {
   overflow: hidden;
 }
@@ -305,7 +316,8 @@ footer,
 @media screen and (width <= 1024px) {
   html,
   body {
-    --header-height: 60px;
+    /* Taller than desktop to reserve room for the globe + appearance switch stacked in a column. */
+    --header-height: 128px;
     --aside-width: 0;
     --aside-max-height: 100vh;
     --body-horizontal-gap: 0;

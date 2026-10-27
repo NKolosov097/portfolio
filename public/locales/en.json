@@ -30,6 +30,10 @@
 
   "skipToNavigationLink": "Skip to navigation",
 
+  "appearance": {
+    "toggleLabel": "Halloween theme"
+  },
+
   "aside": {
     "specialization": "Specialization",
     "basedIn": "Based in",

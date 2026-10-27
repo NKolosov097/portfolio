@@ -30,6 +30,10 @@
 
   "skipToNavigationLink": "Перейти к навигации",
 
+  "appearance": {
+    "toggleLabel": "Тема Halloween"
+  },
+
   "aside": {
     "specialization": "Должность",
     "basedIn": "Живу в",

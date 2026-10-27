@@ -65,7 +65,7 @@ The app is a **single-page portfolio plus a small set of statically generated ar
 RootLayout (layout.tsx)
 â””â”€ Providers              â† i18n, theme, Zustand store providers
    â”œâ”€ SkipToNavigationLink
-   â”œâ”€ Header              â† navigation tabs + language switch
+   â”œâ”€ Header              â† navigation tabs + language switch + appearance switch
    â”œâ”€ Aside               â† mobile drawer
    â”œâ”€ Main                â† route loading boundaries stay inside the shell
    â”‚  â”œâ”€ HomePage / HomePageSkeleton                 â† "/"
@@ -82,6 +82,7 @@ Key architectural decisions:
 - **Section ownership.** Each section under `src/home-sections/<Section>/` owns its own types, sub-components, schemas, and server actions - no cross-section coupling.
 - **Article content as code.** Each article's body lives in `src/content/articles/<slug>/`, registered in `src/content/articles/registry.ts` by slug; article metadata (title, description, publish date, reading time) lives separately in `src/constants/articles.constants.ts` so route generation and SEO don't need to import the body component.
 - **Server-side theming.** The Gravity UI dark theme is resolved with `getRootClassName` in the root layout, so the correct theme class is present on first paint (no client flash).
+- **Seasonal appearance.** A separate `original | halloween` appearance (`src/constants/theme.constants.ts`) is resolved server-side from the `portfolio-appearance` cookie (Halloween is the default), applied as `data-appearance` on `<html>` before first paint, and flipped client-side via the Header's appearance switch, which updates state, the attribute, and a one-year cookie together.
 - **Server-only boundaries.** Database and mail singletons live in `src/lib/` and are guarded with `import 'server-only'`; server actions are marked `'use server'`.
 - **Path aliases.** `@/*` â†’ `src/*`, `@public/*` â†’ `public/*`, and `@tests/*` â†’ `tests/*` (configured in `tsconfig.json`, the ESLint resolver, and `vitest.config.mts`).
 
@@ -263,6 +264,17 @@ What is covered today:
   reports success, stores the submission, and records a failed notification attempt for retry.
 - **Home sparkle field** (`e2e/home-sparkle-field.spec.ts`) - the canvas fades in behind the hero
   without covering the headline, and holds a still frame under `prefers-reduced-motion: reduce`.
+  This suite opts into the original appearance, since the sparkle field only renders there.
+- **Appearance switch** (`e2e/appearance-switch.spec.ts`) - Halloween is the default with no
+  cookie set, toggling persists the `portfolio-appearance` cookie across reload and route
+  navigation, toggling back restores the Halloween artwork and drops the sparkle field, the
+  switch responds to both Enter and Space, and on narrow viewports the switch stays a 44px tap
+  target below the language globe without overlapping the tabs.
+- **Halloween motion** (`e2e/halloween-motion.spec.ts`) - the hero combines three photographic
+  layers with 18 rising CSS sparks and candlelight confined to the carved openings. The ghost
+  carries a photographic lantern with localized light and a gentle swing. Motion tests cover
+  staged reveals, continuous spark coverage, stable pumpkin geometry and reduced motion;
+  `e2e/aside-ghost.spec.ts` covers lantern visibility, swing, light and image fallback.
 - **Self-hosted articles** (`e2e/articles.spec.ts`) - the article is listed on `/articles`, its
   page renders with a heading and content, an in-page anchor scrolls a section clear of the fixed
   header, the body switches language with the site's language switcher, and opening a Writing card

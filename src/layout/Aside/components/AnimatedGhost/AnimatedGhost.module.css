@@ -137,3 +137,132 @@
     animation: none;
   }
 }
+
+.lanternTravel {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transform: translate(-9px, -0.6px);
+  transition: transform 520ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lanternTravel[data-present='true'] {
+  transform: translate(0, 0);
+}
+
+.lanternInertia {
+  transform-box: view-box;
+  transform-origin: 12.15px 6.1px;
+}
+
+.lanternLight {
+  opacity: 0.9;
+}
+
+.lanternHalo {
+  opacity: 0.24;
+  filter: blur(0.55px);
+}
+
+/* SVG viewBox coordinates anchor the swing at the top of the handle. */
+.lanternSwing {
+  transform-box: view-box;
+  transform-origin: 12.15px 6.1px;
+  animation: lantern-swing 4.6s ease-in-out infinite;
+}
+
+:global(html[data-appearance='original']) .lanternSwing {
+  animation-play-state: paused;
+}
+
+@keyframes lantern-swing {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+:global(html[data-appearance='halloween']) .lanternLight {
+  animation: lantern-candle 3.7s ease-in-out infinite;
+}
+
+:global(html[data-appearance='halloween']) .lanternHalo {
+  animation: lantern-halo 3.7s ease-in-out infinite;
+}
+
+@keyframes lantern-candle {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+
+  13% {
+    opacity: 1;
+  }
+
+  29% {
+    opacity: 0.72;
+  }
+
+  37% {
+    opacity: 0.91;
+  }
+
+  61% {
+    opacity: 0.78;
+  }
+
+  79% {
+    opacity: 0.96;
+  }
+
+  91% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes lantern-halo {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+
+  13% {
+    opacity: 0.3;
+  }
+
+  29% {
+    opacity: 0.19;
+  }
+
+  37% {
+    opacity: 0.26;
+  }
+
+  61% {
+    opacity: 0.21;
+  }
+
+  79% {
+    opacity: 0.28;
+  }
+
+  91% {
+    opacity: 0.22;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lanternTravel {
+    transition: none;
+  }
+
+  .lanternSwing,
+  :global(html[data-appearance='halloween']) .lanternLight,
+  :global(html[data-appearance='halloween']) .lanternHalo {
+    animation: none;
+  }
+}

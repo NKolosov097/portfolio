@@ -1,11 +1,14 @@
 import styles from './AnimatedGhost.module.css'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 
 import {
   type IGhostTickleRun,
   startGhostTickle,
 } from '@/layout/Aside/components/AnimatedGhost/ghostTickle'
+
+import { EAppearance } from '@/constants/theme.constants'
+import { AppearanceContext } from '@/contexts/appearance'
 
 interface IAnimatedGhostProps {
   /** Rendered width of the ghost in pixels; mirrors the Gravity icon sizing API. */
@@ -14,13 +17,91 @@ interface IAnimatedGhostProps {
   height?: number
 }
 
+/** Aside mascot that plays a tickle animation on click. */
 export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) => {
+  // Keep lantern sprite and clip references distinct when multiple mascots are mounted.
+  const lanternId = useId()
+  const { appearance } = useContext(AppearanceContext)
+  const [isLanternReady, setIsLanternReady] = useState(false)
+  const inertiaRef = useRef<SVGGElement>(null)
+  const hasPresentedRef = useRef(false)
+  const isPresent = isLanternReady && appearance === EAppearance.halloween
+  const [lanternSource, setLanternSource] = useState('/assets/img/halloween/lantern.avif')
   const [isTickling, setIsTickling] = useState(false)
   const bodyRef = useRef<SVGGElement>(null)
   const eyesRef = useRef<SVGGElement>(null)
   const activeRunRef = useRef<IGhostTickleRun | null>(null)
   const runIdRef = useRef(0)
 
+  // Probe after hydration because an SVG image can fail before React attaches event handlers.
+  useEffect(() => {
+    let isActive = true
+    const image = new Image()
+    image.src = '/assets/img/halloween/lantern.avif'
+    image
+      .decode()
+      .catch(async () => {
+        if (!isActive) return
+        setLanternSource('/assets/img/halloween/lantern.webp')
+        const fallback = new Image()
+        fallback.src = '/assets/img/halloween/lantern.webp'
+        await fallback.decode().catch(() => undefined)
+      })
+      .then(() => {
+        if (isActive) setIsLanternReady(true)
+      })
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  // Keep settling inertia independent of travel and preserve its pose on rapid reversals.
+  useEffect(() => {
+    const node = inertiaRef.current
+    if (!node) return
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let animation: Animation | undefined
+    if (isPresent || hasPresentedRef.current) {
+      hasPresentedRef.current ||= isPresent
+      if (!preference.matches) {
+        const angles = isPresent ? [-18, 11, -6, 2, 0] : [12, -17, 7, -2, 0]
+        const offsets = isPresent ? [0.22, 0.47, 0.68, 0.85, 1] : [0.2, 0.45, 0.68, 0.85, 1]
+        animation = node.animate(
+          [
+            { transform: getComputedStyle(node).transform, offset: 0 },
+            ...angles.map((angle, index) => ({
+              transform: `rotate(${angle}deg)`,
+              offset: offsets[index],
+            })),
+          ],
+          { duration: isPresent ? 850 : 650, easing: 'ease-out', fill: 'none' },
+        )
+        animation.id = isPresent ? 'lantern-enter' : 'lantern-exit'
+        animation.onfinish = () => {
+          node.style.transform = ''
+        }
+      } else {
+        node.style.transform = ''
+      }
+    }
+    // A live motion preference change settles the current pose immediately.
+    const handleMotionChange = () => {
+      if (preference.matches) {
+        if (animation) animation.onfinish = null
+        animation?.cancel()
+        node.style.transform = ''
+      }
+    }
+    preference.addEventListener('change', handleMotionChange)
+    return () => {
+      node.style.transform = getComputedStyle(node).transform
+      if (animation) animation.onfinish = null
+      animation?.cancel()
+      preference.removeEventListener('change', handleMotionChange)
+    }
+  }, [isPresent])
+
+  // Restart the interaction while preventing an old completion from ending the new run.
   const handleTickle = useCallback(() => {
     const body = bodyRef.current
     const eyes = eyesRef.current
@@ -47,6 +128,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     )
   }, [])
 
+  // Cancel the active interaction when this mascot leaves the page.
   useEffect(
     () => () => {
       runIdRef.current += 1
@@ -74,6 +156,26 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
         data-testid="aside-ghost"
         className={styles.ghost}
       >
+        <defs>
+          <image
+            key={lanternSource}
+            id={`${lanternId}-image`}
+            href={lanternSource}
+            width="1122"
+            height="1402"
+            preserveAspectRatio="xMidYMid meet"
+          />
+          <clipPath id={`${lanternId}-occlusion`} clipPathUnits="userSpaceOnUse">
+            <path d="M7.5 -4Q9.5 8 7.5 24H30V-4Z" />
+          </clipPath>
+          <clipPath id={`${lanternId}-glass`} clipPathUnits="userSpaceOnUse">
+            <polygon points="370,610 445,575 560,560 690,578 778,610 778,1115 370,1115" />
+          </clipPath>
+          <radialGradient id={`${lanternId}-halo`}>
+            <stop offset="0%" stopColor="#ffb94f" />
+            <stop offset="100%" stopColor="#ffb94f" stopOpacity="0" />
+          </radialGradient>
+        </defs>
         <g ref={bodyRef} className={styles.tickleBody} data-testid="aside-ghost-body">
           <g className={styles.sway} data-idle-layer="sway">
             <g className={styles.breathe}>
@@ -88,6 +190,50 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
                 <g ref={eyesRef} className={styles.eyeBlink}>
                   <circle cx="7" cy="7" r="0.7" fill="currentColor" />
                   <circle cx="11" cy="7" r="0.7" fill="currentColor" />
+                </g>
+              </g>
+            </g>
+          </g>
+
+          <g clipPath={`url(#${lanternId}-occlusion)`}>
+            <g
+              className={styles.lanternTravel}
+              data-testid="aside-ghost-lantern-travel"
+              data-present={isPresent}
+            >
+              {/* Swing inside the positioning group so the handle stays attached to the hand. */}
+              <g
+                className={styles.lantern}
+                data-testid="aside-ghost-lantern"
+                aria-hidden="true"
+                transform="translate(1.2 1.1) scale(0.9)"
+              >
+                <g
+                  ref={inertiaRef}
+                  className={styles.lanternInertia}
+                  data-testid="aside-ghost-lantern-inertia"
+                >
+                  <g className={styles.lanternSwing} data-testid="aside-ghost-lantern-swing">
+                    <circle
+                      className={styles.lanternHalo}
+                      cx="12.15"
+                      cy="12.4"
+                      r="3.6"
+                      fill={`url(#${lanternId}-halo)`}
+                      opacity="0.24"
+                    />
+                    <g transform="translate(8.006 5.8784) scale(0.007387)">
+                      <use href={`#${lanternId}-image`} filter="brightness(1.1)" />
+                      <g
+                        className={styles.lanternLight}
+                        data-testid="aside-ghost-lantern-light"
+                        clipPath={`url(#${lanternId}-glass)`}
+                        pointerEvents="none"
+                      >
+                        <use href={`#${lanternId}-image`} filter="brightness(1.3)" />
+                      </g>
+                    </g>
+                  </g>
                 </g>
               </g>
             </g>
