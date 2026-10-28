@@ -336,11 +336,16 @@ test.describe('appearance switch', () => {
           right: imageBox.x + (alpha.right / alpha.width) * imageBox.width,
           bottom: imageBox.y + (alpha.bottom / alpha.height) * imageBox.height,
         }
-        // The track is 28px wide and vertical at every width, so one bound covers both.
-        expect(visible.x).toBeGreaterThanOrEqual(trackBox.x - 1)
-        expect(visible.right).toBeLessThanOrEqual(trackBox.x + 28 + 1)
-        // Only the halloween thumb sits at the top, where the carving overhangs the track.
-        if (checked === 'true') expect(visible.y).toBeLessThan(trackBox.y)
+        if (width <= 1024) {
+          expect(visible.x).toBeGreaterThanOrEqual(trackBox.x - 1)
+          expect(visible.right).toBeLessThanOrEqual(trackBox.x + 28 + 1)
+        } else {
+          expect(visible.x).toBeGreaterThanOrEqual(trackBox.x)
+          expect(visible.right).toBeLessThanOrEqual(trackBox.x + trackBox.width + 1)
+        }
+        if (width > 1024 || checked === 'true') {
+          expect(visible.y).toBeLessThan(trackBox.y)
+        }
         expect(
           visible.x < globeBox.x + globeBox.width &&
             visible.right > globeBox.x &&
@@ -350,9 +355,13 @@ test.describe('appearance switch', () => {
         positions.push(imageBox)
         await toggle.click()
       }
-      // Unchecked slides straight down the track; the thumb never moves sideways.
-      expect(positions[1].y - positions[0].y).toBeCloseTo(32, 1)
-      expect(positions[1].x).toBeCloseTo(positions[0].x, 1)
+      if (width <= 1024) {
+        expect(positions[1].y - positions[0].y).toBeCloseTo(32, 1)
+        expect(positions[1].x).toBeCloseTo(positions[0].x, 1)
+      } else {
+        expect(positions[1].x - positions[0].x).toBeCloseTo(26, 1)
+        expect(positions[1].y).toBeCloseTo(positions[0].y, 1)
+      }
     })
   }
 })
