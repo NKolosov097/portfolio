@@ -1,0 +1,205 @@
+/* The SVG viewBox is now a smaller window onto a wider canvas than the original
+   `object-fit: cover`-style crop, so the parent `.halloweenArt` sizes this
+   element and it's positioned/scaled to re-create the same visible crop. */
+.scene {
+  position: absolute;
+  left: 70%;
+  top: 50%;
+  width: max(100cqw, 150cqh);
+  height: max(100cqh, calc(100cqw / 1.5));
+  transform: translate(-70%, -50%);
+}
+
+@media screen and (width <= 1024px) {
+  .scene {
+    left: 85%;
+    transform: translate(-85%, -50%);
+  }
+}
+
+.ground,
+.groundLight,
+.sparks,
+.pumpkinUnlit,
+.ignition {
+  opacity: 0;
+}
+
+/* Nested inside .ignition, so it rides the parent's reveal; its own opacity
+   keyframes only breathe the candle glow, never translate/scale the shell. */
+.candleLight {
+  opacity: 0.58;
+}
+
+.groundLight {
+  mix-blend-mode: screen;
+}
+
+/* Moody substrate: the ground sits a touch darker than the lit elements above it. */
+.ground {
+  filter: brightness(0.72);
+}
+
+/* Staged reveal: ground -> unlit pumpkin -> ignition/ground-light -> sparks,
+   fully composed by 1.2s from mount. */
+.scene[data-ready='true'] .ground {
+  animation: reveal 0.35s ease-out 0s forwards;
+}
+
+.scene[data-ready='true'] .pumpkinUnlit {
+  animation: reveal 0.5s ease-out 0.15s forwards;
+}
+
+.scene[data-ready='true'] .ignition {
+  animation: reveal 0.4s ease-out 0.45s forwards;
+}
+
+.scene[data-ready='true'] .groundLight {
+  animation: reveal-glow 0.4s ease-out 0.45s forwards;
+}
+
+.scene[data-ready='true'] .sparks {
+  animation: reveal 0.55s ease-out 0.65s forwards;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Ground glow settles at a steady, partial opacity rather than full reveal. */
+@keyframes reveal-glow {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.6;
+  }
+}
+
+/* Candle glow: opacity-only breathing, no transform/scale on the shell or its
+   light. */
+.scene[data-ready='true'] .candleLight {
+  animation: candle-light 4.9s linear infinite;
+}
+
+@keyframes candle-light {
+  0% {
+    opacity: 0.58;
+  }
+
+  7% {
+    opacity: 0.76;
+  }
+
+  12% {
+    opacity: 0.45;
+  }
+
+  18% {
+    opacity: 0.69;
+  }
+
+  29% {
+    opacity: 0.54;
+  }
+
+  34% {
+    opacity: 0.82;
+  }
+
+  39% {
+    opacity: 0.62;
+  }
+
+  53% {
+    opacity: 0.73;
+  }
+
+  61% {
+    opacity: 0.48;
+  }
+
+  67% {
+    opacity: 0.71;
+  }
+
+  79% {
+    opacity: 0.59;
+  }
+
+  88% {
+    opacity: 0.78;
+  }
+
+  94% {
+    opacity: 0.64;
+  }
+
+  100% {
+    opacity: 0.58;
+  }
+}
+
+.spark {
+  opacity: 0;
+}
+
+.scene[data-ready='true'] .spark {
+  animation-name: spark-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Transparent endpoints conceal each particle reset behind overlapping emissions. */
+@keyframes spark-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  15% {
+    opacity: 0.8;
+  }
+
+  65% {
+    opacity: 0.65;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--spark-drift), -440px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene[data-ready='true'] .ground,
+  .scene[data-ready='true'] .pumpkinUnlit,
+  .scene[data-ready='true'] .ignition,
+  .scene[data-ready='true'] .sparks {
+    animation: none;
+    opacity: 1;
+  }
+
+  .scene[data-ready='true'] .groundLight {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .scene[data-ready='true'] .candleLight {
+    animation: none;
+    opacity: 0.65;
+  }
+
+  .scene[data-ready='true'] .spark {
+    animation: none;
+    transform: translate(0, -100px);
+    opacity: 0.55;
+  }
+}

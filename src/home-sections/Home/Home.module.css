@@ -1,11 +1,13 @@
+/* Halloween's full-bleed hero backdrop is the shared layout for both appearances. */
 .section {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: var(--min-height-section);
-  margin-top: 25px;
+  min-height: calc(100svh - var(--header-height) - 2 * var(--body-padding));
+  margin-top: 0;
   margin-bottom: calc(2 * var(--body-padding));
+  padding-bottom: 20px;
   text-align: start;
   isolation: isolate;
 }
@@ -64,23 +66,73 @@
   }
 }
 
-@media screen and (width <= 900px) {
-  .header {
-    font-size: 2.3rem;
-    line-height: 2.3rem;
-  }
+.halloweenArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: clip;
+  pointer-events: none;
+  container-type: size;
+}
+
+/* Reserves the art slot's footprint in the original appearance without rendering its contents. */
+.artHidden {
+  visibility: hidden;
+}
+
+.halloweenArt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      var(--root-bg-color),
+      transparent 15%,
+      transparent 60%,
+      var(--root-bg-color) 100%
+    ),
+    linear-gradient(
+      to right,
+      var(--root-bg-color),
+      transparent 15%,
+      transparent 90%,
+      var(--root-bg-color)
+    );
+  pointer-events: none;
 }
 
 @media screen and (width <= 1024px) {
   .section {
     justify-content: center;
     align-items: center;
+    gap: 0;
+    padding-bottom: 24px;
   }
 
+  /* Never static: the full-bleed SVG scene inside needs a positioned ancestor. */
+  .halloweenArt {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: clamp(250px, 80vw, 440px);
+    flex-shrink: 0;
+    margin: 0 auto 20px;
+    z-index: 0;
+  }
+
+  /* Keeps the backdrop + heading readable down to a 320px-wide viewport without clipping the surname. */
   .header,
   .profession {
-    font-size: 3.5rem;
-    line-height: 3.5rem;
+    font-size: clamp(2.2rem, 12.8vw, 3.5rem);
+    line-height: 1.04;
+    max-width: min(10ch, 100%);
     text-align: center;
+  }
+
+  .header {
+    margin-top: 20px;
   }
 }

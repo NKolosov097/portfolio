@@ -1,18 +1,171 @@
 import { expect, test } from '@playwright/test'
 
-import { revealAside } from './helpers/aside'
+import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
+
+import { revealAside as revealAsideImmediately } from './helpers/aside'
 import { openLanguageMenu } from './helpers/language'
 
 /** bob + sway + breathe on the body, plus the two eye animations. */
 const EXPECTED_ANIMATION_COUNT = 5
+
+/** The idle five plus lantern swing, clipped light and halo flicker in halloween. */
+const EXPECTED_HALLOWEEN_ANIMATION_COUNT = 8
 
 /** Frame sampling window for the 180ms reduced-motion giggle, which a single read can miss. */
 const REDUCED_MOTION_SAMPLE_WINDOW_MS = 1_500
 
 const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
 
+/**
+ * Budget for waiting out the 900ms gesture in wall-clock time. A loaded CI runner advanced its
+ * timeline at roughly a fifth of real time, leaving the lantern short of its endpoint at 5s.
+ */
+const GESTURE_SETTLE_TIMEOUT_MS = 20_000
+
+/** Ceiling on waiting for a paint before a screenshot, since rAF can stall on a loaded runner. */
+const FRAME_WAIT_CEILING_MS = 250
+
+/**
+ * Timeline fractions that land on the travel waypoints. One ease spans the whole gesture, so
+ * these are the eased positions of the keyframe offsets rather than the offsets themselves.
+ */
+const GESTURE_WAYPOINT_PHASES = [0, 0.204, 0.33, 0.347, 0.5097, 0.75, 1]
+
+/** Middle of the outboard dwell, where switching depth must change no visible pixel. */
+const OUTBOARD_PHASE = 0.337
+
+/** The inward rear leg, where the body already occludes part of the lantern. */
+const INWARD_PHASE = 0.5097
+
+/**
+ * Profiles that run the masked-pixel comparisons. The mask renders the same at every viewport, so
+ * one profile per engine is the whole signal; the other WebKit profiles each paid several slow
+ * screenshots for no extra coverage, and timed out doing it. Mirrors the DOOM allowlist in
+ * playwright.config.ts, which narrows an engine-dependent spec the same way.
+ */
+const PIXEL_PROJECTS = new Set(['chromium', 'firefox', 'mobile-safari'])
+
+/** Skips the masked-pixel work outside those profiles. */
+const skipOutsidePixelProjects = () =>
+  test.skip(
+    !PIXEL_PROJECTS.has(test.info().project.name),
+    'one profile per engine already covers the mask',
+  )
+
+/**
+ * Counts idle layers the visitor can actually see. The occlusion mask carries its own copy of the
+ * body's sway and breathe so the silhouette tracks it, and those duplicates are not visible motion.
+ */
+function countRunningVisibleAnimations(node: Element): number {
+  return node.getAnimations({ subtree: true }).filter((animation) => {
+    const target = (animation.effect as KeyframeEffect | null)?.target
+    return (
+      animation.playState === 'running' && !(target instanceof Element && target.closest('mask'))
+    )
+  }).length
+}
+
+/**
+ * Stages a stowing gesture for the depth checks: pins the mascot at fixed pixels and freezes its
+ * idle loops so a clipped screenshot captures only the masked artwork, then starts the stow and
+ * hands back a seek helper plus the two regions the comparisons use. Shared because the checks are
+ * split one concern per test - together they overran the budget on CI's slower WebKit builds, and
+ * once took the web process down with them.
+ */
+async function stageLanternGesture(page: import('@playwright/test').Page) {
+  await page.goto('/')
+  const aside = await revealAside(page)
+  const ghost = aside.getByTestId('aside-ghost')
+  const travel = aside.getByTestId('aside-ghost-lantern-travel')
+  await ghost.evaluate((node) => {
+    node.setAttribute('style', 'position:fixed;left:100px;top:100px;z-index:999999')
+    for (const animation of node.getAnimations({ subtree: true })) {
+      animation.pause()
+      if (animation.effect?.getTiming().iterations === Infinity) animation.currentTime = 0
+    }
+  })
+  await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+  /** Seeks both persistent tracks together while holding the separate settling inertia steady. */
+  const seekGesture = async (phase: number, depthPhase = phase) => {
+    await ghost.evaluate(
+      (node, sample) => {
+        for (const animation of node.getAnimations({ subtree: true })) {
+          animation.pause()
+          if (animation.id === 'lantern-gesture-travel') animation.currentTime = sample.phase * 900
+          if (animation.id === 'lantern-gesture-depth')
+            animation.currentTime = sample.depthPhase * 900
+          if (animation.id === 'lantern-exit') animation.currentTime = 90
+        }
+      },
+      { phase, depthPhase },
+    )
+    await page.evaluate((ceilingMs) => {
+      /**
+       * Prefer a real frame, so WebKit has applied the seek before the screenshot below, but never
+       * block on one. This repo already measured rAF stalling on a loaded CI runner while timers
+       * held ~15ms - see the note on SETTLE_SAMPLE_MS in helpers/interaction.ts - and waiting
+       * unbounded here burned the whole 90s budget. The timer is the ceiling, not the usual path:
+       * a screenshot rasterises current styles regardless of whether a frame was scheduled.
+       */
+      return new Promise<void>((resolve) => {
+        let hasSettled = false
+        const settle = () => {
+          if (hasSettled) return
+          hasSettled = true
+          resolve()
+        }
+        requestAnimationFrame(() => requestAnimationFrame(settle))
+        setTimeout(settle, ceilingMs)
+      })
+    }, FRAME_WAIT_CEILING_MS)
+  }
+  const box = await ghost.boundingBox()
+  if (!box) throw new Error('Expected visible ghost bounds.')
+  return {
+    ghost,
+    travel,
+    seekGesture,
+    /** Covers the mascot plus the margin the lantern reaches outside its 16x16 viewBox. */
+    aroundGhost: { x: Math.floor(box.x - 10), y: Math.floor(box.y - 15), width: 100, height: 90 },
+    /** The strip past the right outline, where only the outboard lantern can draw anything. */
+    rightOfGhost: {
+      x: Math.ceil(box.x + box.width + 3),
+      y: Math.floor(box.y - 15),
+      width: 35,
+      height: 90,
+    },
+  }
+}
+
+/** Let finite lantern presentation settle before measuring its steady artwork. */
+async function revealAside(page: import('@playwright/test').Page) {
+  const aside = await revealAsideImmediately(page)
+  const travel = aside.getByTestId('aside-ghost-lantern-travel')
+  const isHalloween =
+    (await page.locator('html').getAttribute('data-appearance')) === EAppearance.halloween
+  await expect(travel).toHaveAttribute('data-present', String(isHalloween))
+  await expect
+    .poll(() =>
+      travel.evaluate(
+        (node) =>
+          node
+            .getAnimations({ subtree: true })
+            .filter(
+              (animation) =>
+                animation.effect?.getTiming().iterations !== Infinity &&
+                animation.playState === 'running',
+            ).length,
+      ),
+    )
+    .toBe(0)
+  return aside
+}
+
 test.describe('aside ghost', () => {
-  test('uses the aside surface color for the language menu', async ({ page }) => {
+  test('uses the aside surface color for the language menu', async ({ context, page }) => {
+    await context.addCookies([
+      { name: APPEARANCE_COOKIE_KEY, value: EAppearance.original, domain: 'localhost', path: '/' },
+    ])
     await page.goto('/')
 
     const languageMenu = await openLanguageMenu(page)
@@ -20,7 +173,10 @@ test.describe('aside ghost', () => {
     await expect(languageMenu).toHaveCSS('background-color', ORIGINAL_ASIDE_BACKGROUND)
   })
 
-  test('uses the original aside surface on desktop', async ({ page }) => {
+  test('uses the original aside surface on desktop', async ({ context, page }) => {
+    await context.addCookies([
+      { name: APPEARANCE_COOKIE_KEY, value: EAppearance.original, domain: 'localhost', path: '/' },
+    ])
     await page.goto('/')
 
     await revealAside(page)
@@ -31,7 +187,10 @@ test.describe('aside ghost', () => {
     )
   })
 
-  test('uses the original aside surface in the mobile drawer', async ({ page }) => {
+  test('uses the original aside surface in the mobile drawer', async ({ context, page }) => {
+    await context.addCookies([
+      { name: APPEARANCE_COOKIE_KEY, value: EAppearance.original, domain: 'localhost', path: '/' },
+    ])
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/')
 
@@ -178,13 +337,17 @@ test.describe('aside ghost', () => {
           const seenIds = new Set<string>()
           let deadline = Number.POSITIVE_INFINITY
 
-          // Actionability can outlast the feedback window; start its clock at the real click.
-          node.addEventListener(
+          // Sample right after React's click handler, before the brief animation can finish.
+          window.addEventListener(
             'click',
             () => {
               deadline = performance.now() + windowMs
+
+              for (const { id } of node.getAnimations({ subtree: true })) {
+                if (id) seenIds.add(id)
+              }
             },
-            { capture: true, once: true },
+            { once: true },
           )
 
           const sample = () => {
@@ -221,9 +384,22 @@ test.describe('aside ghost', () => {
 
     await expect(ghost).toBeVisible()
 
-    const runningAnimations = await ghost.evaluate(
-      (node) => node.getAnimations({ subtree: true }).length,
-    )
+    const runningAnimations = await ghost.evaluate(countRunningVisibleAnimations)
+
+    expect(runningAnimations).toBe(EXPECTED_HALLOWEEN_ANIMATION_COUNT)
+  })
+
+  test('runs only the idle body layers in the original appearance', async ({ context, page }) => {
+    await context.addCookies([
+      { name: APPEARANCE_COOKIE_KEY, value: EAppearance.original, domain: 'localhost', path: '/' },
+    ])
+    await page.goto('/')
+
+    const ghost = (await revealAside(page)).getByTestId('aside-ghost')
+
+    await expect(ghost).toBeVisible()
+
+    const runningAnimations = await ghost.evaluate(countRunningVisibleAnimations)
 
     expect(runningAnimations).toBe(EXPECTED_ANIMATION_COUNT)
   })
@@ -244,6 +420,167 @@ test.describe('aside ghost', () => {
     expect(await readTransform()).not.toBe(firstFrame)
   })
 
+  test('shows a recognizable lantern at mascot size in halloween, and hides it in original', async ({
+    context,
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+
+    const halloweenGhost = (await revealAside(page)).getByTestId('aside-ghost')
+    const halloweenLantern = halloweenGhost.getByTestId('aside-ghost-lantern')
+
+    await expect(halloweenLantern).toBeVisible()
+
+    await expect
+      .poll(() =>
+        halloweenGhost.locator('defs image').evaluate(async (node) => {
+          const image = new Image()
+          image.src = node.getAttribute('href') ?? ''
+          return image.decode().then(
+            () => true,
+            () => false,
+          )
+        }),
+      )
+      .toBe(true)
+
+    // Shared sprite pixels keep the frame steady while the clipped glass alone flickers.
+    const sprite = await halloweenGhost.evaluate(async (node) => {
+      const definition = node.querySelector('defs image')
+      const href = definition?.getAttribute('href')
+      if (!href) throw new Error('Expected the lantern sprite definition.')
+      const image = new Image()
+      image.src = href
+      await image.decode()
+      const canvas = document.createElement('canvas')
+      canvas.width = image.naturalWidth
+      canvas.height = image.naturalHeight
+      const canvasContext = canvas.getContext('2d')
+      if (!canvasContext) throw new Error('Expected canvas support for visible sprite bounds.')
+      canvasContext.drawImage(image, 0, 0)
+      const { data } = canvasContext.getImageData(0, 0, canvas.width, canvas.height)
+      let left = canvas.width
+      let right = 0
+      for (let y = 0; y < canvas.height; y += 1) {
+        for (let x = 0; x < canvas.width; x += 1) {
+          if (data[(y * canvas.width + x) * 4 + 3] > 16) {
+            left = Math.min(left, x)
+            right = Math.max(right, x)
+          }
+        }
+      }
+      const visibleWidth = ((right - left + 1) / canvas.width) * 1122 * 0.007387 * 0.9 * (50 / 16)
+      const overlay = node.querySelector('[data-testid="aside-ghost-lantern-light"]')
+      return {
+        visibleWidth,
+        definitions: node.querySelectorAll('defs image').length,
+        uses: node.querySelectorAll('use').length,
+        hasClip: overlay?.getAttribute('clip-path')?.startsWith('url(#'),
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        baseAnimations: node.querySelector('use')?.getAnimations().length,
+      }
+    })
+    expect(sprite.visibleWidth).toBeGreaterThanOrEqual(18)
+    expect(sprite.visibleWidth).toBeLessThanOrEqual(22)
+    expect(sprite).toMatchObject({
+      definitions: 1,
+      uses: 2,
+      hasClip: true,
+      width: 154,
+      height: 192,
+      baseAnimations: 0,
+    })
+
+    // The mobile drawer keeps sliding in; two separate boundingBox() reads can straddle that
+    // transition and compare a mid-slide ghost rect against a settled lantern rect (or vice versa),
+    // producing impossible containment failures. Reading both rects in one synchronous callback
+    // guarantees they describe the same frame.
+    const { ghostBox, lanternBox } = await halloweenGhost.evaluate((ghostNode) => {
+      const lanternNode = ghostNode.querySelector('[data-testid="aside-ghost-lantern"]')
+
+      if (!lanternNode) throw new Error('Expected the ghost to contain its lantern.')
+
+      const ghostRect = ghostNode.getBoundingClientRect()
+      const lanternRect = lanternNode.getBoundingClientRect()
+
+      return {
+        ghostBox: {
+          x: ghostRect.x,
+          y: ghostRect.y,
+          width: ghostRect.width,
+          height: ghostRect.height,
+        },
+        lanternBox: {
+          x: lanternRect.x,
+          y: lanternRect.y,
+          width: lanternRect.width,
+          height: lanternRect.height,
+        },
+      }
+    })
+    expect(lanternBox.width).toBeGreaterThanOrEqual(18)
+    // The DOM box includes preserved transparent padding; visible alpha is checked above.
+    expect(lanternBox.width).toBeLessThanOrEqual(24)
+    expect(lanternBox.height).toBeGreaterThanOrEqual(27)
+    expect(lanternBox.height).toBeLessThanOrEqual(32)
+
+    expect(lanternBox.x).toBeGreaterThanOrEqual(ghostBox.x)
+    expect(lanternBox.y).toBeGreaterThanOrEqual(ghostBox.y)
+    expect(lanternBox.x + lanternBox.width).toBeLessThanOrEqual(ghostBox.x + ghostBox.width)
+    expect(lanternBox.y + lanternBox.height).toBeLessThanOrEqual(ghostBox.y + ghostBox.height)
+
+    await context.addCookies([
+      { name: APPEARANCE_COOKIE_KEY, value: EAppearance.original, domain: 'localhost', path: '/' },
+    ])
+    await page.goto('/')
+
+    const originalLantern = (await revealAside(page))
+      .getByTestId('aside-ghost')
+      .getByTestId('aside-ghost-lantern')
+
+    await expect(originalLantern.locator('..')).toHaveCSS(
+      'transform',
+      'matrix(1, 0, 0, 1, -5, -4.2)',
+    )
+  })
+
+  test('loads the lantern WebP sibling when its primary image fails', async ({ page }) => {
+    await page.route('**/lantern.avif', (route) => route.abort())
+    await page.goto('/')
+    const ghost = (await revealAside(page)).getByTestId('aside-ghost')
+    const definition = ghost.locator('defs image')
+    await expect(definition).toHaveAttribute('href', '/assets/img/halloween/lantern.webp')
+    expect(
+      await definition.evaluate(async (node) => {
+        const image = new Image()
+        image.src = node.getAttribute('href') ?? ''
+        await image.decode()
+        return image.naturalHeight
+      }),
+    ).toBe(192)
+  })
+
+  test('does not retry a failed lantern fallback', async ({ page }) => {
+    let fallbackRequests = 0
+    await page.route('**/lantern.avif', (route) => route.abort())
+    await page.route('**/lantern.webp', (route) => {
+      fallbackRequests += 1
+      return route.abort()
+    })
+    await page.goto('/')
+    const ghost = (await revealAside(page)).getByTestId('aside-ghost')
+    await expect(ghost.locator('defs image')).toHaveAttribute(
+      'href',
+      '/assets/img/halloween/lantern.webp',
+    )
+    await expect.poll(() => fallbackRequests).toBeGreaterThan(0)
+    const initialRequests = fallbackRequests
+    await page.waitForTimeout(500)
+    expect(fallbackRequests).toBe(initialRequests)
+  })
+
   test('holds completely still when the visitor prefers reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
@@ -253,9 +590,522 @@ test.describe('aside ghost', () => {
     await expect(ghost).toBeVisible()
 
     const runningAnimations = await ghost.evaluate(
-      (node) => node.getAnimations({ subtree: true }).length,
+      (node) =>
+        node
+          .getAnimations({ subtree: true })
+          .filter((animation) => animation.playState === 'running').length,
     )
 
     expect(runningAnimations).toBe(0)
+  })
+
+  test('swings the lantern gently around its handle', async ({ page }) => {
+    await page.goto('/')
+    const swing = (await revealAside(page)).getByTestId('aside-ghost-lantern-swing')
+    await expect(swing).toHaveCSS('transform-box', 'view-box')
+    await expect(swing).toHaveCSS('transform-origin', '12.15px 6.1px')
+
+    const motion = await swing.evaluate((node) => {
+      const animation = node.getAnimations()[0]
+      if (!animation) throw new Error('The lantern swing did not start.')
+      animation.pause()
+      // Sampling its own timeline avoids races with the ghost bob and drawer transition.
+      const angles = [0, 2300].map((time) => {
+        animation.currentTime = time
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(node).transform)
+        return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
+      })
+      return {
+        angles,
+        duration: animation.effect?.getTiming().duration,
+        iterations: animation.effect?.getTiming().iterations,
+      }
+    })
+    expect(motion.duration).toBe(4600)
+    expect(motion.iterations).toBe(Infinity)
+    expect(motion.angles[0]).toBeCloseTo(-3, 1)
+    expect(motion.angles[1]).toBeCloseTo(3, 1)
+  })
+
+  test('flickers the lantern flame continuously without moving it', async ({ page }) => {
+    await page.goto('/')
+
+    const flame = (await revealAside(page)).getByTestId('aside-ghost-lantern-light')
+
+    await expect(flame).toBeVisible()
+
+    const result = await flame.evaluate((node) => {
+      const animation = node
+        .getAnimations()
+        .find((candidate) => candidate.effect?.getTiming().duration === 3700)
+
+      if (!animation) throw new Error('The lantern flame animation did not start.')
+
+      const timing = animation.effect!.getTiming()
+      animation.pause()
+
+      // Opacity should be a controlled read at each sampled point, never a bare transform.
+      const readAt = (currentTime: number) => {
+        animation.currentTime = currentTime
+        const style = getComputedStyle(node)
+
+        return { opacity: Number(style.opacity), transform: style.transform }
+      }
+
+      return {
+        iterations: timing.iterations,
+        samples: [0, 925, 1850, 2775].map(readAt),
+      }
+    })
+
+    expect(result.iterations).toBe(Infinity)
+    expect(result.samples.every((sample) => sample.transform === 'none')).toBe(true)
+
+    const opacities = result.samples.map((sample) => sample.opacity)
+    expect(new Set(opacities).size).toBeGreaterThan(1)
+  })
+
+  test('keeps the lantern flame at a stable opacity for reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+
+    const flame = (await revealAside(page)).getByTestId('aside-ghost-lantern-light')
+
+    await expect(flame).toBeVisible()
+
+    const hasLightAnimation = await flame.evaluate((node) => node.getAnimations().length > 0)
+
+    expect(hasLightAnimation).toBe(false)
+
+    await expect(flame).toHaveCSS('opacity', '0.9')
+  })
+  test('draws the loaded lantern on initial Halloween with settling inertia', async ({ page }) => {
+    await page.addInitScript(() => {
+      const original = Element.prototype.animate
+      Element.prototype.animate = new Proxy(original, {
+        apply(target, node, args) {
+          const animation = Reflect.apply(target, node, args) as Animation
+          if (typeof args[1] === 'object' && args[1]?.duration === 1150) animation.pause()
+          return animation
+        },
+      })
+    })
+    await page.goto('/')
+    const aside = await revealAsideImmediately(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
+    await expect(travel).toHaveAttribute('data-present', 'true')
+    await expect
+      .poll(() =>
+        inertia.evaluate((node) =>
+          node.getAnimations().some((animation) => animation.id === 'lantern-enter'),
+        ),
+      )
+      .toBe(true)
+    const poses = await inertia.evaluate((node) => {
+      const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
+      if (!animation) throw new Error('Expected initial lantern inertia.')
+      // 900ms is the arrival; the swing leads it by 40ms, so 860 is the last neutral moment.
+      return [0, 450, 860, 900, 970, 1065, 1150].map((time) => {
+        animation.currentTime = time
+        const matrix = new DOMMatrix(getComputedStyle(node).transform)
+        return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
+      })
+    })
+    const [start, onTravel, atLead, atArrival, atPeak, atRebound, atRest] = poses
+    expect(start).toBeCloseTo(0)
+    expect(onTravel).toBeCloseTo(0)
+    expect(atLead).toBeCloseTo(0)
+    // Easing into the swing left the lantern still for about three frames after it stopped.
+    expect(atArrival).toBeGreaterThan(1.5)
+    expect(atPeak).toBeCloseTo(5)
+    expect(atRebound).toBeCloseTo(-2)
+    expect(atRest).toBeCloseTo(0)
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
+  })
+
+  test('keeps the initial original lantern fully occluded without a flash', async ({
+    context,
+    page,
+  }) => {
+    await context.addCookies([
+      { name: APPEARANCE_COOKIE_KEY, value: EAppearance.original, domain: 'localhost', path: '/' },
+    ])
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const ghost = aside.getByTestId('aside-ghost')
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    await expect(travel).toHaveAttribute('data-present', 'false')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -5, -4.2)')
+    expect(
+      await aside
+        .getByTestId('aside-ghost-lantern-inertia')
+        .evaluate((node) => node.getAnimations().length),
+    ).toBe(0)
+    // Pin both captures to the same pixel grid while fonts and the mobile drawer settle.
+    await ghost.evaluate((node) => {
+      node.setAttribute('style', 'position:fixed;left:100px;top:100px')
+    })
+    await page.evaluate(() => document.fonts.ready)
+    await expect
+      .poll(() =>
+        ghost.locator('defs image').evaluate(async (node) => {
+          const image = new Image()
+          image.src = node.getAttribute('href') ?? ''
+          return image.decode().then(
+            () => true,
+            () => false,
+          )
+        }),
+      )
+      .toBe(true)
+    const occluded = await ghost.screenshot()
+    await travel.evaluate((node) => {
+      node.setAttribute('visibility', 'hidden')
+    })
+    expect(await ghost.screenshot({ path: '.playwright-mcp/gesture-test-baseline.png' })).toEqual(
+      occluded,
+    )
+  })
+
+  test('stows, reverses and redraws the lantern continuously while tickled', async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
+    const toggle = page.getByTestId('appearance-toggle-switch')
+    await toggle.dispatchEvent('click')
+    await expect(travel).toHaveAttribute('data-present', 'false')
+    await expect(aside.getByTestId('aside-ghost-lantern')).toBeAttached()
+    const before = await travel.evaluate((node) => {
+      const animation = node.getAnimations()[0]
+      animation?.pause()
+      if (animation) animation.currentTime = 260
+      return new DOMMatrix(getComputedStyle(node).transform).e
+    })
+    expect(before).toBeGreaterThan(0)
+    expect(before).toBeLessThan(5.5)
+    await toggle.dispatchEvent('click')
+    await expect(travel).toHaveAttribute('data-present', 'true')
+    await aside.getByTestId('aside-ghost-trigger').click()
+    await toggle.dispatchEvent('click')
+    await toggle.dispatchEvent('click')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', {
+      timeout: GESTURE_SETTLE_TIMEOUT_MS,
+    })
+    await expect
+      .poll(() =>
+        inertia.evaluate(
+          (node) =>
+            node.getAnimations().filter((animation) => animation.playState === 'running').length,
+        ),
+      )
+      .toBe(0)
+    await toggle.dispatchEvent('click')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -5, -4.2)', {
+      timeout: GESTURE_SETTLE_TIMEOUT_MS,
+    })
+    await toggle.dispatchEvent('click')
+    await page.goto('/?lantern-remount=1')
+    expect(errors).toEqual([])
+  })
+
+  test('settles lantern travel and inertia immediately when reduced motion changes live', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -5, -4.2)')
+    await expect.poll(() => inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
+    expect(await inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
+  })
+  test('preserves the same idle lantern swing phase across appearance toggles', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const swing = aside.getByTestId('aside-ghost-lantern-swing')
+    await swing.evaluate((node) => {
+      const animation = node.getAnimations()[0]
+      if (!animation) throw new Error('Expected idle swing.')
+      animation.pause()
+      animation.currentTime = 1150
+      animation.id = 'retained-lantern-swing'
+    })
+    const before = await swing.evaluate((node) => getComputedStyle(node).transform)
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    expect(await swing.evaluate((node) => node.getAnimations()[0]?.id)).toBe(
+      'retained-lantern-swing',
+    )
+    await expect(swing).toHaveCSS('transform', before)
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    expect(await swing.evaluate((node) => node.getAnimations()[0]?.id)).toBe(
+      'retained-lantern-swing',
+    )
+    await expect(swing).toHaveCSS('transform', before)
+  })
+  test('reaches every travel waypoint on its way around the body', async ({ page }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    /*
+     * Seeks and reads in one call. A frame only has to pass before the pixel comparisons below,
+     * which need a paint; a computed transform is current as soon as currentTime is set. Waiting
+     * for two frames per waypoint cost fourteen round trips and timed out on a loaded runner.
+     */
+    const positions = await travel.evaluate((node, phases) => {
+      const animation = node
+        .getAnimations()
+        .find((candidate) => candidate.id === 'lantern-gesture-travel')
+      if (!animation) throw new Error('Expected the travel track.')
+      animation.pause()
+      return phases.map((phase) => {
+        animation.currentTime = phase * 900
+        return new DOMMatrix(getComputedStyle(node).transform).e
+      })
+    }, GESTURE_WAYPOINT_PHASES)
+    expect(positions[0]).toBeCloseTo(0)
+    expect(positions[2]).toBeCloseTo(5.5)
+    expect(positions[3]).toBeCloseTo(5.5)
+    expect(positions[4]).toBeCloseTo(2)
+    expect(positions[6]).toBeCloseTo(-5)
+  })
+
+  test('switches depth while the lantern is clear of the body', async ({ page }) => {
+    skipOutsidePixelProjects()
+    test.slow()
+    const { travel, seekGesture, rightOfGhost } = await stageLanternGesture(page)
+    await seekGesture(OUTBOARD_PHASE, 0)
+    const inFront = await page.screenshot({ clip: rightOfGhost })
+    await seekGesture(OUTBOARD_PHASE, 1)
+    // Fully outboard, so moving the lantern behind the silhouette must change no visible pixel.
+    expect((await page.screenshot({ clip: rightOfGhost })).equals(inFront)).toBe(true)
+    await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
+    // Those pixels really are the lantern, not an empty strip either comparison would satisfy.
+    expect((await page.screenshot({ clip: rightOfGhost })).equals(inFront)).toBe(false)
+  })
+
+  test('lets the body occlude part of the lantern on the inward leg', async ({ page }) => {
+    skipOutsidePixelProjects()
+    test.slow()
+    const { travel, seekGesture, aroundGhost } = await stageLanternGesture(page)
+    const capture = () => page.screenshot({ clip: aroundGhost })
+    await seekGesture(INWARD_PHASE)
+    const occluded = await capture()
+    await seekGesture(INWARD_PHASE, 0)
+    // Drawing the same pose in front instead differs, so the body is doing the hiding.
+    expect((await capture()).equals(occluded)).toBe(false)
+    await seekGesture(INWARD_PHASE)
+    await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
+    // Part of it is still drawn here, so removing it is not a no-op.
+    expect((await capture()).equals(occluded)).toBe(false)
+  })
+
+  test('leaves no lantern pixels once it is behind the body', async ({ page }) => {
+    skipOutsidePixelProjects()
+    test.slow()
+    const { ghost, travel, seekGesture, aroundGhost } = await stageLanternGesture(page)
+    const capture = () => page.screenshot({ clip: aroundGhost })
+    await seekGesture(1)
+    const behind = await capture()
+    await travel.evaluate((node) => node.setAttribute('visibility', 'hidden'))
+    // Matches hiding the subtree outright, which is the strongest statement of full occlusion.
+    expect((await capture()).equals(behind)).toBe(true)
+    const depth = ghost.getByTestId('aside-ghost-lantern-depth')
+    expect(await depth.evaluate((node) => getComputedStyle(node).opacity)).toBe('1')
+  })
+
+  test('carries the lantern at a continuous speed instead of stalling at each waypoint', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    const { speeds, unitsTravelledBy100Ms } = await travel.evaluate((node) => {
+      const animation = node
+        .getAnimations()
+        .find((candidate) => candidate.id === 'lantern-gesture-travel')
+      if (!animation) throw new Error('Expected the travel track.')
+      animation.pause()
+      const readPoint = (time: number): [number, number] => {
+        animation.currentTime = time
+        const { e, f } = new DOMMatrix(getComputedStyle(node).transform)
+        return [e, f]
+      }
+      const points: [number, number][] = []
+      for (let time = 0; time <= 900; time += 5) points.push(readPoint(time))
+      const [earlyX, earlyY] = readPoint(100)
+      return {
+        speeds: points
+          .slice(1)
+          .map(([x, y], index) => Math.hypot(x - points[index][0], y - points[index][1]) / 5),
+        unitsTravelledBy100Ms: Math.hypot(earlyX, earlyY),
+      }
+    })
+    // The envelope tapers both ends to rest on purpose, so only the cruising middle is compared.
+    const middle = speeds.slice(Math.round(speeds.length * 0.25), Math.round(speeds.length * 0.75))
+    // Per-segment easing used to drop the lantern to a near standstill at every waypoint.
+    expect(Math.min(...middle)).toBeGreaterThan(Math.max(...middle) * 0.6)
+    // A long ramp-in read as a delay before the stow began: it covered 0.42 units in this window.
+    expect(unitsTravelledBy100Ms).toBeGreaterThan(1)
+  })
+
+  test('trails the lantern behind the carrying hand without swinging at the turn', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const lag = aside.getByTestId('aside-ghost-lantern-lag')
+    const angles = await lag.evaluate((node) => {
+      const animation = node
+        .getAnimations()
+        .find((candidate) => candidate.id === 'lantern-gesture-lag')
+      if (!animation) throw new Error('Expected the lag track.')
+      animation.pause()
+      const read = (time: number) => {
+        animation.currentTime = time
+        const matrix = new DOMMatrix(getComputedStyle(node).transform)
+        return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
+      }
+      // The outward leg and the turn, then the rear sweep where the lantern is still visible.
+      return [0, 180, 300, 480, 600, 900].map(read)
+    })
+    const [atRest, outward, atTurn, onSweep, onRecovery, atEnd] = angles
+    // An alternating swing at the outboard turn was rejected before; it must stay neutral there.
+    expect(atRest).toBeCloseTo(0)
+    expect(outward).toBeCloseTo(0)
+    expect(atTurn).toBeCloseTo(0)
+    // Negative rotation holds the lantern back on the right while the hand sweeps left.
+    expect(onSweep).toBeLessThan(-3)
+    expect(onRecovery).toBeGreaterThan(onSweep)
+    expect(atEnd).toBeCloseTo(0)
+  })
+
+  test('keeps every owned gesture track at the endpoint after an immediate reversal', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const travel = aside.getByTestId('aside-ghost-lantern-travel')
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await expect(travel).toHaveAttribute('data-present', 'false')
+    await travel.evaluate((node) => {
+      const ghost = node.closest('svg')
+      if (!ghost) throw new Error('Expected ghost SVG.')
+      for (const animation of ghost.getAnimations({ subtree: true })) {
+        if (animation.id.startsWith('lantern-gesture-')) {
+          animation.pause()
+          animation.currentTime = 900
+        }
+      }
+    })
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await expect(travel).toHaveAttribute('data-present', 'false')
+    await expect
+      .poll(() =>
+        aside.getByTestId('aside-ghost').evaluate((node) =>
+          node
+            .getAnimations({ subtree: true })
+            .filter((animation) => animation.id.startsWith('lantern-gesture-'))
+            .map((animation) => ({
+              time: animation.currentTime,
+              running: animation.playState === 'running',
+            })),
+        ),
+      )
+      .toEqual([
+        { time: 900, running: false },
+        { time: 900, running: false },
+        { time: 900, running: false },
+      ])
+  })
+  test('keeps inertia neutral at the outboard turn and swings as the lantern stops', async ({
+    page,
+  }) => {
+    // Hold the short neutralization long enough to inspect it on slower WebKit workers.
+    await page.addInitScript(() => {
+      Element.prototype.animate = new Proxy(Element.prototype.animate, {
+        apply(target, node, args) {
+          const animation = Reflect.apply(target, node, args) as Animation
+          if (typeof args[1] === 'object' && args[1]?.duration === 90) animation.pause()
+          return animation
+        },
+      })
+    })
+    await page.goto('/')
+    const aside = await revealAside(page)
+    const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    const exit = await inertia.evaluate((node) => {
+      const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-exit')
+      if (!animation) throw new Error('Expected exit neutralization.')
+      const timing = animation.effect?.getTiming()
+      const frames = (animation.effect as KeyframeEffect).getKeyframes()
+      return { duration: timing?.duration, frames: frames.map((frame) => frame.transform) }
+    })
+    expect(exit.duration).toBe(90)
+    expect(exit.frames.at(-1)).toBe('rotate(0deg)')
+    await inertia.evaluate((node) =>
+      node
+        .getAnimations()
+        .find((animation) => animation.id === 'lantern-exit')
+        ?.finish(),
+    )
+    await expect.poll(() => inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
+    await expect(inertia).toHaveCSS('transform', 'none')
+    /*
+     * Park the stow at its endpoint before drawing the lantern back out. Otherwise the travel left
+     * when the second click lands depends on how fast the runner got here, and with it both the
+     * settle duration and how much of the 40ms lead survives the neutralisation window.
+     */
+    await aside.getByTestId('aside-ghost').evaluate((node) => {
+      for (const animation of node.getAnimations({ subtree: true })) {
+        if (animation.id.startsWith('lantern-gesture-')) {
+          animation.pause()
+          animation.currentTime = 900
+        }
+      }
+    })
+    await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    const result = await inertia.evaluate((node) => {
+      const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
+      if (!animation || !animation.effect) throw new Error('Expected return settling.')
+      animation.pause()
+      const duration = Number(animation.effect.getTiming().duration)
+      const arrival = duration - 250
+      // The swing leads the stop by 40ms, so neutral is asserted before that lead begins.
+      const angles = [
+        Math.min(200, arrival - 40),
+        arrival - 40,
+        arrival,
+        arrival + 70,
+        arrival + 165,
+        duration,
+      ].map((time) => {
+        animation.currentTime = time
+        const matrix = new DOMMatrix(getComputedStyle(node).transform)
+        return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI
+      })
+      return { duration, arrival, angles }
+    })
+    const [onTravel, atLead, atArrival, atPeak, atRebound, atRest] = result.angles
+    expect(onTravel).toBeCloseTo(0)
+    expect(atLead).toBeCloseTo(0)
+    // Easing into the swing left the lantern still for about three frames after it stopped.
+    expect(atArrival).toBeGreaterThan(1.5)
+    expect(atArrival).toBeLessThan(atPeak)
+    expect(atPeak).toBeCloseTo(5)
+    expect(atRebound).toBeCloseTo(-2)
+    expect(atRest).toBeCloseTo(0)
   })
 })

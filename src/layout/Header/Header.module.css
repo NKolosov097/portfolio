@@ -1,4 +1,7 @@
 .header {
+  /* Width of the out-of-flow controls column, reserved so the tabs never run under it. */
+  --controls-footprint: 44px;
+
   position: fixed;
   top: 0;
 
@@ -12,12 +15,15 @@
   gap: 12px;
   background-color: var(--root-bg-color);
   padding: var(--body-padding);
+  padding-right: calc(var(--body-padding) + var(--controls-footprint));
   margin: 0 auto;
   z-index: 1;
 }
 
 .header .tabs {
   width: fit-content;
+  min-width: 0;
+  flex: 1;
   margin-inline: auto;
   box-shadow: none;
   display: inline-flex;
@@ -29,11 +35,28 @@
   display: none;
   opacity: 0;
   pointer-events: none;
+  flex-shrink: 0;
+}
+
+/*
+ * Out of flow at every width: the switch is taller than the tab row, and in flow it stretched
+ * both the header's dark bar and the --header-height the page reserves beneath it.
+ */
+.controls {
+  position: absolute;
+  top: var(--body-padding);
+  right: var(--body-padding);
+  display: inline-flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  width: 44px;
+  gap: 4px;
 }
 
 @media screen and (width <= 1024px) {
   .header {
     left: 0;
+    align-items: flex-start;
   }
 
   .header .drawerBtn {

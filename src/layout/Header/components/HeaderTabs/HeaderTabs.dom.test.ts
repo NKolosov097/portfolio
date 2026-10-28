@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { HeaderTabs } from './HeaderTabs'
 import { Providers } from '@/providers/Providers'
 import { ELanguage, ETabID } from '@/constants/header.constants'
+import { EAppearance } from '@/constants/theme.constants'
 import { useHeaderStore } from '@/providers/stores/HeaderStore.provider'
 import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 
@@ -33,7 +34,7 @@ const Selection = () => {
 const Harness = ({ hasSections }: { hasSections: boolean }) =>
   createElement(
     Providers,
-    { initialLanguage: ELanguage.en },
+    { initialLanguage: ELanguage.en, initialAppearance: EAppearance.original },
     createElement(HeaderTabs),
     createElement(Selection),
     createElement(

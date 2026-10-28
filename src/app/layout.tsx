@@ -16,6 +16,7 @@ import { Footer } from '@/layout/Footer/Footer'
 
 import { SkipToNavigationLink } from '@/components/SkipToNavigationLink/SkipToNavigationLink'
 import { LANG_COOKIE_KEY, resolveRequestLanguage } from '@/helpers/language'
+import { APPEARANCE_COOKIE_KEY, resolveRequestAppearance } from '@/constants/theme.constants'
 
 import {
   AUTHOR_NAME,
@@ -82,6 +83,7 @@ export const viewport: Viewport = {
   viewportFit: 'auto',
 }
 
+/** Server root shell that resolves request-scoped language/appearance and renders the app providers and layout chrome. */
 export default async function RootLayout({ children }: PropsWithChildren) {
   const [cookieStore, headerList] = await Promise.all([cookies(), headers()])
 
@@ -90,9 +92,10 @@ export default async function RootLayout({ children }: PropsWithChildren) {
     cookieStore.get(LANG_COOKIE_KEY)?.value,
     headerList.get('accept-language'),
   )
+  const initialAppearance = resolveRequestAppearance(cookieStore.get(APPEARANCE_COOKIE_KEY)?.value)
 
   return (
-    <html lang={initialLanguage} suppressHydrationWarning>
+    <html lang={initialLanguage} data-appearance={initialAppearance} suppressHydrationWarning>
       <body className={rootClassName} suppressHydrationWarning>
         <script
           id="structured-data"
@@ -102,7 +105,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
             __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, '\\u003c'),
           }}
         />
-        <Providers initialLanguage={initialLanguage}>
+        <Providers initialLanguage={initialLanguage} initialAppearance={initialAppearance}>
           <SkipToNavigationLink />
           <Header />
           <Aside />

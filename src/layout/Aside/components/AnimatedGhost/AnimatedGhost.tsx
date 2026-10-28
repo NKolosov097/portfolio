@@ -1,11 +1,30 @@
 import styles from './AnimatedGhost.module.css'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 
 import {
   type IGhostTickleRun,
   startGhostTickle,
 } from '@/layout/Aside/components/AnimatedGhost/ghostTickle'
+
+import { EAppearance } from '@/constants/theme.constants'
+import { AppearanceContext } from '@/contexts/appearance'
+
+/** Full length of the reversible around-the-body lantern gesture. */
+const GESTURE_DURATION_MS = 900
+
+/** Time the settling wrapper takes to neutralise a pose left over from an interrupted gesture. */
+const SETTLE_NEUTRAL_MS = 90
+
+/** The settle starts this far before the hand stops, so the lag builds while it is still slowing. */
+const SETTLE_LEAD_MS = 40
+
+/**
+ * One envelope over the whole arc: per-segment easing stalled the lantern at every waypoint. The
+ * short ramp-in starts the gesture within two frames, so stowing reads as immediate rather than
+ * delayed, while the longer tail still brings it to rest without a snap.
+ */
+const GESTURE_EASING = 'cubic-bezier(0.15, 0, 0.7, 1)'
 
 interface IAnimatedGhostProps {
   /** Rendered width of the ghost in pixels; mirrors the Gravity icon sizing API. */
@@ -14,13 +33,230 @@ interface IAnimatedGhostProps {
   height?: number
 }
 
+/** Aside mascot that plays a tickle animation on click. */
 export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) => {
+  // Keep lantern sprite and clip references distinct when multiple mascots are mounted.
+  const lanternId = useId()
+  const { appearance } = useContext(AppearanceContext)
+  const [isLanternReady, setIsLanternReady] = useState(false)
+  const inertiaRef = useRef<SVGGElement>(null)
+  const travelRef = useRef<SVGGElement>(null)
+  const depthRef = useRef<SVGGElement>(null)
+  const lagRef = useRef<SVGGElement>(null)
+  const gestureTravelRef = useRef<Animation | null>(null)
+  const gestureDepthRef = useRef<Animation | null>(null)
+  const gestureLagRef = useRef<Animation | null>(null)
+  const hasPresentedRef = useRef(false)
+  const isPresent = isLanternReady && appearance === EAppearance.halloween
+  const [lanternSource, setLanternSource] = useState('/assets/img/halloween/lantern.avif')
   const [isTickling, setIsTickling] = useState(false)
   const bodyRef = useRef<SVGGElement>(null)
   const eyesRef = useRef<SVGGElement>(null)
   const activeRunRef = useRef<IGhostTickleRun | null>(null)
   const runIdRef = useRef(0)
 
+  // Probe after hydration because an SVG image can fail before React attaches event handlers.
+  useEffect(() => {
+    let isActive = true
+    const image = new Image()
+    image.src = '/assets/img/halloween/lantern.avif'
+    image
+      .decode()
+      .catch(async () => {
+        if (!isActive) return
+        setLanternSource('/assets/img/halloween/lantern.webp')
+        const fallback = new Image()
+        fallback.src = '/assets/img/halloween/lantern.webp'
+        await fallback.decode().catch(() => undefined)
+      })
+      .then(() => {
+        if (isActive) setIsLanternReady(true)
+      })
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  // A shared reversible timeline carries the lantern around the body before the rear return.
+  useEffect(() => {
+    const travel = travelRef.current
+    const depth = depthRef.current
+    const lagNode = lagRef.current
+    if (!travel || !depth || !lagNode) return
+    // Offsets follow path arc length so no waypoint stalls; one envelope shapes the whole arc.
+    const movement = travel.animate(
+      [
+        { transform: 'translate(0, 0)', offset: 0 },
+        { transform: 'translate(3px, -1.2px)', offset: 0.189 },
+        { transform: 'translate(5.5px, -2px)', offset: 0.343 },
+        { transform: 'translate(5.5px, -2.6px)', offset: 0.378 },
+        { transform: 'translate(2px, -3px)', offset: 0.584 },
+        { transform: 'translate(-5px, -4.2px)', offset: 1 },
+      ],
+      { duration: GESTURE_DURATION_MS, easing: GESTURE_EASING, fill: 'both' },
+    )
+    // The shared easing keeps this depth switch inside the travel track's outboard dwell.
+    const occlusion = depth.animate(
+      [
+        { opacity: 0, offset: 0 },
+        { opacity: 0, offset: 0.35 },
+        { opacity: 1, offset: 0.375 },
+        { opacity: 1, offset: 1 },
+      ],
+      { duration: GESTURE_DURATION_MS, easing: GESTURE_EASING, fill: 'both' },
+    )
+    /**
+     * The lantern hangs from its handle, so it trails the hand that carries it. Offsets are plain
+     * time fractions rather than path positions because a lag answers to acceleration, not
+     * distance; the track stays neutral through the outboard turn, where a swing read as a shake.
+     * It peaks while the lantern is still clear of the body and relaxes as the silhouette takes it.
+     */
+    const inertia = lagNode.animate(
+      [
+        { transform: 'rotate(0deg)', offset: 0 },
+        { transform: 'rotate(0deg)', offset: 0.33, easing: 'ease-in' },
+        { transform: 'rotate(-5deg)', offset: 0.52, easing: 'ease-in-out' },
+        { transform: 'rotate(1.5deg)', offset: 0.72, easing: 'ease-in-out' },
+        { transform: 'rotate(0deg)', offset: 1 },
+      ],
+      { duration: GESTURE_DURATION_MS, easing: 'linear', fill: 'both' },
+    )
+    movement.id = 'lantern-gesture-travel'
+    occlusion.id = 'lantern-gesture-depth'
+    inertia.id = 'lantern-gesture-lag'
+    for (const animation of [movement, occlusion, inertia]) {
+      animation.pause()
+      animation.currentTime = GESTURE_DURATION_MS
+    }
+    gestureTravelRef.current = movement
+    gestureDepthRef.current = occlusion
+    gestureLagRef.current = inertia
+    return () => {
+      movement.cancel()
+      occlusion.cancel()
+      inertia.cancel()
+      gestureTravelRef.current = null
+      gestureDepthRef.current = null
+      gestureLagRef.current = null
+    }
+  }, [])
+
+  // Reverse every owned track at its shared progress, or settle immediately for reduced motion.
+  useEffect(() => {
+    const movement = gestureTravelRef.current
+    const depth = gestureDepthRef.current
+    const lag = gestureLagRef.current
+    if (!movement || !depth || !lag) return
+    const tracks = [movement, depth, lag]
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const endpoint = isPresent ? 0 : GESTURE_DURATION_MS
+    // A live preference change settles without replaying the gesture when motion returns.
+    const settleReducedMotion = () => {
+      if (!preference.matches) return
+      for (const animation of tracks) {
+        animation.pause()
+        animation.currentTime = endpoint
+      }
+    }
+    if (preference.matches) {
+      settleReducedMotion()
+    } else if (Number(movement.currentTime) !== endpoint) {
+      const sharedTime = movement.currentTime
+      for (const animation of tracks) {
+        animation.currentTime = sharedTime
+        animation.playbackRate = isPresent ? -1 : 1
+        animation.play()
+      }
+    } else {
+      for (const animation of tracks) {
+        animation.pause()
+        animation.currentTime = endpoint
+      }
+    }
+    preference.addEventListener('change', settleReducedMotion)
+    return () => preference.removeEventListener('change', settleReducedMotion)
+  }, [isPresent])
+
+  // Keep settling inertia independent of travel and preserve its pose on rapid reversals.
+  useEffect(() => {
+    const node = inertiaRef.current
+    if (!node) return
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let animation: Animation | undefined
+    if (isPresent || hasPresentedRef.current) {
+      hasPresentedRef.current ||= isPresent
+      if (!preference.matches) {
+        const remaining = Math.min(
+          GESTURE_DURATION_MS,
+          Math.max(0, Number(gestureTravelRef.current?.currentTime ?? 0)),
+        )
+        const duration = isPresent ? remaining + 250 : SETTLE_NEUTRAL_MS
+        const keyframes: Keyframe[] = [{ transform: getComputedStyle(node).transform, offset: 0 }]
+        if (isPresent) {
+          if (remaining > 0) {
+            const neutralAt = Math.min(SETTLE_NEUTRAL_MS, remaining)
+            /**
+             * The lantern leaves neutral at full angular speed, the way a pendulum does the instant
+             * its support stops, and starts just before the hand finishes its last crawl. Easing
+             * into this segment instead held it motionless for about three frames, which read as
+             * the shake arriving late rather than as part of the stop.
+             */
+            keyframes.push(
+              { transform: 'rotate(0deg)', offset: neutralAt / duration },
+              {
+                transform: 'rotate(0deg)',
+                offset: Math.max(neutralAt, remaining - SETTLE_LEAD_MS) / duration,
+                easing: 'ease-out',
+              },
+            )
+          }
+          keyframes.push(
+            {
+              transform: 'rotate(5deg)',
+              offset: (remaining + 70) / duration,
+              easing: 'ease-in-out',
+            },
+            {
+              transform: 'rotate(-2deg)',
+              offset: (remaining + 165) / duration,
+              easing: 'ease-in-out',
+            },
+            { transform: 'rotate(0deg)', offset: 1 },
+          )
+        } else {
+          keyframes.push({ transform: 'rotate(0deg)', offset: 1 })
+        }
+        animation = node.animate(keyframes, {
+          duration,
+          easing: isPresent ? 'linear' : 'ease-out',
+          fill: 'none',
+        })
+        animation.id = isPresent ? 'lantern-enter' : 'lantern-exit'
+        animation.onfinish = () => {
+          node.style.transform = ''
+        }
+      } else {
+        node.style.transform = ''
+      }
+    }
+    // A live motion preference change settles the current pose immediately.
+    const handleMotionChange = () => {
+      if (preference.matches) {
+        if (animation) animation.onfinish = null
+        animation?.cancel()
+        node.style.transform = ''
+      }
+    }
+    preference.addEventListener('change', handleMotionChange)
+    return () => {
+      node.style.transform = getComputedStyle(node).transform
+      if (animation) animation.onfinish = null
+      animation?.cancel()
+      preference.removeEventListener('change', handleMotionChange)
+    }
+  }, [isPresent])
+
+  // Restart the interaction while preventing an old completion from ending the new run.
   const handleTickle = useCallback(() => {
     const body = bodyRef.current
     const eyes = eyesRef.current
@@ -47,6 +283,7 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
     )
   }, [])
 
+  // Cancel the active interaction when this mascot leaves the page.
   useEffect(
     () => () => {
       runIdRef.current += 1
@@ -74,6 +311,44 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
         data-testid="aside-ghost"
         className={styles.ghost}
       >
+        <defs>
+          <image
+            key={lanternSource}
+            id={`${lanternId}-image`}
+            href={lanternSource}
+            width="1122"
+            height="1402"
+            preserveAspectRatio="xMidYMid meet"
+          />
+          <mask
+            id={`${lanternId}-occlusion`}
+            className={styles.lanternMask}
+            maskUnits="userSpaceOnUse"
+            x="-12"
+            y="-12"
+            width="48"
+            height="48"
+          >
+            <rect x="-12" y="-12" width="48" height="48" fill="white" />
+            <g ref={depthRef} data-testid="aside-ghost-lantern-depth" opacity="1">
+              <g className={styles.sway}>
+                <g className={styles.breathe}>
+                  <path
+                    fill="black"
+                    d="M10.225 14.407l.686-.859h.001l.144-.18.618-.772a.255.255 0 0 1 .402.006l.593.79.139.185v.001l.392.522a1 1 0 0 0 1.8-.6V8A7 7 0 1 0 1 8v5.399a1.101 1.101 0 0 0 1.806.846l2.61-2.175a.3.3 0 0 1 .424.038l1.936 2.323a1.58 1.58 0 0 0 2.449-.024Z"
+                  />
+                </g>
+              </g>
+            </g>
+          </mask>
+          <clipPath id={`${lanternId}-glass`} clipPathUnits="userSpaceOnUse">
+            <polygon points="370,610 445,575 560,560 690,578 778,610 778,1115 370,1115" />
+          </clipPath>
+          <radialGradient id={`${lanternId}-halo`}>
+            <stop offset="0%" stopColor="#ffb94f" />
+            <stop offset="100%" stopColor="#ffb94f" stopOpacity="0" />
+          </radialGradient>
+        </defs>
         <g ref={bodyRef} className={styles.tickleBody} data-testid="aside-ghost-body">
           <g className={styles.sway} data-idle-layer="sway">
             <g className={styles.breathe}>
@@ -88,6 +363,53 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
                 <g ref={eyesRef} className={styles.eyeBlink}>
                   <circle cx="7" cy="7" r="0.7" fill="currentColor" />
                   <circle cx="11" cy="7" r="0.7" fill="currentColor" />
+                </g>
+              </g>
+            </g>
+          </g>
+
+          <g mask={`url(#${lanternId}-occlusion)`}>
+            <g
+              ref={travelRef}
+              className={styles.lanternTravel}
+              data-testid="aside-ghost-lantern-travel"
+              data-present={isPresent}
+            >
+              {/* Swing inside the positioning group so the handle stays attached to the hand. */}
+              <g
+                className={styles.lantern}
+                data-testid="aside-ghost-lantern"
+                aria-hidden="true"
+                transform="translate(1.2 1.1) scale(0.9)"
+              >
+                {/* Trails the carrying hand; kept off the settling group so reversals stay separable. */}
+                <g ref={lagRef} className={styles.lanternLag} data-testid="aside-ghost-lantern-lag">
+                  <g
+                    ref={inertiaRef}
+                    className={styles.lanternInertia}
+                    data-testid="aside-ghost-lantern-inertia"
+                  >
+                    <g className={styles.lanternSwing} data-testid="aside-ghost-lantern-swing">
+                      <circle
+                        className={styles.lanternHalo}
+                        cx="12.15"
+                        cy="12.4"
+                        r="3.6"
+                        fill={`url(#${lanternId}-halo)`}
+                      />
+                      <g transform="translate(8.006 5.8784) scale(0.007387)">
+                        <use href={`#${lanternId}-image`} filter="brightness(1.1)" />
+                        <g
+                          className={styles.lanternLight}
+                          data-testid="aside-ghost-lantern-light"
+                          clipPath={`url(#${lanternId}-glass)`}
+                          pointerEvents="none"
+                        >
+                          <use href={`#${lanternId}-image`} filter="brightness(1.3)" />
+                        </g>
+                      </g>
+                    </g>
+                  </g>
                 </g>
               </g>
             </g>
