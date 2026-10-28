@@ -33,3 +33,12 @@ Verify cookie/default resolution, reload/route persistence, keyboard control, tr
 Check hero reveal order, three active asset references,18 sparks behind the shell, continuous emission coverage, invisible resets, localized candle flicker, fixed shell geometry and static reduced motion. Preserve original heading/sparkle behavior. Test lantern initial appearances, loaded entry, complete masked exit, rapid reversal, tickle overlap, unmount and initial/live reduced motion.
 
 Inspect native-size desktop/mobile screenshots and transition sequences. Run focused unit/browser tests, TypeScript, ESLint, Stylelint, formatting and production validation appropriate to the final change. Report actual outcomes and environment limitations; do not equate planned tests with passing tests. All photographic images, including the hero, retain AVIF primaries and use matching WebP fallbacks when decoding fails; see [hero-compatibility.md](hero-compatibility.md).
+
+Taking the column out of flow also made the drawer's close button harder to click in tests, which
+exposed an unsound wait rather than a layout fault. The shared settle helper treated two equal
+bounding boxes 32ms apart as proof that an element had stopped. The drawer slide starves for frames
+while the aside mounts and holds one position mid-flight - 50 to 85ms before this change, up to
+130ms after - so the probe reported settled and the click landed where the button no longer was.
+The helper now also requires that no finite animation or transition on the element or any of its
+ancestors is still running, which answers the question directly instead of sampling for it. Endless
+idle motion stays with the sampling, which is all that can judge it.

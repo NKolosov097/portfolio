@@ -15,6 +15,24 @@ const SETTLE_SAMPLE_MS = 32
 /** Resolves to `true` once the element has stopped moving and owns the point a click would land on. */
 const isSettledHitTarget = (locator: Locator): Promise<boolean> =>
   locator.evaluate(async (node, sampleMs: number) => {
+    /**
+     * Two equal boxes cannot tell a finished animation from a stalled one. The drawer slide
+     * starves for frames while the aside mounts and holds one position for 50-130ms mid-flight,
+     * which reads as settled and sends the click to where the target no longer is. Ask the
+     * animation instead: whatever moves this node runs on the node or one of its ancestors.
+     * Endless idle motion is left to the sampling below, which is all that can judge it.
+     */
+    const isCarriedByRunningAnimation = document.getAnimations().some((animation) => {
+      if (animation.playState !== 'running') return false
+      const effect = animation.effect as KeyframeEffect | null
+      if (effect?.getTiming().iterations === Infinity) return false
+      return effect?.target instanceof Element && effect.target.contains(node)
+    })
+
+    if (isCarriedByRunningAnimation) {
+      return false
+    }
+
     const previous = node.getBoundingClientRect()
 
     await new Promise<void>((resolve) => setTimeout(resolve, sampleMs))
