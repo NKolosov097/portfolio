@@ -292,11 +292,7 @@ test.describe('contact form', () => {
     await page.goto('/')
     const articleCard = page.getByTestId('writing-article-ai-boilerplate-senior-engineers')
     await expect(articleCard).toBeVisible()
-    // A DOM scroll: scrollIntoViewIfNeeded waits on Playwright's stability check, which the
-    // permanently animating hero can outlast. See the note in helpers/interaction.
-    await articleCard.evaluate((node) =>
-      node.scrollIntoView({ block: 'center', behavior: 'instant' }),
-    )
+    await articleCard.scrollIntoViewIfNeeded()
     await articleCard.press('Enter')
     await expect(page).toHaveURL(/\/articles\/ai-boilerplate-senior-engineers$/)
     await page.goBack()
@@ -318,7 +314,7 @@ test.describe('contact form', () => {
     for (const width of [320, 393, 499, 500, 501, 768, 899, 900, 901, 1023, 1024, 1025, 1440]) {
       await page.setViewportSize({ width, height: 740 })
       const submit = page.getByRole('button', { name: ru.contact.sendMessage, exact: true })
-      await submit.evaluate((node) => node.scrollIntoView({ block: 'center', behavior: 'instant' }))
+      await submit.scrollIntoViewIfNeeded()
       await expect(submit).toBeInViewport()
       await expect
         .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
