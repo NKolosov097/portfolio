@@ -22,6 +22,9 @@ const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
  */
 const GESTURE_SETTLE_TIMEOUT_MS = 20_000
 
+/** Ceiling on waiting for a paint before a screenshot, since rAF can stall on a loaded runner. */
+const FRAME_WAIT_CEILING_MS = 250
+
 /**
  * Timeline fractions that land on the travel waypoints. One ease spans the whole gesture, so
  * these are the eased positions of the keyframe offsets rather than the offsets themselves.
@@ -96,9 +99,25 @@ async function stageLanternGesture(page: import('@playwright/test').Page) {
       },
       { phase, depthPhase },
     )
-    await page.evaluate(
-      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-    )
+    await page.evaluate((ceilingMs) => {
+      /**
+       * Prefer a real frame, so WebKit has applied the seek before the screenshot below, but never
+       * block on one. This repo already measured rAF stalling on a loaded CI runner while timers
+       * held ~15ms - see the note on SETTLE_SAMPLE_MS in helpers/interaction.ts - and waiting
+       * unbounded here burned the whole 90s budget. The timer is the ceiling, not the usual path:
+       * a screenshot rasterises current styles regardless of whether a frame was scheduled.
+       */
+      return new Promise<void>((resolve) => {
+        let hasSettled = false
+        const settle = () => {
+          if (hasSettled) return
+          hasSettled = true
+          resolve()
+        }
+        requestAnimationFrame(() => requestAnimationFrame(settle))
+        setTimeout(settle, ceilingMs)
+      })
+    }, FRAME_WAIT_CEILING_MS)
   }
   const box = await ghost.boundingBox()
   if (!box) throw new Error('Expected visible ghost bounds.')
