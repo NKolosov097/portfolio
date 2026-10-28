@@ -1,10 +1,19 @@
 import { type Page } from '@playwright/test'
 
 /**
- * Ceiling on a frame wait, in milliseconds. Long enough that a healthy page always delivers its
- * two frames first, short enough that a stalled compositor costs a fraction of a test budget.
+ * Default ceiling, for callers that read computed styles after the seek. Those are correct the
+ * moment currentTime is set, so the frame is a courtesy and the wait should stay cheap - one
+ * caller runs it 116 times in a single test.
  */
 const FRAME_WAIT_CEILING_MS = 250
+
+/**
+ * Ceiling for callers that screenshot after the seek. A capture is only as good as the frame
+ * behind it, so here the frame is the point rather than a courtesy, and the cap exists purely to
+ * stop a dead compositor hanging the test. WebKit was measured at ~126ms per frame with two
+ * contexts side by side and spikes well past that under load, which 250ms does not cover.
+ */
+export const PAINT_CEILING_MS = 2_000
 
 /**
  * Waits for the page to paint after a seek, without betting the test on it.
@@ -17,9 +26,9 @@ const FRAME_WAIT_CEILING_MS = 250
  * on mobile Safari. Racing the frames against a timer keeps the accuracy and drops the stall:
  * styles are already current when the timer wins, since a seek applies synchronously.
  */
-export const waitForPaint = (page: Page): Promise<void> =>
+export const waitForPaint = (page: Page, ceilingMs = FRAME_WAIT_CEILING_MS): Promise<void> =>
   page.evaluate(
-    (ceilingMs) =>
+    (ceiling) =>
       new Promise<void>((resolve) => {
         let hasSettled = false
         const settle = () => {
@@ -28,7 +37,7 @@ export const waitForPaint = (page: Page): Promise<void> =>
           resolve()
         }
         requestAnimationFrame(() => requestAnimationFrame(settle))
-        setTimeout(settle, ceilingMs)
+        setTimeout(settle, ceiling)
       }),
-    FRAME_WAIT_CEILING_MS,
+    ceilingMs,
   )

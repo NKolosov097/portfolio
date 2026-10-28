@@ -3,7 +3,7 @@ import { expect, test, type Locator } from '@playwright/test'
 import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
 
 import { revealAside as revealAsideImmediately } from './helpers/aside'
-import { waitForPaint } from './helpers/frames'
+import { PAINT_CEILING_MS, waitForPaint } from './helpers/frames'
 import { openLanguageMenu } from './helpers/language'
 
 /** bob + sway + breathe on the body, plus the two eye animations. */
@@ -91,7 +91,7 @@ async function stageLanternGesture(page: import('@playwright/test').Page) {
       },
       { phase, depthPhase },
     )
-    await waitForPaint(page)
+    await waitForPaint(page, PAINT_CEILING_MS)
   }
   const box = await ghost.boundingBox()
   if (!box) throw new Error('Expected visible ghost bounds.')
