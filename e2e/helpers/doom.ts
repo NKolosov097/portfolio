@@ -3,10 +3,11 @@ import { expect, type Page } from '@playwright/test'
 import en from '@public/locales/en.json'
 
 /**
- * Budget for the boot alone. Fetching and instantiating a 6.8MB WASM build is real work, so more
- * wall clock genuinely finishes it - unlike a wait on animation progress, where a stalled timeline
- * makes every budget too small. Thirty seconds was not enough once the full project matrix ran in
- * parallel; the test budgets below leave room for this plus the interaction each one checks.
+ * Budget for the boot alone. Thirty seconds was not enough under the full matrix, and sixty was
+ * not either - the same boot timed out at both and passed on retry, so the shortfall was CPU
+ * contention between concurrent boots rather than a boot that needed longer. The allowlist in
+ * playwright.config now admits half as many projects, which is the part that actually helps; this
+ * budget stays at sixty as headroom for a runner that is merely slow.
  */
 export const DOOM_BOOT_TIMEOUT_MS = 60_000
 
