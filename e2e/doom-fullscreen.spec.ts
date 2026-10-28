@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import en from '@public/locales/en.json'
 
-import { startDoomGame } from './helpers/doom'
+import { DOOM_TEST_TIMEOUT_MS, startDoomGame } from './helpers/doom'
 
 const expectViewportScreen = async (page: Page) => {
   await expect
@@ -46,7 +46,7 @@ const expectExitControlOnTop = async (page: Page) => {
 
 for (const capability of ['missing', 'rejected'] as const) {
   test(`expands without restarting the game when fullscreen is ${capability}`, async ({ page }) => {
-    test.setTimeout(60_000)
+    test.setTimeout(DOOM_TEST_TIMEOUT_MS)
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     await page.addInitScript((mode) => {
@@ -114,7 +114,7 @@ for (const capability of ['missing', 'rejected'] as const) {
 }
 
 test('keeps keyboard focus in the expanded game and restores it on Escape', async ({ page }) => {
-  test.setTimeout(60_000)
+  test.setTimeout(DOOM_TEST_TIMEOUT_MS)
   await page.addInitScript(() => {
     Object.defineProperty(Element.prototype, 'requestFullscreen', { value: undefined })
   })
@@ -146,7 +146,7 @@ test('keeps keyboard focus in the expanded game and restores it on Escape', asyn
 })
 
 test('uses native fullscreen when available and follows a browser exit', async ({ page }) => {
-  test.setTimeout(60_000)
+  test.setTimeout(DOOM_TEST_TIMEOUT_MS)
   await startDoomGame(page)
   test.skip(
     !(await page.evaluate(() => Boolean(document.fullscreenEnabled))),

@@ -2,8 +2,16 @@ import { expect, type Page } from '@playwright/test'
 
 import en from '@public/locales/en.json'
 
-/** WASM instantiation can outrun a short wait when CI runs the full parallel project matrix. */
-export const DOOM_BOOT_TIMEOUT_MS = 30_000
+/**
+ * Budget for the boot alone. Fetching and instantiating a 6.8MB WASM build is real work, so more
+ * wall clock genuinely finishes it - unlike a wait on animation progress, where a stalled timeline
+ * makes every budget too small. Thirty seconds was not enough once the full project matrix ran in
+ * parallel; the test budgets below leave room for this plus the interaction each one checks.
+ */
+export const DOOM_BOOT_TIMEOUT_MS = 60_000
+
+/** The boot budget plus room for the interaction each DOOM test performs once the game is up. */
+export const DOOM_TEST_TIMEOUT_MS = DOOM_BOOT_TIMEOUT_MS + 30_000
 
 /**
  * Clicks Play in the Resume section and waits for the game to boot.
