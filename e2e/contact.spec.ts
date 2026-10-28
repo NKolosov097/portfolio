@@ -76,6 +76,21 @@ test.describe('contact form', () => {
     const plane = page.getByTestId('contact-sending-indicator').locator('span')
     await expect(plane).toBeVisible()
 
+    // The animation is attached on a style recalc after the click, which can land a tick later.
+    await expect
+      .poll(() =>
+        plane.evaluate((element) =>
+          element
+            .getAnimations()
+            .some(
+              (animation) =>
+                animation.effect instanceof KeyframeEffect &&
+                animation.effect.pseudoElement === null,
+            ),
+        ),
+      )
+      .toBe(true)
+
     // Samples the browser's real CSS animation at equal time intervals after its initial hold.
     const samples = await plane.evaluate((element) => {
       const movement = element

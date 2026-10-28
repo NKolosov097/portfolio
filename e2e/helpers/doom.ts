@@ -2,8 +2,17 @@ import { expect, type Page } from '@playwright/test'
 
 import en from '@public/locales/en.json'
 
-/** WASM instantiation can outrun a short wait when CI runs the full parallel project matrix. */
-export const DOOM_BOOT_TIMEOUT_MS = 30_000
+/**
+ * Budget for the boot alone. Thirty seconds was not enough under the full matrix, and sixty was
+ * not either - the same boot timed out at both and passed on retry, so the shortfall was CPU
+ * contention between concurrent boots rather than a boot that needed longer. The allowlist in
+ * playwright.config now admits half as many projects, which is the part that actually helps; this
+ * budget stays at sixty as headroom for a runner that is merely slow.
+ */
+export const DOOM_BOOT_TIMEOUT_MS = 60_000
+
+/** The boot budget plus room for the interaction each DOOM test performs once the game is up. */
+export const DOOM_TEST_TIMEOUT_MS = DOOM_BOOT_TIMEOUT_MS + 30_000
 
 /**
  * Clicks Play in the Resume section and waits for the game to boot.
