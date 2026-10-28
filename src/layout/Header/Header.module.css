@@ -1,6 +1,6 @@
 .header {
-  /* Width of the out-of-flow controls column, reserved so the tabs never run under it. */
-  --controls-footprint: 44px;
+  /* Width the out-of-flow controls occupy, reserved so the tabs never run under them. */
+  --controls-footprint: 104px;
 
   position: fixed;
   top: 0;
@@ -40,21 +40,23 @@
 
 /*
  * Out of flow at every width: the switch is taller than the tab row, and in flow it stretched
- * both the header's dark bar and the --header-height the page reserves beneath it.
+ * both the header's dark bar and the --header-height the page reserves beneath it. A row here, so
+ * the wide pill sits left of the globe and the pair stays no taller than the tab row.
  */
 .controls {
   position: absolute;
   top: var(--body-padding);
   right: var(--body-padding);
   display: inline-flex;
-  flex-direction: column-reverse;
   align-items: center;
-  width: 44px;
   gap: 4px;
 }
 
 @media screen and (width <= 1024px) {
   .header {
+    /* Stacked into one column, so only one button of width needs reserving. */
+    --controls-footprint: 44px;
+
     left: 0;
     align-items: flex-start;
   }
@@ -63,6 +65,13 @@
     display: block;
     opacity: 1;
     pointer-events: all;
+  }
+
+  /* Stacked instead, to spend one button of width rather than three on a narrow header. */
+  .controls {
+    flex-direction: column-reverse;
+    width: 44px;
+    gap: 12px;
   }
 }
 
