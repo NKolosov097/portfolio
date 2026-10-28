@@ -15,7 +15,9 @@ export const DOOM_BOOT_TIMEOUT_MS = 30_000
 export const startDoomGame = async (page: Page): Promise<void> => {
   await page.goto('/')
   const play = page.getByTestId('doom-play-button')
-  await play.scrollIntoViewIfNeeded()
+  // A DOM scroll: scrollIntoViewIfNeeded waits on Playwright's stability check, which the
+  // permanently animating hero can outlast. See the note in ./interaction.
+  await play.evaluate((node) => node.scrollIntoView({ block: 'center', behavior: 'instant' }))
   await expect(play).toHaveText(en.resume.retroArcadePlay)
   await play.click()
 

@@ -1,12 +1,15 @@
 import { expect, test } from '@playwright/test'
 
+import { waitForPaint } from './helpers/frames'
+
 /** The staged reveal (ground -> pumpkin -> ignition -> sparks) runs over this window. */
 const REVEAL_SAMPLES_MS = [75, 400, 600, 1200] as const
 
 /**
  * Pauses every Web Animations API animation on the scene, scrubs them all to the
- * same deterministic `currentTime`, then waits a frame so WebKit's computed
- * styles (which apply on the next frame, not synchronously) have caught up.
+ * same deterministic `currentTime`, then waits for a paint so WebKit's computed
+ * styles (which apply on the next frame, not synchronously) have caught up. The
+ * sparks test alone calls this 116 times, so that wait has to stay bounded.
  */
 async function seekScene(page: import('@playwright/test').Page, timeMs: number) {
   await page.evaluate((ms) => {
@@ -22,9 +25,7 @@ async function seekScene(page: import('@playwright/test').Page, timeMs: number) 
     }
   }, timeMs)
 
-  await page.evaluate(
-    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-  )
+  await waitForPaint(page)
 }
 
 /** Reads the computed opacity of a single scene layer by its `data-testid`. */
@@ -273,7 +274,8 @@ test.describe('halloween hero motion', () => {
     await expect(spark).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, -100)')
     expect(await spark.evaluate((node) => node.getAnimations().length)).toBe(0)
     await page.emulateMedia({ reducedMotion: 'no-preference' })
-    expect(await spark.evaluate((node) => node.getAnimations().length)).toBe(1)
+    // The media flip resolves when the command returns; reattaching the animation needs a recalc.
+    await expect.poll(() => spark.evaluate((node) => node.getAnimations().length)).toBe(1)
   })
 
   test('restages correctly after repeated original/halloween toggling', async ({ page }) => {

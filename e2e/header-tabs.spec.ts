@@ -45,10 +45,16 @@ const recordHeaderTabMetrics = (sampleWindowMs: number) => {
     if (startedAt !== undefined && performance.now() - startedAt >= sampleWindowMs) {
       window.headerTabSamplingDone = true
     } else {
-      requestAnimationFrame(sample)
+      /*
+       * Timers, not frames. The claim here needs sampling density, not samples aligned to paints,
+       * and rAF is the scheduler that stalls on a loaded runner - a frame-driven loop can then
+       * miss its own deadline for seconds. Timers held ~15ms throughout the same measurements.
+       */
+      setTimeout(sample, 16)
     }
   }
 
+  // The first sample must land on the first painted frame, which is the claim being made.
   requestAnimationFrame(sample)
 }
 
@@ -58,7 +64,7 @@ test.describe('header tabs layout stability', () => {
   test('uses compact size metrics from the first frame', async ({ page }) => {
     await page.addInitScript(recordHeaderTabMetrics, SAMPLE_WINDOW_MS)
     await page.goto('/')
-    await page.waitForFunction(() => window.headerTabSamplingDone)
+    await page.waitForFunction(() => window.headerTabSamplingDone, undefined, { polling: 100 })
 
     const samples = await page.evaluate(() => window.headerTabMetricSamples ?? [])
 

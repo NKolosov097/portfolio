@@ -1,8 +1,9 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator } from '@playwright/test'
 
 import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
 
 import { revealAside as revealAsideImmediately } from './helpers/aside'
+import { waitForPaint } from './helpers/frames'
 import { openLanguageMenu } from './helpers/language'
 
 /** bob + sway + breathe on the body, plus the two eye animations. */
@@ -15,15 +16,6 @@ const EXPECTED_HALLOWEEN_ANIMATION_COUNT = 8
 const REDUCED_MOTION_SAMPLE_WINDOW_MS = 1_500
 
 const ORIGINAL_ASIDE_BACKGROUND = 'rgb(18, 18, 18)'
-
-/**
- * Budget for waiting out the 900ms gesture in wall-clock time. A loaded CI runner advanced its
- * timeline at roughly a fifth of real time, leaving the lantern short of its endpoint at 5s.
- */
-const GESTURE_SETTLE_TIMEOUT_MS = 20_000
-
-/** Ceiling on waiting for a paint before a screenshot, since rAF can stall on a loaded runner. */
-const FRAME_WAIT_CEILING_MS = 250
 
 /**
  * Timeline fractions that land on the travel waypoints. One ease spans the whole gesture, so
@@ -99,25 +91,7 @@ async function stageLanternGesture(page: import('@playwright/test').Page) {
       },
       { phase, depthPhase },
     )
-    await page.evaluate((ceilingMs) => {
-      /**
-       * Prefer a real frame, so WebKit has applied the seek before the screenshot below, but never
-       * block on one. This repo already measured rAF stalling on a loaded CI runner while timers
-       * held ~15ms - see the note on SETTLE_SAMPLE_MS in helpers/interaction.ts - and waiting
-       * unbounded here burned the whole 90s budget. The timer is the ceiling, not the usual path:
-       * a screenshot rasterises current styles regardless of whether a frame was scheduled.
-       */
-      return new Promise<void>((resolve) => {
-        let hasSettled = false
-        const settle = () => {
-          if (hasSettled) return
-          hasSettled = true
-          resolve()
-        }
-        requestAnimationFrame(() => requestAnimationFrame(settle))
-        setTimeout(settle, ceilingMs)
-      })
-    }, FRAME_WAIT_CEILING_MS)
+    await waitForPaint(page)
   }
   const box = await ghost.boundingBox()
   if (!box) throw new Error('Expected visible ghost bounds.')
@@ -137,6 +111,48 @@ async function stageLanternGesture(page: import('@playwright/test').Page) {
   }
 }
 
+/**
+ * Waits for a JS-created animation to exist before anything measures it. These are created in a
+ * React effect, so on a starved runner the effect can flush after the evaluate that looks for
+ * them - and a bare lookup then throws, which reads like a product bug rather than a late tick.
+ */
+async function waitForAnimation(scope: Locator, id: string) {
+  await expect
+    .poll(() =>
+      scope.evaluate(
+        (node, wanted) => node.getAnimations().some((animation) => animation.id === wanted),
+        id,
+      ),
+    )
+    .toBe(true)
+}
+
+/**
+ * Drives the gesture to the pose it is heading for, then asserts it landed there. Waiting out the
+ * 900ms in wall clock is the fragile part: a loaded runner advanced the timeline at a fifth of
+ * real time in one measurement and at 55ms per 20s in another, so no timeout is large enough.
+ *
+ * Only running tracks are finished. `finish()` jumps to whichever end the playback direction
+ * points at, and a track already parked at its destination keeps the direction of the leg before
+ * it - the component pauses it without resetting playbackRate. Finishing that one drags a correct
+ * pose to the opposite end. The poll covers the other order, where the direction settles a tick
+ * after the toggle.
+ */
+async function expectGestureSettledAt(travel: Locator, offsetX: number) {
+  await expect
+    .poll(() =>
+      travel.evaluate((node) => {
+        for (const animation of node.getAnimations({ subtree: true })) {
+          if (animation.id.startsWith('lantern-gesture-') && animation.playState === 'running') {
+            animation.finish()
+          }
+        }
+        return new DOMMatrix(getComputedStyle(node).transform).e
+      }),
+    )
+    .toBeCloseTo(offsetX)
+}
+
 /** Let finite lantern presentation settle before measuring its steady artwork. */
 async function revealAside(page: import('@playwright/test').Page) {
   const aside = await revealAsideImmediately(page)
@@ -144,18 +160,26 @@ async function revealAside(page: import('@playwright/test').Page) {
   const isHalloween =
     (await page.locator('html').getAttribute('data-appearance')) === EAppearance.halloween
   await expect(travel).toHaveAttribute('data-present', String(isHalloween))
+  /*
+   * Finish the presentation rather than waiting it out. The entry settle runs 1150ms, and this
+   * poll has the default 5s, so on a runner that advances the timeline at a fraction of real time
+   * the wait expires with the lantern still mid-flight - and 27 of this file's tests start here.
+   * Finishing still ends at the real resting pose: the settle's onfinish clears its inline
+   * transform. The poll stays so an animation created a tick later is caught and finished too.
+   */
   await expect
     .poll(() =>
-      travel.evaluate(
-        (node) =>
-          node
-            .getAnimations({ subtree: true })
-            .filter(
-              (animation) =>
-                animation.effect?.getTiming().iterations !== Infinity &&
-                animation.playState === 'running',
-            ).length,
-      ),
+      travel.evaluate((node) => {
+        const running = node
+          .getAnimations({ subtree: true })
+          .filter(
+            (animation) =>
+              animation.effect?.getTiming().iterations !== Infinity &&
+              animation.playState === 'running',
+          )
+        for (const animation of running) animation.finish()
+        return running.filter((animation) => animation.playState === 'running').length
+      }),
     )
     .toBe(0)
   return aside
@@ -360,7 +384,9 @@ test.describe('aside ghost', () => {
               return
             }
 
-            requestAnimationFrame(sample)
+            // A timer, not a frame: rAF is exactly what stalls here, and this loop can only
+            // notice its own deadline from inside the callback.
+            setTimeout(sample, 16)
           }
 
           sample()
@@ -374,7 +400,8 @@ test.describe('aside ghost', () => {
 
     expect(animationIds).not.toContain('ghost-tickle-body')
     expect(animationIds).toContain('ghost-reduced-giggle')
-    await expect(trigger).toHaveAttribute('data-tickling', 'false', { timeout: 500 })
+    // The flip waits on the giggle's finish event, which is timeline progress; use the default.
+    await expect(trigger).toHaveAttribute('data-tickling', 'false')
   })
 
   test('runs every layer of its animation', async ({ page }) => {
@@ -411,13 +438,23 @@ test.describe('aside ghost', () => {
 
     await expect(ghost).toBeVisible()
 
-    const readTransform = () => ghost.evaluate((node) => getComputedStyle(node).transform)
+    /*
+     * Sample the idle loop's own timeline rather than sleeping 800ms and hoping it advanced. A
+     * starved runner can leave both reads identical and fail a page that is perfectly healthy.
+     */
+    const poses = await ghost.evaluate((node) => {
+      const idle = node
+        .getAnimations({ subtree: true })
+        .find((animation) => animation.effect?.getTiming().iterations === Infinity)
+      if (!idle) throw new Error('Expected an endless idle animation.')
+      idle.pause()
+      return [0, 800].map((time) => {
+        idle.currentTime = time
+        return getComputedStyle(node).transform
+      })
+    })
 
-    const firstFrame = await readTransform()
-
-    await page.waitForTimeout(800)
-
-    expect(await readTransform()).not.toBe(firstFrame)
+    expect(poses[1]).not.toBe(poses[0])
   })
 
   test('shows a recognizable lantern at mascot size in halloween, and hides it in original', async ({
@@ -764,9 +801,7 @@ test.describe('aside ghost', () => {
     await travel.evaluate((node) => {
       node.setAttribute('visibility', 'hidden')
     })
-    expect(await ghost.screenshot({ path: '.playwright-mcp/gesture-test-baseline.png' })).toEqual(
-      occluded,
-    )
+    expect(await ghost.screenshot()).toEqual(occluded)
   })
 
   test('stows, reverses and redraws the lantern continuously while tickled', async ({ page }) => {
@@ -780,10 +815,15 @@ test.describe('aside ghost', () => {
     await toggle.dispatchEvent('click')
     await expect(travel).toHaveAttribute('data-present', 'false')
     await expect(aside.getByTestId('aside-ghost-lantern')).toBeAttached()
+    await waitForAnimation(travel, 'lantern-gesture-travel')
     const before = await travel.evaluate((node) => {
-      const animation = node.getAnimations()[0]
-      animation?.pause()
-      if (animation) animation.currentTime = 260
+      const animation = node
+        .getAnimations()
+        .find((candidate) => candidate.id === 'lantern-gesture-travel')
+      // An explicit throw: the optional chain here used to measure a pose nothing was driving.
+      if (!animation) throw new Error('Expected the travel track.')
+      animation.pause()
+      animation.currentTime = 260
       return new DOMMatrix(getComputedStyle(node).transform).e
     })
     expect(before).toBeGreaterThan(0)
@@ -793,9 +833,7 @@ test.describe('aside ghost', () => {
     await aside.getByTestId('aside-ghost-trigger').click()
     await toggle.dispatchEvent('click')
     await toggle.dispatchEvent('click')
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', {
-      timeout: GESTURE_SETTLE_TIMEOUT_MS,
-    })
+    await expectGestureSettledAt(travel, 0)
     await expect
       .poll(() =>
         inertia.evaluate(
@@ -805,9 +843,7 @@ test.describe('aside ghost', () => {
       )
       .toBe(0)
     await toggle.dispatchEvent('click')
-    await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, -5, -4.2)', {
-      timeout: GESTURE_SETTLE_TIMEOUT_MS,
-    })
+    await expectGestureSettledAt(travel, -5)
     await toggle.dispatchEvent('click')
     await page.goto('/?lantern-remount=1')
     expect(errors).toEqual([])
@@ -1046,6 +1082,7 @@ test.describe('aside ghost', () => {
     const aside = await revealAside(page)
     const inertia = aside.getByTestId('aside-ghost-lantern-inertia')
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await waitForAnimation(inertia, 'lantern-exit')
     const exit = await inertia.evaluate((node) => {
       const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-exit')
       if (!animation) throw new Error('Expected exit neutralization.')
@@ -1077,6 +1114,7 @@ test.describe('aside ghost', () => {
       }
     })
     await page.getByTestId('appearance-toggle-switch').dispatchEvent('click')
+    await waitForAnimation(inertia, 'lantern-enter')
     const result = await inertia.evaluate((node) => {
       const animation = node.getAnimations().find((candidate) => candidate.id === 'lantern-enter')
       if (!animation || !animation.effect) throw new Error('Expected return settling.')
