@@ -301,7 +301,7 @@ test.describe('halloween hero motion', () => {
 
   // Confirms every layer sprite is a distinct <defs> asset and that the
   // legacy, since-removed fire and ember sprites never resurface.
-  test('defines three distinct asset hrefs without the legacy fire or midnight-ember sprites', async ({
+  test('defines four distinct asset hrefs without the legacy fire or midnight-ember sprites', async ({
     page,
     browserName,
   }) => {
@@ -316,7 +316,7 @@ test.describe('halloween hero motion', () => {
       ).map((image) => image.getAttribute('href')),
     )
 
-    expect(new Set(hrefs).size).toBe(3)
+    expect(new Set(hrefs).size).toBe(4)
     const pumpkin = scene.locator('defs image[data-asset="pumpkin"]')
     await expect(pumpkin).toHaveAttribute('href', /\/layer-pumpkin\.(avif|webp)$/)
     /*
@@ -338,21 +338,80 @@ test.describe('halloween hero motion', () => {
     expect(hrefs.some((href) => href?.includes('layer-fire'))).toBe(false)
   })
 
-  test('decodes the hero WebP sibling when AVIF fails', async ({ page }) => {
-    await page.route('**/layer-pumpkin.avif', (route) => route.abort())
+  for (const [key, file, width] of [
+    ['pumpkin', 'layer-pumpkin', 1254],
+    ['watchingHead', 'watching-eyes', 960],
+  ] as const) {
+    test(`decodes the ${key} WebP sibling when AVIF fails`, async ({ page }) => {
+      await page.route(`**/${file}.avif`, (route) => route.abort())
+      await page.goto('/')
+      const scene = page.getByTestId('halloween-scene')
+      await expect(scene).toHaveAttribute('data-ready', 'true')
+      const pumpkin = scene.locator(`defs image[data-asset="${key}"]`)
+      await expect(pumpkin).toHaveAttribute('href', `/assets/img/halloween/${file}.webp`)
+      expect(
+        await pumpkin.evaluate(async (node) => {
+          const image = new Image()
+          image.src = node.getAttribute('href') ?? ''
+          await image.decode()
+          return image.naturalWidth
+        }),
+      ).toBe(width)
+    })
+  }
+
+  test('reveals the photographic watcher from shadow and then retreats', async ({
+    page,
+    browserName,
+  }) => {
     await page.goto('/')
-    const scene = page.getByTestId('halloween-scene')
-    await expect(scene).toHaveAttribute('data-ready', 'true')
-    const pumpkin = scene.locator('defs image[data-asset="pumpkin"]')
-    await expect(pumpkin).toHaveAttribute('href', '/assets/img/halloween/layer-pumpkin.webp')
+    await expect(page.getByTestId('halloween-scene')).toHaveAttribute('data-ready', 'true')
+    const asset = page.locator('defs image[data-asset="watchingHead"]')
+    await expect(asset).toHaveAttribute('href', /\/watching-eyes\.(avif|webp)$/)
+    if (browserName === 'chromium') await expect(asset).toHaveAttribute('href', /\.avif$/)
     expect(
-      await pumpkin.evaluate(async (node) => {
+      await asset.evaluate(async (node) => {
         const image = new Image()
         image.src = node.getAttribute('href') ?? ''
         await image.decode()
         return image.naturalWidth
       }),
-    ).toBe(1254)
+    ).toBe(960)
+    await seekScene(page, 5000)
+    const visible = await layerOpacity(page, 'halloween-watching-head')
+    const head = page.getByTestId('halloween-watching-head')
+    // Restrained depth motion must not make the head drop or visibly collapse.
+    const position = () =>
+      head.evaluate((node) => {
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(node).transform)
+        const box = node.getBoundingClientRect()
+        return {
+          scale: matrix.m11,
+          y: matrix.m42,
+          eyeLevel: box.y + box.height * 0.4,
+          lighting: getComputedStyle(node).filter,
+        }
+      })
+    const revealed = await position()
+    await seekScene(page, 11000)
+    expect(await layerOpacity(page, 'halloween-watching-head')).toBe(0)
+    const withdrawn = await position()
+    expect(revealed.scale - withdrawn.scale).toBeGreaterThan(0.04)
+    expect(revealed.scale - withdrawn.scale).toBeLessThan(0.08)
+    expect(revealed.y).toBe(0)
+    expect(withdrawn.y).toBe(0)
+    expect(revealed.eyeLevel).toBeCloseTo(withdrawn.eyeLevel, 1)
+    expect(revealed.lighting).not.toBe(withdrawn.lighting)
+    expect(await head.locator('..').getAttribute('mask')).toContain('head-mask')
+    expect(visible).toBeLessThanOrEqual(0.55)
+
+    const region = await head.boundingBox()
+    if (!region) throw new Error('Expected a laid-out head region.')
+    const hiddenFrame = await page.screenshot({ clip: region })
+    await head.evaluate((node) => {
+      node.style.visibility = 'hidden'
+    })
+    expect(await page.screenshot({ clip: region })).toEqual(hiddenFrame)
   })
 
   test('settles hero readiness without retrying when both pumpkin formats fail', async ({
@@ -410,6 +469,7 @@ test.describe('halloween hero motion', () => {
       'halloween-ignition',
       'halloween-candle-light',
       'halloween-sparks',
+      'halloween-watching-head',
     ]) {
       await expect
         .poll(() => layerOpacity(page, testId), {
