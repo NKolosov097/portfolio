@@ -21,8 +21,38 @@
 .groundLight,
 .sparks,
 .pumpkinUnlit,
-.ignition {
+.ignition,
+.watchingHead {
   opacity: 0;
+}
+
+/* Keep eye level fixed while size and candlelight convey an approach from deeper darkness. */
+.watchingHead {
+  transform-box: fill-box;
+  transform-origin: 50% 40%;
+}
+
+.scene[data-ready='true'] .watchingHead {
+  opacity: 0.55;
+  animation: watching-peek 14s ease-in-out infinite;
+}
+
+@keyframes watching-peek {
+  0%,
+  10%,
+  62%,
+  100% {
+    opacity: 0;
+    transform: scale(0.88);
+    filter: brightness(0.72);
+  }
+
+  22%,
+  44% {
+    opacity: 0.55;
+    transform: scale(0.94);
+    filter: brightness(0.95);
+  }
 }
 
 /* Nested inside .ignition, so it rides the parent's reveal; its own opacity
@@ -179,6 +209,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .scene[data-ready='true'] .watchingHead {
+    animation: none;
+    opacity: 0.5;
+    transform: scale(0.94);
+    filter: brightness(0.95);
+  }
+
   .scene[data-ready='true'] .ground,
   .scene[data-ready='true'] .pumpkinUnlit,
   .scene[data-ready='true'] .ignition,

@@ -4,11 +4,12 @@ import { useEffect, useId, useState, type CSSProperties } from 'react'
 
 const ASSET_BASE = '/assets/img/halloween/'
 
-/** Three independent, photoreal layers composited via stacked SVG `<use>` sprites. */
+/** Photographic assets share the scene's guarded decode and reveal lifecycle. */
 const ASSET_FILES = {
   ground: 'layer-ground.webp',
   groundGlow: 'layer-ground-glow.webp',
   pumpkin: 'layer-pumpkin.avif',
+  watchingHead: 'watching-eyes.webp',
 } as const
 
 type AssetKey = keyof typeof ASSET_FILES
@@ -38,7 +39,7 @@ const SPARKS = [
 const SCENE_WIDTH = 1536
 const SCENE_HEIGHT = 1024
 
-/** Three photoreal layers reveal around restrained sparks and localized candlelight. */
+/** Photoreal Halloween scenery with candlelight and a quiet watcher emerging from the dark. */
 export const HalloweenArt = () => {
   const uid = useId()
   const [isReady, setIsReady] = useState(false)
@@ -90,10 +91,25 @@ export const HalloweenArt = () => {
             href={key === 'pumpkin' ? pumpkinSource : `${ASSET_BASE}${file}`}
             x={0}
             y={0}
-            width={key === 'pumpkin' ? 1254 : SCENE_WIDTH}
-            height={key === 'pumpkin' ? 1254 : SCENE_HEIGHT}
+            width={key === 'watchingHead' ? 340 : key === 'pumpkin' ? 1254 : SCENE_WIDTH}
+            height={key === 'watchingHead' ? 170 : key === 'pumpkin' ? 1254 : SCENE_HEIGHT}
           />
         ))}
+        <radialGradient id={`${uid}-head-shadow`} cx="50%" cy="34%" r="48%">
+          <stop offset="0%" stopColor="white" />
+          <stop offset="35%" stopColor="white" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </radialGradient>
+        <mask
+          id={`${uid}-head-mask`}
+          maskUnits="userSpaceOnUse"
+          x={0}
+          y={0}
+          width={340}
+          height={170}
+        >
+          <rect width={340} height={170} fill={`url(#${uid}-head-shadow)`} />
+        </mask>
         <clipPath id={`${uid}-openings`} clipPathUnits="userSpaceOnUse">
           <polygon points="351,597 486,718 368,735 336,725 323,705 319,675 323,640 334,613" />
           <polygon points="666,726 868,609 879,643 880,678 865,714 844,736 816,746 747,742" />
@@ -105,6 +121,14 @@ export const HalloweenArt = () => {
       {/* 1. Ground, revealed first. */}
       <g className={styles.ground} data-testid="halloween-ground">
         <use href={`#${imageId('ground')}`} />
+      </g>
+
+      <g transform="translate(400 300)">
+        <g mask={`url(#${uid}-head-mask)`} data-testid="halloween-watching-shadow">
+          <g className={styles.watchingHead} data-testid="halloween-watching-head">
+            <use href={`#${imageId('watchingHead')}`} />
+          </g>
+        </g>
       </g>
 
       {/* 1b. Steady ground glow lighting up alongside ignition; no pulsing. */}
