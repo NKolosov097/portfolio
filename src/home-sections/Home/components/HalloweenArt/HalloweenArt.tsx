@@ -9,7 +9,7 @@ const ASSET_FILES = {
   ground: 'layer-ground.webp',
   groundGlow: 'layer-ground-glow.webp',
   pumpkin: 'layer-pumpkin.avif',
-  watchingHead: 'watching-eyes.webp',
+  watchingHead: 'watching-eyes.avif',
 } as const
 
 type AssetKey = keyof typeof ASSET_FILES
@@ -43,7 +43,7 @@ const SCENE_HEIGHT = 1024
 export const HalloweenArt = () => {
   const uid = useId()
   const [isReady, setIsReady] = useState(false)
-  const [pumpkinSource, setPumpkinSource] = useState(`${ASSET_BASE}${ASSET_FILES.pumpkin}`)
+  const [fallbackSources, setFallbackSources] = useState<Partial<Record<AssetKey, string>>>({})
 
   // Scopes each sprite's shared <defs> id to this component instance.
   const imageId = (key: AssetKey) => `${uid}-${key}`
@@ -52,16 +52,16 @@ export const HalloweenArt = () => {
   useEffect(() => {
     let isActive = true
     Promise.all(
-      Object.values(ASSET_FILES).map((file) => {
+      (Object.entries(ASSET_FILES) as [AssetKey, string][]).map(([key, file]) => {
         const image = new window.Image()
         image.src = `${ASSET_BASE}${file}`
         return image.decode().catch(async () => {
-          if (file !== ASSET_FILES.pumpkin) return
-          const fallbackSource = `${ASSET_BASE}layer-pumpkin.webp`
+          if (!file.endsWith('.avif')) return
+          const fallbackSource = `${ASSET_BASE}${file.replace(/\.avif$/, '.webp')}`
           const fallback = new window.Image()
           fallback.src = fallbackSource
           await fallback.decode().catch(() => undefined)
-          if (isActive) setPumpkinSource(fallbackSource)
+          if (isActive) setFallbackSources((sources) => ({ ...sources, [key]: fallbackSource }))
         })
       }),
     ).then(() => {
@@ -85,10 +85,10 @@ export const HalloweenArt = () => {
       <defs>
         {(Object.entries(ASSET_FILES) as [AssetKey, string][]).map(([key, file]) => (
           <image
-            key={key === 'pumpkin' ? pumpkinSource : key}
+            key={fallbackSources[key] ?? key}
             id={imageId(key)}
             data-asset={key}
-            href={key === 'pumpkin' ? pumpkinSource : `${ASSET_BASE}${file}`}
+            href={fallbackSources[key] ?? `${ASSET_BASE}${file}`}
             x={0}
             y={0}
             width={key === 'watchingHead' ? 340 : key === 'pumpkin' ? 1254 : SCENE_WIDTH}

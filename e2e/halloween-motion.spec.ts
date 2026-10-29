@@ -338,27 +338,37 @@ test.describe('halloween hero motion', () => {
     expect(hrefs.some((href) => href?.includes('layer-fire'))).toBe(false)
   })
 
-  test('decodes the hero WebP sibling when AVIF fails', async ({ page }) => {
-    await page.route('**/layer-pumpkin.avif', (route) => route.abort())
-    await page.goto('/')
-    const scene = page.getByTestId('halloween-scene')
-    await expect(scene).toHaveAttribute('data-ready', 'true')
-    const pumpkin = scene.locator('defs image[data-asset="pumpkin"]')
-    await expect(pumpkin).toHaveAttribute('href', '/assets/img/halloween/layer-pumpkin.webp')
-    expect(
-      await pumpkin.evaluate(async (node) => {
-        const image = new Image()
-        image.src = node.getAttribute('href') ?? ''
-        await image.decode()
-        return image.naturalWidth
-      }),
-    ).toBe(1254)
-  })
+  for (const [key, file, width] of [
+    ['pumpkin', 'layer-pumpkin', 1254],
+    ['watchingHead', 'watching-eyes', 960],
+  ] as const) {
+    test(`decodes the ${key} WebP sibling when AVIF fails`, async ({ page }) => {
+      await page.route(`**/${file}.avif`, (route) => route.abort())
+      await page.goto('/')
+      const scene = page.getByTestId('halloween-scene')
+      await expect(scene).toHaveAttribute('data-ready', 'true')
+      const pumpkin = scene.locator(`defs image[data-asset="${key}"]`)
+      await expect(pumpkin).toHaveAttribute('href', `/assets/img/halloween/${file}.webp`)
+      expect(
+        await pumpkin.evaluate(async (node) => {
+          const image = new Image()
+          image.src = node.getAttribute('href') ?? ''
+          await image.decode()
+          return image.naturalWidth
+        }),
+      ).toBe(width)
+    })
+  }
 
-  test('reveals the photographic watcher from shadow and then retreats', async ({ page }) => {
+  test('reveals the photographic watcher from shadow and then retreats', async ({
+    page,
+    browserName,
+  }) => {
     await page.goto('/')
     await expect(page.getByTestId('halloween-scene')).toHaveAttribute('data-ready', 'true')
     const asset = page.locator('defs image[data-asset="watchingHead"]')
+    await expect(asset).toHaveAttribute('href', /\/watching-eyes\.(avif|webp)$/)
+    if (browserName === 'chromium') await expect(asset).toHaveAttribute('href', /\.avif$/)
     expect(
       await asset.evaluate(async (node) => {
         const image = new Image()
