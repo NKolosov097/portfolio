@@ -48,6 +48,13 @@ body {
   --min-height-section: calc(100vh - var(--header-height) - 2 * var(--body-padding));
   --min-height-footer: 40px;
   --g-card-background-color: rgb(32 32 32 / 40%);
+  --card-surface-color: #111;
+  --card-border-color: rgb(255 255 255 / 15%);
+  --card-border-hover-color: rgb(255 255 255 / 40%);
+  --card-chip-background-color: rgb(255 255 255 / 8%);
+  --skeleton-base-color: rgb(255 255 255 / 6%);
+  --surface-subtle-color: rgb(255 255 255 / 5%);
+  --overlay-surface-color: #1a1a19;
   --g-color-private-red-550-solid: #f00;
   --g-color-text-danger: var(--g-color-private-red-550-solid);
 
@@ -66,6 +73,37 @@ body {
 }
 
 /* Seasonal accent only; backgrounds stay near-black so semantic/error colors keep their meaning. */
+html[data-appearance='winter'],
+html[data-appearance='winter'] body.g-root {
+  --g-color-line-brand: #8fd3ff;
+  --g-card-background-color: rgb(28 46 70 / 45%);
+  --winter-frost: #8fd3ff;
+  --winter-haze: #5b8fd6;
+  --root-bg-color: #0c1118;
+  --aside-bg-color: #0c1118;
+  --card-surface-color: rgb(20 32 48 / 55%);
+  --card-border-color: rgb(143 211 255 / 22%);
+  --card-border-hover-color: rgb(143 211 255 / 55%);
+  --card-chip-background-color: rgb(143 211 255 / 10%);
+  --skeleton-base-color: rgb(143 211 255 / 12%);
+  --surface-subtle-color: rgb(143 211 255 / 8%);
+  --overlay-surface-color: #131c28;
+
+  /* Gravity's own brand palette is yellow, which the action controls inherit; frost them over. */
+  --g-color-base-brand: #8fd3ff;
+  --g-color-base-brand-hover: #a7ddff;
+  --g-color-text-brand: #8fd3ff;
+  --g-color-text-brand-heavy: #b9e4ff;
+  --g-color-text-brand-contrast: #0c1118;
+
+  /* Gravity links are yellow, and visited ones purple; both read as leftovers next to the frost. */
+  --g-color-text-link: #8fd3ff;
+  --g-color-text-link-hover: #b9e4ff;
+  --g-color-text-link-visited: #a7c8e8;
+  --g-color-text-link-visited-hover: #cfe6ff;
+}
+
+/* Archived Halloween palette; kept for the next season.
 html[data-appearance='halloween'],
 html[data-appearance='halloween'] body.g-root {
   --g-color-line-brand: #ffb565;
@@ -74,7 +112,7 @@ html[data-appearance='halloween'] body.g-root {
   --halloween-haze: #8b5fbf;
   --root-bg-color: #101012;
   --aside-bg-color: #101012;
-}
+} */
 
 html:has(.g-modal_open) {
   overflow: hidden;

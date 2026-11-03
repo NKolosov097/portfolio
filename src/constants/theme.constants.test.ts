@@ -7,16 +7,16 @@ describe('resolveRequestAppearance', () => {
     expect(resolveRequestAppearance(EAppearance.original)).toBe(EAppearance.original)
   })
 
-  it('honours an explicit halloween cookie', () => {
-    expect(resolveRequestAppearance(EAppearance.halloween)).toBe(EAppearance.halloween)
+  it('defaults to winter when the cookie is missing', () => {
+    expect(resolveRequestAppearance(null)).toBe(EAppearance.winter)
+    expect(resolveRequestAppearance(undefined)).toBe(EAppearance.winter)
   })
 
-  it('defaults to halloween when the cookie is missing', () => {
-    expect(resolveRequestAppearance(null)).toBe(EAppearance.halloween)
-    expect(resolveRequestAppearance(undefined)).toBe(EAppearance.halloween)
+  it('defaults to winter for an unrecognised cookie value', () => {
+    expect(resolveRequestAppearance('spooky')).toBe(EAppearance.winter)
   })
 
-  it('defaults to halloween for an unrecognised cookie value', () => {
-    expect(resolveRequestAppearance('spooky')).toBe(EAppearance.halloween)
+  it('retires a cookie left over from the archived halloween season', () => {
+    expect(resolveRequestAppearance(EAppearance.halloween)).toBe(EAppearance.winter)
   })
 })

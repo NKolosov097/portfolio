@@ -10,9 +10,11 @@ import { ETabID } from '@/constants/header.constants'
 import { EAppearance } from '@/constants/theme.constants'
 import { AppearanceContext } from '@/contexts/appearance'
 import { Tag } from '@/components/Tag/Tag'
-import { HalloweenArt } from '@/home-sections/Home/components/HalloweenArt/HalloweenArt'
+// Halloween is archived; the scene stays in the tree for the next season.
+// import { HalloweenArt } from '@/home-sections/Home/components/HalloweenArt/HalloweenArt'
 import { Sparkle } from '@/home-sections/Home/components/Sparkle/Sparkle'
 import { cancelIdle, requestIdle } from '@/helpers/idleCallback'
+import { ESparkleFieldPreset } from '@/home-sections/Home/types/home.type'
 
 /**
  * Decorative only, so it is kept out of the server payload and off the hero's
@@ -26,14 +28,14 @@ const SparkleField = dynamic(
   { ssr: false },
 )
 
-/** Hero section rendering the intro heading plus either Halloween art or the decorative sparkle field. */
+/** Hero section rendering the intro heading plus the decorative field, as snow or as sparkles. */
 export const Home = () => {
   const { t } = useTranslation()
   const { appearance } = useContext(AppearanceContext)
 
   const [isFieldEnabled, setIsFieldEnabled] = useState(false)
 
-  const isHalloween = appearance === EAppearance.halloween
+  const isWinter = appearance === EAppearance.winter
 
   const lastName = t('lastName')
   const lastNameChars = Array.from(lastName)
@@ -47,17 +49,21 @@ export const Home = () => {
     return () => cancelIdle(handle)
   }, [])
 
-  const artClassName = isHalloween
-    ? styles.halloweenArt
-    : `${styles.halloweenArt} ${styles.artHidden}`
-
   return (
     <section id={ETabID.home} className={styles.section}>
-      <div className={artClassName} data-testid={isHalloween ? 'home-halloween-art' : undefined}>
+      {/* Archived Halloween scene; restore this slot together with the import above.
+      <div
+        className={
+          isHalloween ? styles.halloweenArt : `${styles.halloweenArt} ${styles.artHidden}`
+        }
+        data-testid={isHalloween ? 'home-halloween-art' : undefined}
+      >
         {isHalloween && <HalloweenArt />}
-      </div>
+      </div> */}
 
-      {!isHalloween && isFieldEnabled && <SparkleField />}
+      {isFieldEnabled && (
+        <SparkleField preset={isWinter ? ESparkleFieldPreset.snow : ESparkleFieldPreset.sparkles} />
+      )}
 
       <Tag title={t('headerTabs.home')} />
 
