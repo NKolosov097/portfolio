@@ -35,7 +35,8 @@ async function layerOpacity(page: import('@playwright/test').Page, testId: strin
     .evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))
 }
 
-test.describe('halloween hero motion', () => {
+// Archived with the Halloween appearance: the scene no longer renders.
+test.describe.skip('halloween hero motion', () => {
   test('stages ground, pumpkin, ignition and sparks in order', async ({ page }) => {
     await page.goto('/')
 

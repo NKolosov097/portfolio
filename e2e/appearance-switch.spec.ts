@@ -5,7 +5,8 @@ import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
 /** Both appearances share one hero layout, so headings must not shift when toggling either way. */
 const MAX_HEADING_DRIFT_PX = 0.5
 
-test.describe('appearance switch', () => {
+// Archived with the Halloween appearance; see winter-appearance.spec.ts.
+test.describe.skip('appearance switch', () => {
   test('defaults to the halloween appearance with no cookie set', async ({ page }) => {
     await page.goto('/')
 
