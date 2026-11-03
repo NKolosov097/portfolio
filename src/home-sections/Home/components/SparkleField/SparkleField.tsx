@@ -4,6 +4,7 @@ import styles from './SparkleField.module.css'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { SPARKLE_FIELD_PRESETS } from '@/constants/home.constants'
 import { prefersReducedMotion } from '@/helpers/prefersReducedMotion'
 import {
   createSparkleController,
@@ -16,6 +17,7 @@ import {
   isSparkleWorkerMessage,
 } from '@/home-sections/Home/helpers/sparkleTransport'
 import {
+  ESparkleFieldPreset,
   ESparkleTier,
   ESparkleWorkerInboundType,
   ESparkleWorkerOutboundType,
@@ -179,7 +181,12 @@ const observeSparkleField = (options: IObserveSparkleFieldOptions): (() => void)
   }
 }
 
-export const SparkleField = () => {
+interface ISparkleFieldProps {
+  /** Motion preset to drive the field with; the appearance picks sparkles or snow. */
+  preset?: ESparkleFieldPreset
+}
+
+export const SparkleField = ({ preset = ESparkleFieldPreset.sparkles }: ISparkleFieldProps) => {
   const fieldRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rectRef = useRef<DOMRect | null>(null)
@@ -230,6 +237,8 @@ export const SparkleField = () => {
     if (!field || !canvas) {
       return
     }
+
+    const config = SPARKLE_FIELD_PRESETS[preset]
 
     const initialTier = isReducedMotion
       ? ESparkleTier.static
@@ -297,6 +306,7 @@ export const SparkleField = () => {
               devicePixelRatio: window.devicePixelRatio,
               tier: initialTier,
               color: window.getComputedStyle(canvas).color,
+              config,
             } satisfies TSparkleWorkerInbound,
             [offscreen],
           )
@@ -407,6 +417,7 @@ export const SparkleField = () => {
           devicePixelRatio,
           color: window.getComputedStyle(canvas).color,
           hasGlow: tier.hasGlow,
+          glyphPath: config.glyphPath,
         }),
       resizeSurface: (widthPx, heightPx) => {
         canvas.width = Math.max(1, Math.round(widthPx))
@@ -415,6 +426,7 @@ export const SparkleField = () => {
       requestFrame: (callback) => window.requestAnimationFrame(callback),
       cancelFrame: (handle) => window.cancelAnimationFrame(handle),
       initialTier,
+      config,
     })
 
     const sink: ISparkleFieldSink = {
@@ -442,7 +454,7 @@ export const SparkleField = () => {
       onReady: () => setIsReady(true),
       onRunningChange: setIsRunning,
     })
-  }, [isReducedMotion, isWorkerEnabled, markRectStale, readFieldRect])
+  }, [preset, isReducedMotion, isWorkerEnabled, markRectStale, readFieldRect])
 
   return (
     <div
@@ -452,9 +464,10 @@ export const SparkleField = () => {
       data-motion={isReducedMotion ? 'static' : 'animated'}
       data-running={isRunning ? 'true' : 'false'}
       data-ready={isReady ? 'true' : 'false'}
+      data-preset={preset}
     >
       <canvas
-        key={canvasKey}
+        key={`${preset}-${canvasKey}`}
         ref={canvasRef}
         className={styles.canvas}
         data-testid="home-sparkle-field"

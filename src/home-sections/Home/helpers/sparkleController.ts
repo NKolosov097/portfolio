@@ -14,6 +14,7 @@ import {
   ESparkleTier,
   IPointerPosition,
   ISparkleDrawContext,
+  ISparkleFieldConfig,
   ISparkleParticle,
   ISparkleSpriteAtlas,
   ISparkleTierConfig,
@@ -36,6 +37,8 @@ export interface ISparkleControllerOptions<TImage = CanvasImageSource> {
   cancelFrame: (handle: number) => void
   /** Tier the field starts on, seeded from device signals. */
   initialTier: ESparkleTier
+  /** Motion preset for the active appearance; defaults to the sparkle field's own tuning. */
+  config?: ISparkleFieldConfig
   /** Announces the active tier so the host can mirror it, for example in a DOM attribute. */
   onTierChange?: (tier: ESparkleTier) => void
   /** Random source for particle placement; injected so a field can be reproduced in tests. */
@@ -72,6 +75,8 @@ export const createSparkleController = <TImage = CanvasImageSource>(
   const particles: ISparkleParticle[] = []
   /** Quality governor seeded on the tier the host resolved from device signals. */
   const governor = createSparkleGovernorState(options.initialTier)
+  /** Motion tuning in force for this field's whole lifetime. */
+  const config = options.config ?? SPARKLE_FIELD_CONFIG
 
   /** Frame loop for the current atlas and viewport, created once both are available. */
   let engine: ISparkleEngine<TImage> | null = null
@@ -122,8 +127,8 @@ export const createSparkleController = <TImage = CanvasImageSource>(
       { width: view.width, height: view.height },
       view.width,
       view.height,
-      resolveSparkleParticleCount(view.width, view.height, readTier(), SPARKLE_FIELD_CONFIG),
-      SPARKLE_FIELD_CONFIG,
+      resolveSparkleParticleCount(view.width, view.height, readTier(), config),
+      config,
       options.random,
     )
 
@@ -145,7 +150,7 @@ export const createSparkleController = <TImage = CanvasImageSource>(
       atlas,
       particles,
       view,
-      config: SPARKLE_FIELD_CONFIG,
+      config,
       governor,
       thresholds: SPARKLE_GOVERNOR_THRESHOLDS,
       requestFrame: options.requestFrame,
@@ -179,22 +184,12 @@ export const createSparkleController = <TImage = CanvasImageSource>(
       options.resizeSurface(width * scale, height * scale)
       ensureAtlas()
 
-      const count = resolveSparkleParticleCount(width, height, readTier(), SPARKLE_FIELD_CONFIG)
+      const count = resolveSparkleParticleCount(width, height, readTier(), config)
 
       if (particles.length === 0) {
-        particles.push(
-          ...createSparkleParticles(width, height, count, SPARKLE_FIELD_CONFIG, options.random),
-        )
+        particles.push(...createSparkleParticles(width, height, count, config, options.random))
       } else {
-        refitSparkleParticles(
-          particles,
-          previous,
-          width,
-          height,
-          count,
-          SPARKLE_FIELD_CONFIG,
-          options.random,
-        )
+        refitSparkleParticles(particles, previous, width, height, count, config, options.random)
       }
 
       ensureEngine()

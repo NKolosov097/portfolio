@@ -62,6 +62,7 @@ const onInit = (
         devicePixelRatio,
         color: message.color,
         hasGlow: tier.hasGlow,
+        glyphPath: message.config.glyphPath,
       }),
     resizeSurface: (widthPx, heightPx) => {
       target.width = Math.max(1, Math.round(widthPx))
@@ -70,6 +71,7 @@ const onInit = (
     requestFrame: requestWorkerFrame,
     cancelFrame: cancelWorkerFrame,
     initialTier: message.tier,
+    config: message.config,
     onTierChange: (tier) => postMessage({ type: ESparkleWorkerOutboundType.tier, tier }),
   })
 

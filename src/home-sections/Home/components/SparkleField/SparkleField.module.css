@@ -24,6 +24,16 @@
   );
 }
 
+/* Snow has to keep falling well past the fold, so it fades only at the very bottom. */
+.field[data-preset='snow'] .canvas {
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 100%) 0%,
+    rgb(0 0 0 / 100%) 82%,
+    rgb(0 0 0 / 0%) 100%
+  );
+}
+
 @media (prefers-reduced-motion: reduce) {
   .field {
     transition: none;

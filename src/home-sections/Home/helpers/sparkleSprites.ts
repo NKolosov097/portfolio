@@ -1,6 +1,5 @@
 import {
   SPARKLE_GLOW_BLUR_RATIO,
-  SPARKLE_GLYPH_PATH,
   SPARKLE_GLYPH_VIEWBOX,
   SPARKLE_ROTATION_STEPS,
   SPARKLE_SPRITE_BUCKETS,
@@ -22,6 +21,8 @@ export interface ISparkleAtlasOptions {
   color: string
   /** Whether to bake the glow at all; the lowest tiers drop it to save fill cost. */
   hasGlow: boolean
+  /** Outline to bake, taken from the active preset. */
+  glyphPath: string
 }
 
 /** Finds the pre-rasterised bucket closest to a requested glyph size. */
@@ -65,7 +66,7 @@ export const buildSparkleAtlas = (
   options: ISparkleAtlasOptions,
 ): ISparkleSpriteAtlas | null => {
   const paddingFactor = options.hasGlow ? SPARKLE_SPRITE_GLOW_PADDING : SPARKLE_SPRITE_PADDING
-  const path = new Path2D(SPARKLE_GLYPH_PATH)
+  const path = new Path2D(options.glyphPath)
   const frames: CanvasImageSource[][] = []
 
   for (const bucketSize of SPARKLE_SPRITE_BUCKETS) {

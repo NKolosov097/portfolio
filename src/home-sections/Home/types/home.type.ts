@@ -1,3 +1,9 @@
+/** Motion presets the one field engine can be driven with, one per seasonal appearance. */
+export const enum ESparkleFieldPreset {
+  sparkles = 'sparkles',
+  snow = 'snow',
+}
+
 export const enum ESparkleTier {
   high = 'high',
   medium = 'medium',
@@ -76,6 +82,8 @@ export interface ISparkleTierConfig {
 }
 
 export interface ISparkleFieldConfig {
+  /** Outline the sprites are baked from, authored in the shared glyph viewBox. */
+  glyphPath: string
   /** Field area in CSS pixels² that warrants one particle. */
   areaPerParticle: number
   /** Floor on particle count so narrow viewports still read as a field. */
@@ -92,6 +100,10 @@ export interface ISparkleFieldConfig {
   minDriftSpeed: number
   /** Fastest drift in CSS pixels per millisecond. */
   maxDriftSpeed: number
+  /** Narrowest drift heading in radians, measured clockwise from the positive x axis. */
+  minDriftAngle: number
+  /** Widest drift heading in radians; equal to the minimum plus a full turn for omnidirectional fields. */
+  maxDriftAngle: number
   /** Slowest twinkle in radians per millisecond. */
   minTwinkleSpeed: number
   /** Fastest twinkle in radians per millisecond. */
@@ -229,6 +241,8 @@ export type TSparkleWorkerInbound =
       tier: ESparkleTier
       /** Resolved brand colour, since the worker cannot read computed styles. */
       color: string
+      /** Motion preset the host picked for the active appearance; plain data, so it clones across. */
+      config: ISparkleFieldConfig
     }
   | {
       /** Reports a new field size after a resize. */

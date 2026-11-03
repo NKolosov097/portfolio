@@ -54,7 +54,7 @@ export const createSparkleParticle = (
   const size = randomBetween(random, config.minSize, config.maxSize)
   const sizeSpan = config.maxSize - config.minSize
   const depth = sizeSpan > 0 ? clampUnit((size - config.minSize) / sizeSpan) : 0
-  const driftAngle = random() * Math.PI * 2
+  const driftAngle = randomBetween(random, config.minDriftAngle, config.maxDriftAngle)
   const driftSpeed = randomBetween(random, config.minDriftSpeed, config.maxDriftSpeed)
 
   return {
