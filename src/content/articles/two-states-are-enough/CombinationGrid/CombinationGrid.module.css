@@ -4,8 +4,8 @@
   gap: 1.25rem;
   padding: 2rem 1.5rem;
   margin: 2rem 0;
-  background: #111;
-  border: 1px solid rgb(255 255 255 / 15%);
+  background: var(--card-surface-color);
+  border: 1px solid var(--card-border-color);
   border-radius: 1rem;
 }
 
@@ -32,8 +32,8 @@
   padding: 0.9rem;
   text-align: left;
   cursor: pointer;
-  background: rgb(255 255 255 / 4%);
-  border: 1px solid rgb(255 255 255 / 15%);
+  background: var(--surface-subtle-color);
+  border: 1px solid var(--card-border-color);
   border-radius: 0.75rem;
   transition:
     border-color 0.15s ease-out,

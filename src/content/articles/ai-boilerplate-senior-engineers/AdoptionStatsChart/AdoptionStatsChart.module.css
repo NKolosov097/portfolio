@@ -5,8 +5,8 @@
   padding: 2rem 1.5rem;
   margin: 2rem 0;
   text-align: center;
-  background: #111;
-  border: 1px solid rgb(255 255 255 / 15%);
+  background: var(--card-surface-color);
+  border: 1px solid var(--card-border-color);
   border-radius: 1rem;
 }
 
@@ -142,8 +142,8 @@
   line-height: 1.4;
   color: rgb(255 255 255 / 85%);
   pointer-events: none;
-  background: #1a1a19;
-  border: 1px solid rgb(255 255 255 / 15%);
+  background: var(--overlay-surface-color);
+  border: 1px solid var(--card-border-color);
   border-radius: 0.5rem;
   box-shadow: 0 8px 20px -8px rgb(0 0 0 / 80%);
   transform: translateX(-50%);
