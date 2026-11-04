@@ -139,6 +139,30 @@ describe('renderSparkleField', () => {
     expect(drawn.transform.f).toBeCloseTo(50 * VIEW.devicePixelRatio)
   })
 
+  it('scales a particle still fading in by its entry weight', () => {
+    const { context, draws } = createRecordingContext()
+    const lit = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)
+    const arriving = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)
+
+    lit.opacity = 1
+    lit.twinklePhase = Math.PI / 2
+    arriving.opacity = 1
+    arriving.twinklePhase = Math.PI / 2
+    arriving.entryAlpha = 0.25
+
+    renderSparkleField(
+      context,
+      createTestAtlas(),
+      [lit, arriving],
+      createSparklePointer(),
+      VIEW,
+      SPARKLE_FIELD_CONFIG,
+      createSparkleInfluence(),
+    )
+
+    expect(draws[1].alpha).toBeCloseTo(draws[0].alpha * 0.25)
+  })
+
   it('chooses the bucket nearest the particle size', () => {
     const { context, draws } = createRecordingContext()
     const small = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)

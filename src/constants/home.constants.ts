@@ -237,6 +237,14 @@ export const SPARKLE_FIELD_CONFIG: ISparkleFieldConfig = {
   pointerLerp: 0.12,
   maxFrameDelta: 50,
   twinkleDepth: 0.55,
+  // Sparkles do not fall, so an arriving field lights up in place: every glyph waits out its own
+  // slice of this window before fading in, which scatters the arrival instead of switching it on.
+  entrySpawnAboveRatio: 0,
+  entryStaggerMs: 2600,
+  entryFadeMs: 900,
+  // Sparkles hang rather than fall, so a departing field is taken off by its mask, not by speed.
+  exitSpeedBoost: 1,
+  exitRampMs: 1000,
 }
 
 /** Heading straight down the canvas's y axis, which the snow's drift cone is centred on. */
@@ -298,6 +306,15 @@ export const SNOW_FIELD_CONFIG: ISparkleFieldConfig = {
   pointerLerp: 0.12,
   maxFrameDelta: 50,
   twinkleDepth: 0.3,
+  // An arriving snowfall is seeded above the fold and falls in, so the first flakes come over the
+  // top edge rather than standing mid-screen; the fall itself is the entrance, hence no stagger.
+  entrySpawnAboveRatio: 0.8,
+  entryStaggerMs: 0,
+  entryFadeMs: 0,
+  // A snowfall that is ending blows itself out: the flakes left in frame pick up speed and leave
+  // through the bottom. At their resting pace the slowest would need a minute to clear the fold.
+  exitSpeedBoost: 3.5,
+  exitRampMs: 1600,
 }
 
 /** Presets the field is driven with; the appearance picks one and the engine stays identical. */

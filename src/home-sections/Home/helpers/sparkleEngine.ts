@@ -61,6 +61,8 @@ export interface ISparkleEngine<TImage = CanvasImageSource> {
   setPointerTarget(target: IPointerPosition | null): void
   /** Swaps in sprites rasterised for a new tier or device pixel ratio. */
   setAtlas(atlas: ISparkleSpriteAtlas<TImage>): void
+  /** Stops wrapping particles back in, so the field runs out of frame instead of looping forever. */
+  beginExit(): void
 }
 
 /**
@@ -77,6 +79,8 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
   const wind = createSparkleWind(options.config, random)
 
   let atlas = options.atlas
+  let isExiting = false
+  let exitElapsedMs = 0
   let pointerTarget: IPointerPosition | null = null
   let frameHandle: number | null = null
   let lastTimestamp: number | null = null
@@ -110,6 +114,17 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
     advanceSparklePointer(pointer, pointerTarget, options.config.pointerLerp)
     advanceSparkleWind(wind, delta, options.config, random)
 
+    // Ramped rather than applied whole, so a departing field accelerates out of frame instead of
+    // snapping to its exit speed on the first frame after the appearance changed.
+    let exitSpeedScale: number | null = null
+
+    if (isExiting) {
+      exitElapsedMs += delta
+      exitSpeedScale =
+        1 +
+        (options.config.exitSpeedBoost - 1) * Math.min(1, exitElapsedMs / options.config.exitRampMs)
+    }
+
     for (const particle of options.particles) {
       advanceSparkleParticle(
         particle,
@@ -119,6 +134,7 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
         options.config,
         wind,
         random,
+        exitSpeedScale,
       )
     }
 
@@ -166,6 +182,9 @@ export const createSparkleEngine = <TImage = CanvasImageSource>(
     },
     setAtlas: (next: ISparkleSpriteAtlas<TImage>): void => {
       atlas = next
+    },
+    beginExit: (): void => {
+      isExiting = true
     },
   }
 }

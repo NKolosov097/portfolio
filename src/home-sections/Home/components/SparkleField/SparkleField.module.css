@@ -1,14 +1,58 @@
+/* Where the erase ramp has fully taken hold. Its opaque end trails a whole viewport behind, so the
+   sparkles go out along a gradient travelling down the page rather than along a hard edge. */
+@property --sparkle-erase {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: -100%;
+}
+
 .field {
   position: absolute;
   inset: 0;
   z-index: -1;
   opacity: 0;
-  transition: opacity 800ms ease-out;
+  transition: opacity 700ms ease-out;
   pointer-events: none;
 }
 
+/* An arriving field needs no reveal of its own: snow falls in over the top edge and sparkles light
+   up one at a time, both out of the simulation, so the layer only has to stop being transparent. */
 .field[data-ready='true'] {
   opacity: 1;
+}
+
+/* Sparkles give way to a snowfall, so they go out from the top down, in step with the flakes coming
+   over the top edge and covering them. */
+.field[data-leaving='true'][data-preset='sparkles'] {
+  opacity: 0;
+  transition: opacity 2600ms ease-in;
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0%) var(--sparkle-erase),
+    rgb(0 0 0) calc(var(--sparkle-erase) + 100%)
+  );
+  animation: erase 2600ms ease-out forwards;
+}
+
+/* A departing snowfall is no longer fed and blows itself out, so the layer keeps its full opacity
+   and the erase only follows the emptying from the top, catching whatever is still on its way down. */
+.field[data-leaving='true'][data-preset='snow'] {
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0%) var(--sparkle-erase),
+    rgb(0 0 0) calc(var(--sparkle-erase) + 100%)
+  );
+  animation: erase 4200ms ease-in forwards;
+}
+
+@keyframes erase {
+  from {
+    --sparkle-erase: -100%;
+  }
+
+  to {
+    --sparkle-erase: 100%;
+  }
 }
 
 .canvas {
@@ -37,5 +81,10 @@
 @media (prefers-reduced-motion: reduce) {
   .field {
     transition: none;
+  }
+
+  .field[data-leaving='true'][data-preset] {
+    opacity: 0;
+    animation: none;
   }
 }

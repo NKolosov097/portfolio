@@ -87,6 +87,12 @@ export interface ISparkleParticle {
   lateralVelocity: number
   /** Which baked glyph shape this particle draws, indexing `ISparkleFieldConfig.glyphPaths`. */
   variantIndex: number
+  /** 0-1 weight on the resting alpha while a newly seeded particle fades in; 1 once it is fully lit. */
+  entryAlpha: number
+  /** Milliseconds left before this particle begins its fade-in, which staggers an arriving field. */
+  entryDelayMs: number
+  /** Whether the particle was seeded above the field and is still falling into it, so it must not wrap. */
+  isFallingIn: boolean
 }
 
 export interface ISparkleInfluence {
@@ -213,6 +219,22 @@ export interface ISparkleFieldConfig {
   maxFrameDelta: number
   /** How much of the resting alpha the twinkle modulates, 0–1. */
   twinkleDepth: number
+  /**
+   * How far above the field an arriving population is seeded, in field heights. 0 seeds it in place;
+   * a positive value makes the field fall in from above instead of appearing already spread out.
+   */
+  entrySpawnAboveRatio: number
+  /** Window in milliseconds the per-particle fade-ins of an arriving field are scattered over. */
+  entryStaggerMs: number
+  /** How long one particle of an arriving field takes to reach its resting alpha, in milliseconds. */
+  entryFadeMs: number
+  /**
+   * Multiplier the fall speed is ramped to once the field is being replaced, so the last particles
+   * clear the bottom edge in seconds instead of minutes. 1 leaves a departing field at its own pace.
+   */
+  exitSpeedBoost: number
+  /** How long that multiplier takes to ramp in, in milliseconds, so the departure is not a jolt. */
+  exitRampMs: number
 }
 
 export interface ISparkleGovernorThresholds {
@@ -314,6 +336,7 @@ export const enum ESparkleWorkerInboundType {
   viewport = 'viewport',
   pointer = 'pointer',
   run = 'run',
+  exit = 'exit',
   destroy = 'destroy',
 }
 
@@ -340,6 +363,8 @@ export type TSparkleWorkerInbound =
       color: string
       /** Motion preset the host picked for the active appearance; plain data, so it clones across. */
       config: ISparkleFieldConfig
+      /** Whether this field replaces another one, which makes it arrive rather than simply exist. */
+      isEntering: boolean
     }
   | {
       /** Reports a new field size after a resize. */
@@ -362,6 +387,10 @@ export type TSparkleWorkerInbound =
       type: ESparkleWorkerInboundType.run
       /** Whether the field should currently be animating. */
       isRunning: boolean
+    }
+  | {
+      /** Lets the field run out instead of looping: particles leaving the frame are not wrapped back in. */
+      type: ESparkleWorkerInboundType.exit
     }
   | {
       /** Releases every resource before the host drops the worker. */

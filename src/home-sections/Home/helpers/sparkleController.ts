@@ -39,6 +39,8 @@ export interface ISparkleControllerOptions<TImage = CanvasImageSource> {
   initialTier: ESparkleTier
   /** Motion preset for the active appearance; defaults to the sparkle field's own tuning. */
   config?: ISparkleFieldConfig
+  /** Whether this field replaces another, so its population arrives instead of simply existing. */
+  isEntering?: boolean
   /** Announces the active tier so the host can mirror it, for example in a DOM attribute. */
   onTierChange?: (tier: ESparkleTier) => void
   /** Random source for particle placement; injected so a field can be reproduced in tests. */
@@ -60,6 +62,8 @@ export interface ISparkleController {
   start(): void
   /** Halts the loop but keeps the field ready to resume. */
   stop(): void
+  /** Lets the field run out of frame instead of looping, for a preset that is being replaced. */
+  beginExit(): void
   /** Halts permanently and refuses all further work. */
   destroy(): void
 }
@@ -94,6 +98,8 @@ export const createSparkleController = <TImage = CanvasImageSource>(
   let isStartRequested = false
   /** Device's uncapped pixel ratio, kept separately so a later tier can re-cap it instead of the already-capped value. */
   let physicalPixelRatio = 1
+  /** Whether the field is running out of frame, kept here so an engine built later inherits it. */
+  let isExiting = false
 
   const readTier = (): ISparkleTierConfig => SPARKLE_TIERS[governor.tier]
 
@@ -160,6 +166,10 @@ export const createSparkleController = <TImage = CanvasImageSource>(
       onTierChange: applyTier,
       now: options.now,
     })
+
+    if (isExiting) {
+      engine.beginExit()
+    }
   }
 
   return {
@@ -190,7 +200,9 @@ export const createSparkleController = <TImage = CanvasImageSource>(
       const count = resolveSparkleParticleCount(width, height, readTier(), config)
 
       if (particles.length === 0) {
-        particles.push(...createSparkleParticles(width, height, count, config, options.random))
+        particles.push(
+          ...createSparkleParticles(width, height, count, config, options.random, options.isEntering),
+        )
       } else {
         refitSparkleParticles(particles, previous, width, height, count, config, options.random)
       }
@@ -231,6 +243,10 @@ export const createSparkleController = <TImage = CanvasImageSource>(
     stop: (): void => {
       isStartRequested = false
       engine?.stop()
+    },
+    beginExit: (): void => {
+      isExiting = true
+      engine?.beginExit()
     },
     destroy: (): void => {
       isDestroyed = true

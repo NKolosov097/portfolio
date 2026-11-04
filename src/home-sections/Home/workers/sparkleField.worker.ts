@@ -74,6 +74,7 @@ const onInit = (
     cancelFrame: cancelWorkerFrame,
     initialTier: message.tier,
     config: message.config,
+    isEntering: message.isEntering,
     onTierChange: (tier) => postMessage({ type: ESparkleWorkerOutboundType.tier, tier }),
   })
 
@@ -102,6 +103,10 @@ addEventListener('message', (event: MessageEvent<TSparkleWorkerInbound>) => {
       } else {
         controller?.stop()
       }
+
+      return
+    case ESparkleWorkerInboundType.exit:
+      controller?.beginExit()
 
       return
     case ESparkleWorkerInboundType.destroy:

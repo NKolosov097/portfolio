@@ -202,6 +202,35 @@ describe('createSparkleParticles', () => {
   })
 })
 
+describe('createSparkleParticle entry', () => {
+  it('seeds an arriving snowfall above the field so the first flakes come over the top edge', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG, Math.random, true)
+
+    expect(particle.y).toBeLessThanOrEqual(0)
+    expect(particle.y).toBeGreaterThanOrEqual(-400 * SNOW_FIELD_CONFIG.entrySpawnAboveRatio)
+    expect(particle.isFallingIn).toBe(true)
+    expect(particle.entryAlpha).toBe(1)
+  })
+
+  it('lights an arriving sparkle field up in place, each glyph on its own delay', () => {
+    const particle = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG, Math.random, true)
+
+    expect(particle.y).toBeGreaterThanOrEqual(0)
+    expect(particle.isFallingIn).toBe(false)
+    expect(particle.entryAlpha).toBe(0)
+    expect(particle.entryDelayMs).toBeGreaterThanOrEqual(0)
+    expect(particle.entryDelayMs).toBeLessThanOrEqual(SPARKLE_FIELD_CONFIG.entryStaggerMs)
+  })
+
+  it('leaves a field that replaces nothing fully lit and in place', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    expect(particle.y).toBeGreaterThanOrEqual(0)
+    expect(particle.entryAlpha).toBe(1)
+    expect(particle.isFallingIn).toBe(false)
+  })
+})
+
 describe('refitSparkleParticles', () => {
   it('rescales positions instead of regenerating the field', () => {
     const particles = createSparkleParticles(600, 400, 4, SPARKLE_FIELD_CONFIG)
@@ -342,6 +371,87 @@ describe('advanceSparkleParticle', () => {
     }
 
     expect(particle.lateralVelocity).toBeCloseTo(0, 1)
+  })
+
+  it('holds a staggered particle dark until its delay runs out, then fades it in', () => {
+    const particle = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG, Math.random, true)
+
+    particle.entryDelayMs = 100
+
+    advanceSparkleParticle(particle, 50, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.entryAlpha).toBe(0)
+
+    advanceSparkleParticle(particle, 50, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
+    advanceSparkleParticle(particle, 50, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.entryAlpha).toBeGreaterThan(0)
+    expect(particle.entryAlpha).toBeLessThan(1)
+
+    advanceSparkleParticle(
+      particle,
+      SPARKLE_FIELD_CONFIG.entryFadeMs,
+      600,
+      400,
+      SPARKLE_FIELD_CONFIG,
+      NO_WIND,
+    )
+
+    expect(particle.entryAlpha).toBe(1)
+  })
+
+  it('lets a flake seeded above the field fall in instead of wrapping it straight into view', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG, Math.random, true)
+
+    particle.y = -300
+    particle.velocityX = 0
+    particle.velocityY = 0.05
+    particle.speedScale = 1
+    particle.targetSpeedScale = 1
+    particle.retargetRemainingMs = 100_000
+    particle.swayAmplitude = 0
+    particle.lateralVelocity = 0
+
+    advanceSparkleParticle(particle, 100, 600, 400, SNOW_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.y).toBeCloseTo(-295)
+    expect(particle.isFallingIn).toBe(true)
+
+    advanceSparkleParticle(particle, 8000, 600, 400, SNOW_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.isFallingIn).toBe(false)
+  })
+
+  it('lets a departing field run out through the bottom instead of wrapping it back in', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    particle.y = 399
+    particle.velocityX = 0
+    particle.velocityY = 1
+    particle.speedScale = 1
+    particle.targetSpeedScale = 1
+    particle.swayAmplitude = 0
+    particle.lateralVelocity = 0
+
+    advanceSparkleParticle(particle, 100, 600, 400, SNOW_FIELD_CONFIG, NO_WIND, Math.random, 1)
+
+    expect(particle.y).toBeGreaterThan(400)
+  })
+
+  it('carries the last flakes out faster once the departure speed is ramped in', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    particle.y = 100
+    particle.velocityX = 0
+    particle.velocityY = 0.05
+    particle.speedScale = 1
+    particle.targetSpeedScale = 1
+    particle.swayAmplitude = 0
+    particle.lateralVelocity = 0
+
+    advanceSparkleParticle(particle, 100, 600, 400, SNOW_FIELD_CONFIG, NO_WIND, Math.random, 3)
+
+    expect(particle.y).toBeCloseTo(115)
   })
 })
 
