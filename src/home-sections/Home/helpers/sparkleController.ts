@@ -43,6 +43,8 @@ export interface ISparkleControllerOptions<TImage = CanvasImageSource> {
   onTierChange?: (tier: ESparkleTier) => void
   /** Random source for particle placement; injected so a field can be reproduced in tests. */
   random?: () => number
+  /** Monotonic clock in milliseconds, forwarded to the engine so the governor can be driven deterministically in tests. */
+  now?: () => number
 }
 
 export interface ISparkleController {
@@ -156,6 +158,7 @@ export const createSparkleController = <TImage = CanvasImageSource>(
       requestFrame: options.requestFrame,
       cancelFrame: options.cancelFrame,
       onTierChange: applyTier,
+      now: options.now,
     })
   }
 

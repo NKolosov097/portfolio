@@ -417,7 +417,9 @@ export const SparkleField = ({ preset = ESparkleFieldPreset.sparkles }: ISparkle
           devicePixelRatio,
           color: window.getComputedStyle(canvas).color,
           hasGlow: tier.hasGlow,
-          glyphPath: config.glyphPath,
+          glyphPaths: config.glyphPaths,
+          glyphStrokeWidth: config.glyphStrokeWidth,
+          glyphGlowRatio: config.glyphGlowRatio,
         }),
       resizeSurface: (widthPx, heightPx) => {
         canvas.width = Math.max(1, Math.round(widthPx))

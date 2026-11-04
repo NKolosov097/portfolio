@@ -62,7 +62,9 @@ const onInit = (
         devicePixelRatio,
         color: message.color,
         hasGlow: tier.hasGlow,
-        glyphPath: message.config.glyphPath,
+        glyphPaths: message.config.glyphPaths,
+        glyphStrokeWidth: message.config.glyphStrokeWidth,
+        glyphGlowRatio: message.config.glyphGlowRatio,
       }),
     resizeSurface: (widthPx, heightPx) => {
       target.width = Math.max(1, Math.round(widthPx))

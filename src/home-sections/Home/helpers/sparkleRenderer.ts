@@ -1,8 +1,5 @@
 import { readSparkleInfluence } from '@/home-sections/Home/helpers/sparkleField'
-import {
-  resolveRotationIndex,
-  resolveSpriteBucketIndex,
-} from '@/home-sections/Home/helpers/sparkleSprites'
+import { resolveSpriteBucketIndex } from '@/home-sections/Home/helpers/sparkleSprites'
 import {
   ISparkleDrawContext,
   ISparkleFieldConfig,
@@ -31,6 +28,7 @@ export const renderSparkleField = <TImage>(
 ): void => {
   const scale = view.devicePixelRatio
 
+  context.setTransform(1, 0, 0, 1, 0, 0)
   context.clearRect(0, 0, view.width * scale, view.height * scale)
 
   if (atlas.frames.length === 0) {
@@ -50,11 +48,17 @@ export const renderSparkleField = <TImage>(
       continue
     }
 
+    const variantFrames = atlas.frames[particle.variantIndex % atlas.frames.length]
+
+    if (!variantFrames || variantFrames.length === 0) {
+      continue
+    }
+
     const size = particle.size * (1 + influence.strength * config.sizeBoost)
     const bucketIndex = resolveSpriteBucketIndex(size, atlas.bucketSizes)
-    const rotationFrames = atlas.frames[bucketIndex]
+    const sprite = variantFrames[bucketIndex]
 
-    if (!rotationFrames || rotationFrames.length === 0) {
+    if (!sprite) {
       continue
     }
 
@@ -63,15 +67,28 @@ export const renderSparkleField = <TImage>(
     const centerX = (particle.x + influence.directionX * push) * scale
     const centerY = (particle.y + influence.directionY * push) * scale
 
+    // A flat crystal tipped away from the viewer foreshortens along one direction only, which drifts
+    // with the tilt axis; `spin` is the glyph's own rotation, independent of that axis.
+    const foreshorten =
+      1 - config.tumbleDepth + config.tumbleDepth * Math.abs(Math.cos(particle.tiltPhase))
+    const spin = particle.rotation
+    const axis = particle.tiltAxis
+
+    const cosAxis = Math.cos(axis)
+    const sinAxis = Math.sin(axis)
+    const cosSpin = Math.cos(spin)
+    const sinSpin = Math.sin(spin)
+
+    const a = cosAxis * cosSpin - foreshorten * sinAxis * sinSpin
+    const b = sinAxis * cosSpin + foreshorten * cosAxis * sinSpin
+    const c = -cosAxis * sinSpin - foreshorten * sinAxis * cosSpin
+    const d = -sinAxis * sinSpin + foreshorten * cosAxis * cosSpin
+
     context.globalAlpha = alpha
-    context.drawImage(
-      rotationFrames[resolveRotationIndex(particle.rotation, rotationFrames.length)],
-      centerX - drawSize / 2,
-      centerY - drawSize / 2,
-      drawSize,
-      drawSize,
-    )
+    context.setTransform(a, b, c, d, centerX, centerY)
+    context.drawImage(sprite, -drawSize / 2, -drawSize / 2, drawSize, drawSize)
   }
 
   context.globalAlpha = 1
+  context.setTransform(1, 0, 0, 1, 0, 0)
 }

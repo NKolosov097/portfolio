@@ -94,7 +94,7 @@ describe('recordSparkleFrame', () => {
   it('holds its tier while frames stay healthy', () => {
     const state = createSparkleGovernorState(ESparkleTier.high)
 
-    expect(feedWindow(state, 8)).toBeNull()
+    expect(feedWindow(state, 2)).toBeNull()
     expect(state.tier).toBe(ESparkleTier.high)
   })
 
@@ -123,7 +123,7 @@ describe('recordSparkleFrame', () => {
   it('keeps the lowest animated tier while frames are merely degraded', () => {
     const state = createSparkleGovernorState(ESparkleTier.low)
 
-    expect(feedWindow(state, 22)).toBeNull()
+    expect(feedWindow(state, 10)).toBeNull()
     expect(state.tier).toBe(ESparkleTier.low)
   })
 
@@ -145,49 +145,52 @@ describe('recordSparkleFrame', () => {
   it('refuses to upgrade before the settling period has elapsed', () => {
     const state = createSparkleGovernorState(ESparkleTier.medium)
 
-    expect(feedWindow(state, 5)).toBeNull()
+    expect(feedWindow(state, 2)).toBeNull()
     expect(state.tier).toBe(ESparkleTier.medium)
   })
 
   it('upgrades once healthy frames are sustained', () => {
     const state = createSparkleGovernorState(ESparkleTier.medium)
 
-    expect(feedWindow(state, 5, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames)).toBe(
+    expect(feedWindow(state, 2, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames)).toBe(
       ESparkleTier.high,
     )
     expect(state.tier).toBe(ESparkleTier.high)
   })
 
-  it('never upgrades twice, however good the frames get', () => {
+  it('recovers again after a second degrade, since an upgrade is no longer a one-shot', () => {
     const state = createSparkleGovernorState(ESparkleTier.low)
 
-    expect(feedWindow(state, 5, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames)).toBe(
+    expect(feedWindow(state, 2, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames)).toBe(
       ESparkleTier.medium,
     )
-    expect(feedWindow(state, 5, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames * 2)).toBeNull()
+    expect(feedWindow(state, 30)).toBe(ESparkleTier.low)
+    expect(feedWindow(state, 2, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames)).toBe(
+      ESparkleTier.medium,
+    )
     expect(state.tier).toBe(ESparkleTier.medium)
   })
 
-  it('settles instead of oscillating when frame times alternate', () => {
+  it('keeps recovering across repeated degrade/heal cycles instead of settling at the terminal tier', () => {
     const state = createSparkleGovernorState(ESparkleTier.high)
     const observed: ESparkleTier[] = []
 
-    for (let round = 0; round < 8; round += 1) {
+    for (let round = 0; round < 4; round += 1) {
       const degraded = feedWindow(state, 30)
 
       if (degraded) {
         observed.push(degraded)
       }
 
-      const healthy = feedWindow(state, 5, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames)
+      const healthy = feedWindow(state, 2, SPARKLE_GOVERNOR_THRESHOLDS.upgradeAfterFrames)
 
       if (healthy) {
         observed.push(healthy)
       }
     }
 
-    expect(observed.filter((tier) => tier === ESparkleTier.high)).toHaveLength(1)
-    expect(state.tier).toBe(ESparkleTier.static)
+    expect(observed.filter((tier) => tier === ESparkleTier.high)).toHaveLength(4)
+    expect(state.tier).toBe(ESparkleTier.high)
   })
 
   it('ignores frames that carry no usable duration', () => {

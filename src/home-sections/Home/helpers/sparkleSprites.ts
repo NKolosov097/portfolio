@@ -1,15 +1,11 @@
 import {
   SPARKLE_GLOW_BLUR_RATIO,
   SPARKLE_GLYPH_VIEWBOX,
-  SPARKLE_ROTATION_STEPS,
   SPARKLE_SPRITE_BUCKETS,
   SPARKLE_SPRITE_GLOW_PADDING,
   SPARKLE_SPRITE_PADDING,
 } from '@/constants/home.constants'
 import { ISparkleSpriteAtlas, TSpriteSurfaceFactory } from '@/home-sections/Home/types/home.type'
-
-/** Quarter turn in radians; the glyph repeats visually every quarter turn. */
-const QUARTER_TURN = Math.PI / 2
 
 /** Colour of the glyph body, matching the white core of the existing `Sparkle` icon. */
 const GLYPH_FILL = '#fff'
@@ -21,8 +17,12 @@ export interface ISparkleAtlasOptions {
   color: string
   /** Whether to bake the glow at all; the lowest tiers drop it to save fill cost. */
   hasGlow: boolean
-  /** Outline to bake, taken from the active preset. */
-  glyphPath: string
+  /** Outlines to bake, one per flake shape, taken from the active preset. */
+  glyphPaths: string[]
+  /** Stroke width in viewBox units; when set the outline is stroked instead of filled. */
+  glyphStrokeWidth?: number
+  /** Glow blur as a multiple of the glyph size, overriding the shared default. */
+  glyphGlowRatio?: number
 }
 
 /** Finds the pre-rasterised bucket closest to a requested glyph size. */
@@ -46,38 +46,29 @@ export const resolveSpriteBucketIndex = (size: number, bucketSizes: number[]): n
   return bestIndex
 }
 
-/** Maps a continuous rotation onto one of the baked frames, wrapping in both directions. */
-export const resolveRotationIndex = (rotation: number, steps: number): number => {
-  if (steps <= 0) {
-    return 0
-  }
-
-  const stepped = Math.floor((rotation / QUARTER_TURN) * steps)
-
-  return ((stepped % steps) + steps) % steps
-}
-
 /**
- * Rasterises the glyph once per size bucket and rotation step, baking the glow so the frame loop
- * never pays for `shadowBlur`. Returns `null` when no raster surface is obtainable.
+ * Rasterises the glyph once per size bucket, unrotated; rotation, tumble and sway are all applied
+ * at draw time instead. Baking the glow still happens here, so the frame loop never pays for
+ * `shadowBlur`. Returns `null` when no raster surface is obtainable.
  */
 export const buildSparkleAtlas = (
   createSurface: TSpriteSurfaceFactory,
   options: ISparkleAtlasOptions,
 ): ISparkleSpriteAtlas | null => {
   const paddingFactor = options.hasGlow ? SPARKLE_SPRITE_GLOW_PADDING : SPARKLE_SPRITE_PADDING
-  const path = new Path2D(options.glyphPath)
+  const glowRatio = options.glyphGlowRatio ?? SPARKLE_GLOW_BLUR_RATIO
   const frames: CanvasImageSource[][] = []
 
-  for (const bucketSize of SPARKLE_SPRITE_BUCKETS) {
-    const framePixels = Math.max(
-      1,
-      Math.ceil(bucketSize * options.devicePixelRatio * paddingFactor),
-    )
-    const glyphPixels = bucketSize * options.devicePixelRatio
-    const rotationFrames: CanvasImageSource[] = []
+  for (const glyphPath of options.glyphPaths) {
+    const path = new Path2D(glyphPath)
+    const variantFrames: CanvasImageSource[] = []
 
-    for (let step = 0; step < SPARKLE_ROTATION_STEPS; step += 1) {
+    for (const bucketSize of SPARKLE_SPRITE_BUCKETS) {
+      const framePixels = Math.max(
+        1,
+        Math.ceil(bucketSize * options.devicePixelRatio * paddingFactor),
+      )
+      const glyphPixels = bucketSize * options.devicePixelRatio
       const surface = createSurface(framePixels)
 
       if (!surface) {
@@ -88,23 +79,31 @@ export const buildSparkleAtlas = (
 
       context.save()
       context.translate(framePixels / 2, framePixels / 2)
-      context.rotate((step * QUARTER_TURN) / SPARKLE_ROTATION_STEPS)
       context.scale(glyphPixels / SPARKLE_GLYPH_VIEWBOX, glyphPixels / SPARKLE_GLYPH_VIEWBOX)
       context.translate(-SPARKLE_GLYPH_VIEWBOX / 2, -SPARKLE_GLYPH_VIEWBOX / 2)
       context.fillStyle = GLYPH_FILL
 
       if (options.hasGlow) {
         context.shadowColor = options.color
-        context.shadowBlur = glyphPixels * SPARKLE_GLOW_BLUR_RATIO
+        context.shadowBlur = glyphPixels * glowRatio
       }
 
-      context.fill(path)
+      // A stroked glyph keeps thin arms legible at small sizes, where a filled hairline turns to mush.
+      if (options.glyphStrokeWidth) {
+        context.strokeStyle = GLYPH_FILL
+        context.lineWidth = options.glyphStrokeWidth
+        context.lineCap = 'round'
+        context.lineJoin = 'round'
+        context.stroke(path)
+      } else {
+        context.fill(path)
+      }
       context.restore()
 
-      rotationFrames.push(surface.image)
+      variantFrames.push(surface.image)
     }
 
-    frames.push(rotationFrames)
+    frames.push(variantFrames)
   }
 
   return { frames, bucketSizes: [...SPARKLE_SPRITE_BUCKETS], paddingFactor }

@@ -27,6 +27,15 @@ export interface ISparklePointer {
   intensity: number
 }
 
+export interface ISparkleWind {
+  /** Current horizontal wind in CSS pixels per millisecond. */
+  value: number
+  /** The value the wind is easing toward. */
+  target: number
+  /** Milliseconds until a new target is drawn. */
+  retargetRemainingMs: number
+}
+
 export interface ISparkleParticle {
   /** Horizontal position in CSS pixels within the field. */
   x: number
@@ -46,10 +55,38 @@ export interface ISparkleParticle {
   velocityY: number
   /** Current glyph rotation in radians. */
   rotation: number
-  /** Radians per millisecond the glyph rotates. */
+  /** Radians per millisecond the glyph rotates; sign is random, so particles do not spin in lockstep. */
   rotationSpeed: number
   /** 0–1 parallax weight; larger particles read as nearer and are displaced further by the pointer. */
   depth: number
+  /** How strongly this particle answers to the shared wind; larger for nearer particles, for parallax. */
+  windFactor: number
+  /** Current multiplier on this particle's drift, eased toward `targetSpeedScale`. */
+  speedScale: number
+  /** Multiplier `speedScale` is currently easing toward. */
+  targetSpeedScale: number
+  /** Milliseconds until a new `targetSpeedScale` is drawn. */
+  retargetRemainingMs: number
+  /** How far the crystal's plane is currently tipped away from the viewer, in radians. */
+  tiltPhase: number
+  /** Radians per millisecond the tilt phase advances. */
+  tiltSpeed: number
+  /** In-view-plane direction the crystal tips about, in radians. */
+  tiltAxis: number
+  /** Radians per millisecond the tilt axis drifts. */
+  tiltAxisSpeed: number
+  /** Current position in the lateral sway cycle, in radians. */
+  swayPhase: number
+  /** Current position in the secondary, faster sway cycle, in radians; its own independent phase. */
+  swayPhaseSecondary: number
+  /** Radians per millisecond the lateral sway advances; sign is random, so sway does not lockstep. */
+  swaySpeed: number
+  /** Largest lateral sway offset for this particle, in CSS pixels. */
+  swayAmplitude: number
+  /** Current sideways speed in CSS pixels per millisecond, lagging the flutter target so a reversal cannot be instant. */
+  lateralVelocity: number
+  /** Which baked glyph shape this particle draws, indexing `ISparkleFieldConfig.glyphPaths`. */
+  variantIndex: number
 }
 
 export interface ISparkleInfluence {
@@ -82,8 +119,12 @@ export interface ISparkleTierConfig {
 }
 
 export interface ISparkleFieldConfig {
-  /** Outline the sprites are baked from, authored in the shared glyph viewBox. */
-  glyphPath: string
+  /** Outlines the atlas bakes, one per flake shape, authored in the shared glyph viewBox. */
+  glyphPaths: string[]
+  /** Stroke width in viewBox units; when set the outline is stroked instead of filled. */
+  glyphStrokeWidth?: number
+  /** Glow blur as a multiple of the glyph size, overriding the shared default. */
+  glyphGlowRatio?: number
   /** Field area in CSS pixels² that warrants one particle. */
   areaPerParticle: number
   /** Floor on particle count so narrow viewports still read as a field. */
@@ -96,10 +137,16 @@ export interface ISparkleFieldConfig {
   minOpacity: number
   /** Brightest resting alpha. */
   maxOpacity: number
+  /** 0–1 how much of the resting alpha is dictated by depth rather than drawn at random. */
+  opacityDepthBias: number
   /** Slowest drift in CSS pixels per millisecond. */
   minDriftSpeed: number
   /** Fastest drift in CSS pixels per millisecond. */
   maxDriftSpeed: number
+  /** 0–1 how much of the drift speed is dictated by depth rather than drawn at random. */
+  speedDepthBias: number
+  /** Fraction of random variation left on a depth-dictated speed. */
+  speedJitter: number
   /** Narrowest drift heading in radians, measured clockwise from the positive x axis. */
   minDriftAngle: number
   /** Widest drift heading in radians; equal to the minimum plus a full turn for omnidirectional fields. */
@@ -112,6 +159,46 @@ export interface ISparkleFieldConfig {
   minRotationSpeed: number
   /** Fastest rotation in radians per millisecond. */
   maxRotationSpeed: number
+  /** Slowest out-of-plane tumble in radians per millisecond; 0 disables tumbling entirely. */
+  minTumbleSpeed: number
+  /** Fastest out-of-plane tumble in radians per millisecond. */
+  maxTumbleSpeed: number
+  /** 0–1 how far a tilt squashes the glyph; 0 means no out-of-plane tumbling at all. */
+  tumbleDepth: number
+  /** Slowest drift of the tilt axis in radians per millisecond; 0 keeps the tilt axis fixed. */
+  minTiltAxisSpeed: number
+  /** Fastest drift of the tilt axis in radians per millisecond. */
+  maxTiltAxisSpeed: number
+  /** Slowest lateral sway in radians per millisecond; 0 disables sway entirely. */
+  minSwaySpeed: number
+  /** Fastest lateral sway in radians per millisecond. */
+  maxSwaySpeed: number
+  /** Largest sideways flutter speed a particle may reach, as a fraction of its own drift speed; 0 disables flutter. */
+  maxSwayRatio: number
+  /** Frequency of the secondary sway term, as a multiple of the primary sway speed. */
+  swaySecondaryFrequency: number
+  /** Amplitude of the secondary sway term, as a fraction of `swayAmplitude`. */
+  swaySecondaryAmplitude: number
+  /** Easing time constant in milliseconds for the lag between the flutter target and the actual lateral velocity, standing in for the crystal's inertia. */
+  lateralTauMs: number
+  /** Largest wind magnitude in CSS pixels per millisecond; 0 disables wind entirely. */
+  maxWindSpeed: number
+  /** Shortest time in milliseconds one wind target holds. */
+  minWindRetargetMs: number
+  /** Longest time in milliseconds one wind target holds. */
+  maxWindRetargetMs: number
+  /** Easing time constant in milliseconds for the wind value, so a gust ramps in rather than snaps. */
+  windTauMs: number
+  /** Smallest multiplier a particle's drift speed can be eased toward; 1 disables speed re-targeting. */
+  minSpeedScale: number
+  /** Largest multiplier a particle's drift speed can be eased toward; 1 disables speed re-targeting. */
+  maxSpeedScale: number
+  /** Shortest time in milliseconds one particle speed target holds. */
+  minRetargetMs: number
+  /** Longest time in milliseconds one particle speed target holds. */
+  maxRetargetMs: number
+  /** Easing time constant in milliseconds for a particle's speed scale. */
+  speedTauMs: number
   /** Distance in CSS pixels beyond which the pointer no longer affects a particle. */
   influenceRadius: number
   /** Extra size, as a multiple of the resting size, applied at full influence. */
@@ -131,11 +218,11 @@ export interface ISparkleFieldConfig {
 export interface ISparkleGovernorThresholds {
   /** Number of frames sampled before any tier decision is taken. */
   windowSize: number
-  /** p90 frame duration in milliseconds above which the tier steps down. */
+  /** p90 of the milliseconds the field spends advancing and painting one frame, above which the tier steps down. */
   degradedFrameMs: number
-  /** p90 frame duration in milliseconds above which the lowest animated tier gives up entirely. */
+  /** p90 of the milliseconds the field spends advancing and painting one frame, above which the lowest animated tier gives up entirely. */
   criticalFrameMs: number
-  /** p90 frame duration in milliseconds below which an upgrade may be considered. */
+  /** p90 of the milliseconds the field spends advancing and painting one frame, below which an upgrade may be considered. */
   healthyFrameMs: number
   /** Frames that must pass since the last tier change before an upgrade is allowed. */
   upgradeAfterFrames: number
@@ -148,8 +235,6 @@ export interface ISparkleGovernorState {
   frameDurations: number[]
   /** Frames observed since the last tier change; gates upgrades. */
   framesSinceChange: number
-  /** Whether the single upgrade permitted for the field's lifetime has been spent. */
-  hasUpgraded: boolean
 }
 
 export interface ISparkleDeviceSignals {
@@ -164,7 +249,7 @@ export interface ISparkleDeviceSignals {
 }
 
 export interface ISparkleSpriteAtlas<TImage = CanvasImageSource> {
-  /** Rasterised frames indexed as `[sizeBucket][rotationStep]`. */
+  /** Rasterised sprites indexed `[variant][sizeBucket]`, unrotated; rotation is applied at draw time. */
   frames: TImage[][]
   /** CSS-pixel glyph size each bucket was rasterised for, ascending. */
   bucketSizes: number[]
@@ -179,6 +264,8 @@ export interface ISparkleDrawContext<TImage = CanvasImageSource> {
   clearRect(x: number, y: number, width: number, height: number): void
   /** Blits one sprite frame, in device pixels. */
   drawImage(image: TImage, dx: number, dy: number, dWidth: number, dHeight: number): void
+  /** Replaces the current transform with the given matrix: `a, b, c, d, e, f`. */
+  setTransform(a: number, b: number, c: number, d: number, e: number, f: number): void
 }
 
 export interface ISparkleRasterContext {
@@ -198,8 +285,18 @@ export interface ISparkleRasterContext {
   rotate(angle: number): void
   /** Scales the glyph's viewBox units up to device pixels. */
   scale(x: number, y: number): void
+  /** Colour a stroked glyph is drawn with. */
+  strokeStyle: string | CanvasGradient | CanvasPattern
+  /** Stroke width of a stroked glyph, in the glyph's viewBox units. */
+  lineWidth: number
+  /** Cap shape of a stroked glyph's open ends. */
+  lineCap: CanvasLineCap
+  /** Join shape where a stroked glyph's segments meet. */
+  lineJoin: CanvasLineJoin
   /** Fills the glyph outline. */
   fill(path: Path2D): void
+  /** Strokes the glyph outline, for glyphs authored as open lines. */
+  stroke(path: Path2D): void
 }
 
 export interface ISpriteSurface {

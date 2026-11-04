@@ -5,14 +5,23 @@ import {
   ISparkleParticle,
   ISparklePointer,
   ISparkleTierConfig,
+  ISparkleWind,
 } from '@/home-sections/Home/types/home.type'
-
-/** Quarter turn in radians; the glyph's four-fold symmetry makes this a full visual rotation. */
-const QUARTER_TURN = Math.PI / 2
 
 /** Draws a value from an inclusive range using the supplied random source. */
 const randomBetween = (random: () => number, min: number, max: number): number =>
   min + random() * (max - min)
+
+/** Draws a magnitude from a range and flips its sign on a coin toss, so rotations do not lockstep. */
+const randomSignedBetween = (random: () => number, min: number, max: number): number => {
+  const magnitude = randomBetween(random, min, max)
+
+  return random() < 0.5 ? -magnitude : magnitude
+}
+
+/** Eases a value toward a target at a frame-rate-independent rate set by a time constant. */
+const easeTowards = (value: number, target: number, deltaMs: number, tauMs: number): number =>
+  value + (target - value) * (1 - Math.exp(-deltaMs / tauMs))
 
 /** Confines a value to 0–1 so alphas and ramps cannot overshoot. */
 const clampUnit = (value: number): number => Math.min(Math.max(value, 0), 1)
@@ -55,20 +64,61 @@ export const createSparkleParticle = (
   const sizeSpan = config.maxSize - config.minSize
   const depth = sizeSpan > 0 ? clampUnit((size - config.minSize) / sizeSpan) : 0
   const driftAngle = randomBetween(random, config.minDriftAngle, config.maxDriftAngle)
-  const driftSpeed = randomBetween(random, config.minDriftSpeed, config.maxDriftSpeed)
+
+  // Blends a depth-dictated draw with a random one so a bias of 0 reproduces the pre-depth behaviour.
+  const randomSpeed = randomBetween(random, config.minDriftSpeed, config.maxDriftSpeed)
+  const depthSpeed =
+    config.minDriftSpeed + (config.maxDriftSpeed - config.minDriftSpeed) * depth
+  const blendedSpeed = randomSpeed + (depthSpeed - randomSpeed) * config.speedDepthBias
+  const driftSpeed =
+    blendedSpeed * randomBetween(random, 1 - config.speedJitter, 1 + config.speedJitter)
+
+  const swaySpeed = randomSignedBetween(random, config.minSwaySpeed, config.maxSwaySpeed)
+
+  // Pinning the flutter to a fraction of the particle's own fall speed keeps the path's yaw angle
+  // the same at every depth, instead of a fixed amplitude swinging a slow flake further off vertical.
+  const swayVelocityWeight = 1 + config.swaySecondaryAmplitude * config.swaySecondaryFrequency
+  const peakSwaySpeed = driftSpeed * config.maxSwayRatio * random()
+  const swaySpeedMagnitude = Math.abs(swaySpeed)
+  const swayAmplitude =
+    swaySpeedMagnitude > 0 && swayVelocityWeight > 0
+      ? peakSwaySpeed / (swaySpeedMagnitude * swayVelocityWeight)
+      : 0
+
+  const randomOpacity = randomBetween(random, config.minOpacity, config.maxOpacity)
+  const depthOpacity =
+    config.minOpacity + (config.maxOpacity - config.minOpacity) * depth
+  const opacity = randomOpacity + (depthOpacity - randomOpacity) * config.opacityDepthBias
 
   return {
     x: random() * width,
     y: random() * height,
     size,
-    opacity: randomBetween(random, config.minOpacity, config.maxOpacity),
+    opacity,
     twinklePhase: random() * Math.PI * 2,
     twinkleSpeed: randomBetween(random, config.minTwinkleSpeed, config.maxTwinkleSpeed),
     velocityX: Math.cos(driftAngle) * driftSpeed,
     velocityY: Math.sin(driftAngle) * driftSpeed,
-    rotation: random() * QUARTER_TURN,
-    rotationSpeed: randomBetween(random, config.minRotationSpeed, config.maxRotationSpeed),
+    rotation: random() * Math.PI * 2,
+    rotationSpeed: randomSignedBetween(random, config.minRotationSpeed, config.maxRotationSpeed),
     depth,
+    windFactor: (0.45 + 0.55 * depth) * randomBetween(random, 0.8, 1.2),
+    speedScale: randomBetween(random, config.minSpeedScale, config.maxSpeedScale),
+    targetSpeedScale: randomBetween(random, config.minSpeedScale, config.maxSpeedScale),
+    retargetRemainingMs: randomBetween(random, config.minRetargetMs, config.maxRetargetMs),
+    tiltPhase: random() * Math.PI * 2,
+    tiltSpeed: randomSignedBetween(random, config.minTumbleSpeed, config.maxTumbleSpeed),
+    tiltAxis: random() * Math.PI * 2,
+    tiltAxisSpeed: randomSignedBetween(random, config.minTiltAxisSpeed, config.maxTiltAxisSpeed),
+    swayPhase: random() * Math.PI * 2,
+    swayPhaseSecondary: random() * Math.PI * 2,
+    swaySpeed,
+    swayAmplitude,
+    lateralVelocity: 0,
+    variantIndex: Math.min(
+      Math.floor(random() * config.glyphPaths.length),
+      config.glyphPaths.length - 1,
+    ),
   }
 }
 
@@ -139,11 +189,84 @@ export const advanceSparkleParticle = (
   width: number,
   height: number,
   config: ISparkleFieldConfig,
+  wind: ISparkleWind,
+  random: () => number = Math.random,
 ): void => {
-  particle.x = wrapCoordinate(particle.x + particle.velocityX * deltaMs, width, config.maxSize)
-  particle.y = wrapCoordinate(particle.y + particle.velocityY * deltaMs, height, config.maxSize)
+  // The flutter now lives in the particle's own position, so the wrap margin only needs to cover the
+  // glyph itself and the pointer displacement.
+  const margin = config.maxSize + config.displacement
+
+  particle.retargetRemainingMs -= deltaMs
+
+  if (particle.retargetRemainingMs <= 0) {
+    particle.targetSpeedScale = randomBetween(random, config.minSpeedScale, config.maxSpeedScale)
+    particle.retargetRemainingMs = randomBetween(random, config.minRetargetMs, config.maxRetargetMs)
+  }
+
+  particle.speedScale = easeTowards(
+    particle.speedScale,
+    particle.targetSpeedScale,
+    deltaMs,
+    config.speedTauMs,
+  )
+
+  particle.swayPhase += particle.swaySpeed * deltaMs
+  particle.swayPhaseSecondary += particle.swaySpeed * config.swaySecondaryFrequency * deltaMs
+
+  // The flutter target is the time derivative of the sway sum; the actual lateral velocity eases
+  // toward it instead of jumping, so a reversal takes real time, as a crystal's inertia would demand.
+  const lateralTarget =
+    particle.swayAmplitude *
+    particle.swaySpeed *
+    (Math.cos(particle.swayPhase) +
+      config.swaySecondaryAmplitude * config.swaySecondaryFrequency * Math.cos(particle.swayPhaseSecondary))
+
+  particle.lateralVelocity = easeTowards(
+    particle.lateralVelocity,
+    lateralTarget,
+    deltaMs,
+    config.lateralTauMs,
+  )
+
+  const stepX =
+    particle.velocityX * deltaMs * particle.speedScale +
+    wind.value * particle.windFactor * deltaMs +
+    particle.lateralVelocity * deltaMs
+  const stepY = particle.velocityY * deltaMs * particle.speedScale
+
+  particle.x = wrapCoordinate(particle.x + stepX, width, margin)
+  particle.y = wrapCoordinate(particle.y + stepY, height, margin)
   particle.rotation += particle.rotationSpeed * deltaMs
   particle.twinklePhase += particle.twinkleSpeed * deltaMs
+  particle.tiltPhase += particle.tiltSpeed * deltaMs
+  particle.tiltAxis += particle.tiltAxisSpeed * deltaMs
+}
+
+/** Allocates the shared wind state, so the field moves as one coherent air mass rather than N drifts. */
+export const createSparkleWind = (
+  config: ISparkleFieldConfig,
+  random: () => number = Math.random,
+): ISparkleWind => ({
+  value: 0,
+  target: randomBetween(random, -config.maxWindSpeed, config.maxWindSpeed),
+  retargetRemainingMs: randomBetween(random, config.minWindRetargetMs, config.maxWindRetargetMs),
+})
+
+/** Advances the shared wind in place: retargets on schedule, then eases toward whatever target is live. */
+export const advanceSparkleWind = (
+  wind: ISparkleWind,
+  deltaMs: number,
+  config: ISparkleFieldConfig,
+  random: () => number = Math.random,
+): void => {
+  wind.retargetRemainingMs -= deltaMs
+
+  if (wind.retargetRemainingMs <= 0) {
+    wind.target = randomBetween(random, -config.maxWindSpeed, config.maxWindSpeed)
+    wind.retargetRemainingMs = randomBetween(random, config.minWindRetargetMs, config.maxWindRetargetMs)
+  }
+
+  wind.value = easeTowards(wind.value, wind.target, deltaMs, config.windTauMs)
 }
 
 /** Allocates the single pointer record the loop reuses for its whole lifetime. */
