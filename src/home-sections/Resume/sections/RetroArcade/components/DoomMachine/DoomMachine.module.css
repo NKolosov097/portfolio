@@ -130,7 +130,7 @@ main:has(.screenViewport) {
 }
 
 .playButton:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--g-color-line-focus);
   outline-offset: 3px;
 }
 
@@ -195,7 +195,7 @@ main:has(.screenViewport) {
 }
 
 .hudButton:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--g-color-line-focus);
   outline-offset: 2px;
 }
 

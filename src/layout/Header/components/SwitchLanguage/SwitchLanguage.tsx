@@ -12,12 +12,14 @@ import { languages } from '@/constants/header.constants'
 import { storeLanguage } from '@/helpers/language'
 import { ISwitcherLanguageProps } from '@/layout/Header/types/header.type'
 
-const Switcher = (props: ISwitcherLanguageProps) => (
-  <Button {...props} aria-label="change language" size="l" view="flat">
+/** Native button activation avoids handling Enter twice through the dropdown switcher. */
+const Switcher = ({ onClick }: ISwitcherLanguageProps) => (
+  <Button onClick={onClick} aria-label="change language" size="l" view="flat">
     <Icon width={20} height={20} data={Globe} />
   </Button>
 )
 
+/** Keep the current-language marker independent of Gravity's keyboard navigation selection. */
 export const LanguageSwitcher = () => {
   const { setLanguage, language } = useContext(I18nContext)
   const { i18n } = useTranslation()
@@ -35,7 +37,7 @@ export const LanguageSwitcher = () => {
         },
         // language from context (not i18n.language) because i18n is a mutable singleton
         // whose reference never changes and would not trigger memo recomputation
-        selected: language === value,
+        extraProps: { 'aria-current': language === value ? 'true' : undefined },
       })),
     [i18n, language, setLanguage],
   )

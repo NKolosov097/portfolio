@@ -42,7 +42,6 @@
 
   /* Shadow shrinks with the receding card and drifts under the cursor. */
   box-shadow: var(--shadow-x) var(--shadow-y) 2rem rgb(255 255 255 / 22%);
-  outline: none;
 }
 
 .imageWrapper {

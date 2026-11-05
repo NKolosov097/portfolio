@@ -230,6 +230,9 @@ What is covered today:
   the jsdom environment.
 - **E2E smoke** (`e2e/smoke.spec.ts`) - every section anchor the header navigates to exists, the
   aside renders, the page loads without uncaught errors, and clicking a tab scrolls to its section.
+- **Keyboard focus** (`e2e/focus-consistency.spec.ts`) - all six public route variants retain
+  active-accent indicators in both appearances, including Gravity child/pseudo-element rings,
+  contact underlines, rounded controls, language menu, profile drawer and avatar dialog.
 - **Header tabs layout stability** (`e2e/header-tabs.spec.ts`) - on a 393px viewport the tab strip
   is sampled on every animation frame after navigation and must keep its compact height, gap and
   typography, guarding against a post-mount JavaScript size switch without mistaking Inter font

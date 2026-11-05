@@ -24,7 +24,6 @@
   border-color: var(--card-border-hover-color);
   transform: translateY(-4px);
   box-shadow: 0 16px 34px -24px rgb(0 0 0 / 80%);
-  outline: none;
 }
 
 .card::after {

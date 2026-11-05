@@ -72,6 +72,21 @@ body {
   }
 }
 
+/* Keep native, Gravity and portal focus indicators on the active appearance accent. */
+html,
+body.g-root {
+  --g-color-line-focus: var(--g-color-line-brand);
+}
+
+:where(a[href], button) {
+  border-radius: 4px;
+}
+
+:where(a[href], button):not(.g-button, .g-tab):focus-visible {
+  outline: 2px solid var(--g-color-line-focus);
+  outline-offset: 2px;
+}
+
 /* Seasonal accent only; backgrounds stay near-black so semantic/error colors keep their meaning. */
 html[data-appearance='winter'],
 html[data-appearance='winter'] body.g-root {
@@ -138,11 +153,12 @@ html:has(.g-modal_open) {
 }
 
 .g-menu__item {
+  border-radius: 4px;
   border-bottom: 1px solid transparent;
   transition: border-color 0.25s ease-in-out;
 }
 
-.g-menu__item_selected {
+.g-menu__item[aria-current='true'] {
   background-color: transparent;
   border-bottom: 1px solid var(--g-color-line-brand);
 }
@@ -150,6 +166,13 @@ html:has(.g-modal_open) {
 .g-menu__item_interactive:hover,
 .g-menu__item_interactive:focus-visible {
   background-color: transparent;
+}
+
+.g-menu__item_interactive:focus-visible,
+body:has(.g-dropdown-menu__switcher-wrapper :focus-visible)
+  .g-dropdown-menu__menu-item.g-menu__item_selected {
+  outline: 2px solid var(--g-color-line-focus);
+  outline-offset: -2px;
 }
 
 .g-text-input_state_error > .g-text-input__content:focus-within,
