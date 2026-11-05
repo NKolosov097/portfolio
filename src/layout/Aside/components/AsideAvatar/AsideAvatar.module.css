@@ -18,7 +18,7 @@
   justify-content: center;
   text-align: center;
   border-radius: 1.2rem;
-  box-shadow: 0 0 15px 5px rgb(255 255 255 / 15%);
+  box-shadow: 0 0 15px 5px color-mix(in srgb, var(--winter-frost, #fff) 15%, transparent);
 }
 
 .lightboxContent {
