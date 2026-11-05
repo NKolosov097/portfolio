@@ -15,6 +15,27 @@
   pointer-events: none;
 }
 
+/* Enlarge the snow raster so its existing bottom fade falls outside the section. */
+.field[data-preset='snow'] {
+  top: -128px;
+  right: auto;
+  bottom: calc(-25% - 128px);
+  clip-path: inset(0);
+}
+
+/* A fixed veil avoids scroll lag; the field's clip keeps it from covering later sections. */
+.field[data-preset='snow']::after {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto;
+  height: calc(var(--snow-header-bottom, 0%) + var(--snow-fade-height, 0%));
+  background: linear-gradient(
+    to bottom,
+    var(--root-bg-color) var(--snow-header-bottom, 0%),
+    transparent 100%
+  );
+}
+
 /* An arriving field needs no reveal of its own: snow falls in over the top edge and sparkles light
    up one at a time, both out of the simulation, so the layer only has to stop being transparent. */
 .field[data-ready='true'] {
@@ -68,7 +89,7 @@
   );
 }
 
-/* Snow has to keep falling well past the fold, so it fades only at the very bottom. */
+/* Snow fades out over the final 18% of the enlarged raster. */
 .field[data-preset='snow'] .canvas {
   mask-image: linear-gradient(
     to bottom,

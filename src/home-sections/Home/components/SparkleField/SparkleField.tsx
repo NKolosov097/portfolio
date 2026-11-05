@@ -238,6 +238,51 @@ const SparkleLayer = ({ preset, isEntering, isLeaving }: ISparkleLayerProps) => 
     return () => query.removeEventListener('change', onChange)
   }, [])
 
+  // Keep snow viewport-wide even when the centered section has reached its maximum width.
+  useEffect(() => {
+    const field = fieldRef.current
+    const section = field?.parentElement
+
+    if (preset !== ESparkleFieldPreset.snow || !field || !section) {
+      return
+    }
+
+    const header = document.getElementById('page-header')
+
+    // Measure the section instead of the field to avoid resize feedback from our own width updates.
+    const syncSnowBounds = () => {
+      const rect = section.getBoundingClientRect()
+      const bodyBottom = document.body.getBoundingClientRect().bottom
+      const fieldTop = field.getBoundingClientRect().top
+      const viewportWidth = document.documentElement.clientWidth
+      const headerBottom = header?.getBoundingClientRect().bottom ?? 0
+
+      field.style.left = `${-rect.left}px`
+      field.style.width = `${viewportWidth}px`
+      field.style.maxHeight = `${Math.max(0, bodyBottom - fieldTop)}px`
+      field.style.setProperty('--snow-header-bottom', `${Math.max(0, headerBottom)}px`)
+      field.style.setProperty(
+        '--snow-fade-height',
+        `${field.getBoundingClientRect().height * 0.18}px`,
+      )
+      markRectStale()
+    }
+
+    syncSnowBounds()
+
+    const resizeObserver = new ResizeObserver(syncSnowBounds)
+
+    resizeObserver.observe(section)
+    resizeObserver.observe(document.body)
+    if (header) resizeObserver.observe(header)
+    window.addEventListener('resize', syncSnowBounds)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', syncSnowBounds)
+    }
+  }, [preset, markRectStale])
+
   useEffect(() => {
     const field = fieldRef.current
     const canvas = canvasRef.current

@@ -7,6 +7,55 @@ import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
 /** Frost accent the winter palette drives, which the snow's baked glow is tinted with. */
 const WINTER_BRAND_COLOR = '#8fd3ff'
 
+/** Check the snow raster reaches past its section without creating sideways scrolling. */
+async function expectSnowOverflow(canvas: Locator) {
+  await expect(async () => {
+    const geometry = await canvas.evaluate((node) => {
+      const field = node.parentElement
+      const section = field?.parentElement
+      if (!field || !section) throw new Error('Expected the snow field and its section.')
+      const bounds = node.getBoundingClientRect()
+      const sectionBounds = section.getBoundingClientRect()
+      const root = document.documentElement
+      const fieldStyle = getComputedStyle(field)
+      const veilStyle = getComputedStyle(field, '::after')
+      return {
+        left: bounds.left,
+        right: bounds.right,
+        top: bounds.top,
+        bottom: bounds.bottom,
+        fadeHeader: Number.parseFloat(fieldStyle.getPropertyValue('--snow-header-bottom')),
+        veilPosition: veilStyle.position,
+        veilTop: Number.parseFloat(veilStyle.top),
+        veilHeight: Number.parseFloat(veilStyle.height),
+        canvasHeight: bounds.height,
+        clipPath: fieldStyle.clipPath,
+        headerBottom: document.getElementById('page-header')?.getBoundingClientRect().bottom ?? 0,
+        sectionTop: sectionBounds.top,
+        sectionBottom: sectionBounds.bottom,
+        viewportWidth: root.clientWidth,
+        scrollWidth: root.scrollWidth,
+        pointerEvents: getComputedStyle(field).pointerEvents,
+        mask: getComputedStyle(node).maskImage,
+      }
+    })
+
+    expect(geometry.left).toBeCloseTo(0, 0)
+    expect(geometry.right).toBeCloseTo(geometry.viewportWidth, 0)
+    expect(geometry.top).toBeLessThan(geometry.sectionTop)
+    expect(geometry.bottom).toBeGreaterThan(geometry.sectionBottom)
+    expect(geometry.fadeHeader).toBeCloseTo(geometry.headerBottom, 0)
+    expect(geometry.veilPosition).toBe('fixed')
+    expect(geometry.veilTop).toBe(0)
+    expect(geometry.veilHeight).toBeCloseTo(geometry.headerBottom + geometry.canvasHeight * 0.18, 0)
+    expect(geometry.clipPath).toBe('inset(0px)')
+    expect(geometry.mask.match(/linear-gradient/g)).toHaveLength(1)
+    expect(geometry.mask).toContain('82%')
+    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewportWidth)
+    expect(geometry.pointerEvents).toBe('none')
+  }).toPass()
+}
+
 /** Seek the real winter tracks while holding unrelated idle motion at its initial pose. */
 async function seekWinterPose(ghost: Locator, progress: number) {
   await ghost.evaluate((node, fraction) => {
@@ -202,17 +251,114 @@ test.describe('winter appearance', () => {
     await expect(field).toHaveAttribute('data-ready', 'true')
     await expect(field).toHaveAttribute('data-motion', 'animated')
     await expect(field).toHaveAttribute('data-preset', 'snow')
+    await expectSnowOverflow(canvas)
+
+    // Read in the same task as scrolling so an asynchronous handler cannot conceal fade lag.
+    const scrolledFade = await canvas.evaluate((node) => {
+      const snowLayer = node.parentElement
+      if (!snowLayer) throw new Error('Expected the snow field.')
+      const before = getComputedStyle(snowLayer)
+      const header = before.getPropertyValue('--snow-header-bottom')
+      const fade = before.getPropertyValue('--snow-fade-height')
+      window.scrollTo(0, 150)
+      const after = getComputedStyle(snowLayer)
+      const veil = getComputedStyle(snowLayer, '::after')
+      return {
+        position: veil.position,
+        top: veil.top,
+        isHeaderUnchanged: after.getPropertyValue('--snow-header-bottom') === header,
+        isFadeUnchanged: after.getPropertyValue('--snow-fade-height') === fade,
+      }
+    })
+    expect(scrolledFade).toEqual({
+      position: 'fixed',
+      top: '0px',
+      isHeaderUnchanged: true,
+      isFadeUnchanged: true,
+    })
+    await expectSnowOverflow(canvas)
+    const clippedVeil = await canvas.evaluate((node) => {
+      window.scrollTo(0, node.getBoundingClientRect().bottom + window.scrollY + 100)
+      return getComputedStyle(node.parentElement ?? node).clipPath
+    })
+    expect(clippedVeil).toBe('inset(0px)')
+    await page.evaluate(() => window.scrollTo(0, 0))
+
+    const aside = page.getByTestId('aside-surface')
+    if (await aside.isVisible()) {
+      // Enable snow hit testing temporarily so pointer transparency cannot hide a stacking regression.
+      const isAsideAboveSnow = await canvas.evaluate((node) => {
+        const snowLayer = node.parentElement
+        const surface = document.querySelector('[data-testid="aside-surface"]')
+        if (!snowLayer || !surface) throw new Error('Expected the snow field and aside surface.')
+        const originalPointerEvents = snowLayer.style.pointerEvents
+        try {
+          snowLayer.style.pointerEvents = 'auto'
+          const bounds = surface.getBoundingClientRect()
+          return surface.contains(
+            document.elementFromPoint(
+              bounds.left + bounds.width / 2,
+              bounds.top + bounds.height / 2,
+            ),
+          )
+        } finally {
+          snowLayer.style.pointerEvents = originalPointerEvents
+        }
+      })
+      expect(isAsideAboveSnow).toBe(true)
+    }
   })
 
-  test('snows behind the not-found page too', async ({ page }) => {
-    const response = await page.goto('/no-such-page')
+  for (const path of ['/no-such-page', '/articles/no-such-article']) {
+    test(`snows beyond the not-found section at ${path}`, async ({ page }) => {
+      const response = await page.goto(path)
 
-    expect(response?.status()).toBe(404)
-    await expect(page.getByTestId('not-found-link')).toBeVisible()
+      if (path === '/no-such-page') expect(response?.status()).toBe(404)
+      await expect(page.getByTestId('not-found-link')).toBeVisible()
+      await expect(page.getByTestId('not-found-link')).toHaveAttribute(
+        'href',
+        path === '/no-such-page' ? '/' : '/articles',
+      )
 
-    const field = page.getByTestId('home-sparkle-field').locator('..')
-    await expect(field).toHaveAttribute('data-preset', 'snow')
-    await expect(field).toHaveAttribute('data-ready', 'true')
+      const canvas = page.getByTestId('home-sparkle-field')
+      const field = canvas.locator('..')
+      await expect(field).toHaveAttribute('data-preset', 'snow')
+      await expect(field).toHaveAttribute('data-ready', 'true')
+      await expectSnowOverflow(canvas)
+      const scrollBounds = await canvas.evaluate((node) => {
+        const footer = document.querySelector('footer')
+        if (!footer) throw new Error('Expected the page footer.')
+        return {
+          canvasBottom: node.getBoundingClientRect().bottom,
+          bodyBottom: document.body.getBoundingClientRect().bottom,
+          footerBottom: footer.getBoundingClientRect().bottom + window.scrollY,
+          scrollY: window.scrollY,
+          scrollHeight: document.documentElement.scrollHeight,
+        }
+      })
+      expect(scrollBounds.canvasBottom).toBeLessThanOrEqual(scrollBounds.bodyBottom + 1)
+      expect(scrollBounds.scrollHeight).toBeLessThanOrEqual(
+        Math.ceil(scrollBounds.bodyBottom + scrollBounds.scrollY) + 1,
+      )
+      expect(scrollBounds.footerBottom).toBeCloseTo(scrollBounds.scrollHeight, 0)
+    })
+  }
+
+  test('keeps snow viewport-wide when the section stays at its maximum width', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 })
+    await page.goto('/')
+    const canvas = page.getByTestId('home-sparkle-field')
+    await expect(canvas.locator('..')).toHaveAttribute('data-ready', 'true')
+    await expectSnowOverflow(canvas)
+    const section = canvas.locator('../..')
+    const before = await section.boundingBox()
+    if (!before) throw new Error('Expected the home section bounds.')
+
+    await page.setViewportSize({ width: 1800, height: 900 })
+    await expectSnowOverflow(canvas)
+    const after = await section.boundingBox()
+    if (!after) throw new Error('Expected the resized home section bounds.')
+    expect(after.width).toBeCloseTo(before.width, 0)
   })
 
   test('toggles to original, persists the cookie, and survives reload', async ({

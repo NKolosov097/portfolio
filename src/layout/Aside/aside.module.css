@@ -5,6 +5,10 @@
   initial-value: 0deg;
 }
 
+.aside {
+  z-index: 1;
+}
+
 .container {
   --g-card-background-color: var(--aside-bg-color);
 

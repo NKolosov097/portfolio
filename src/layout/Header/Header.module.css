@@ -13,7 +13,20 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background-color: var(--root-bg-color);
+
+  /* Fade only the background so header text and controls remain opaque. */
+  background: linear-gradient(
+    to bottom,
+    var(--root-bg-color) calc(100% - 28px),
+    color-mix(in srgb, var(--root-bg-color) 96%, transparent) calc(100% - 24.5px),
+    color-mix(in srgb, var(--root-bg-color) 85%, transparent) calc(100% - 21px),
+    color-mix(in srgb, var(--root-bg-color) 69%, transparent) calc(100% - 17.5px),
+    color-mix(in srgb, var(--root-bg-color) 50%, transparent) calc(100% - 14px),
+    color-mix(in srgb, var(--root-bg-color) 31%, transparent) calc(100% - 10.5px),
+    color-mix(in srgb, var(--root-bg-color) 15%, transparent) calc(100% - 7px),
+    color-mix(in srgb, var(--root-bg-color) 4%, transparent) calc(100% - 3.5px),
+    transparent 100%
+  );
   padding: var(--body-padding);
   padding-right: calc(var(--body-padding) + var(--controls-footprint));
   margin: 0 auto;
