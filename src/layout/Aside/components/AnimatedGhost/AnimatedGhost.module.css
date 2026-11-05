@@ -46,6 +46,157 @@
   animation: blink 5s ease-in-out infinite;
 }
 
+/* Distinct winter names restart idle and accessory tracks together after appearance changes. */
+.ghost.winter {
+  animation-name: winter-bob;
+  animation-duration: 3s;
+  animation-delay: -1.5s;
+}
+
+.winter .breathe {
+  animation-name: winter-breathe;
+  animation-duration: 3s;
+  animation-delay: -1.5s;
+}
+
+.winter .sway {
+  animation-name: winter-sway;
+  animation-duration: 6s;
+  animation-delay: 0s;
+}
+
+.winterHat,
+.winterHand,
+.winterHandReveal {
+  transform-box: view-box;
+}
+
+.winterHat {
+  transform-origin: 8px 4.55px;
+  animation: winter-hat-slip 12s ease-in-out infinite;
+}
+
+.winterHand {
+  transform-origin: 14.1px 10px;
+  transform: translate(-0.5px, 1px) rotate(180deg);
+  opacity: 0;
+  animation: winter-hand-lift 12s linear infinite;
+}
+
+.winterHandReveal {
+  animation: winter-hand-reveal 12s steps(1, end) infinite;
+}
+
+/* The fall at 65% now coincides with the second lower-right ascent at 7.5 seconds. */
+.winterHat,
+.winterHand,
+.winterHandReveal {
+  animation-delay: -0.3s;
+}
+
+@keyframes winter-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes winter-sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-3.5deg);
+  }
+
+  75% {
+    transform: rotate(3.5deg);
+  }
+}
+
+@keyframes winter-breathe {
+  0%,
+  100% {
+    transform: scale(1.03, 0.97);
+  }
+
+  50% {
+    transform: scale(0.98, 1.02);
+  }
+}
+
+@keyframes winter-hat-slip {
+  0%,
+  65%,
+  86%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  76%,
+  80% {
+    transform: translate(0.6px, 1.2px) rotate(14deg);
+  }
+}
+
+/* Matching lift timing keeps the hand touching the brim until the hat is raised. */
+@keyframes winter-hand-lift {
+  0%,
+  70%,
+  94%,
+  100% {
+    transform: translate(-0.5px, 1px) rotate(180deg);
+    opacity: 0;
+  }
+
+  73% {
+    opacity: 1;
+  }
+
+  75%,
+  92% {
+    transform: translate(1.8px, 1px) rotate(145deg);
+    opacity: 1;
+  }
+
+  78%,
+  89% {
+    transform: translate(2.6px, -1.4px) rotate(65deg);
+    opacity: 1;
+  }
+
+  80% {
+    transform: translate(-0.419px, -2.726px) rotate(14deg);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+
+  86% {
+    transform: translate(-0.8px, -5.2px) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Keep the hand outside the hollow body until it can reach inward over the brim. */
+@keyframes winter-hand-reveal {
+  0%,
+  90%,
+  100% {
+    transform: translateX(0);
+  }
+
+  78%,
+  89% {
+    transform: translateX(-23px);
+  }
+}
+
 @keyframes ghost-bob {
   0%,
   100% {
@@ -245,11 +396,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ghost.winter,
+  .winter .sway,
+  .winter .breathe,
   .ghost,
   .sway,
   .breathe,
   .eyeLook,
   .eyeBlink,
+  .winterHat,
+  .winterHand,
+  .winterHandReveal,
   .lanternSwing,
   :global(html[data-appearance='halloween']) .lanternLight,
   :global(html[data-appearance='halloween']) .lanternHalo {
