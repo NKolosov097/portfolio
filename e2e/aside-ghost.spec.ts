@@ -9,9 +9,6 @@ import { openLanguageMenu } from './helpers/language'
 /** bob + sway + breathe on the body, plus the two eye animations. */
 const EXPECTED_ANIMATION_COUNT = 5
 
-/** The idle five plus lantern swing, clipped light and halo flicker in halloween. */
-const EXPECTED_HALLOWEEN_ANIMATION_COUNT = 8
-
 /** Frame sampling window for the 180ms reduced-motion giggle, which a single read can miss. */
 const REDUCED_MOTION_SAMPLE_WINDOW_MS = 1_500
 
@@ -413,7 +410,7 @@ test.describe('aside ghost', () => {
 
     const runningAnimations = await ghost.evaluate(countRunningVisibleAnimations)
 
-    expect(runningAnimations).toBe(EXPECTED_HALLOWEEN_ANIMATION_COUNT)
+    expect(runningAnimations).toBe(EXPECTED_ANIMATION_COUNT)
   })
 
   test('runs only the idle body layers in the original appearance', async ({ context, page }) => {
@@ -457,7 +454,8 @@ test.describe('aside ghost', () => {
     expect(poses[1]).not.toBe(poses[0])
   })
 
-  test('shows a recognizable lantern at mascot size in halloween, and hides it in original', async ({
+  // Archive seasonal interactions while keeping original mascot and hidden-asset safeguards active.
+  test.skip('shows a recognizable lantern at mascot size in halloween, and hides it in original', async ({
     context,
     page,
   }) => {
@@ -636,7 +634,7 @@ test.describe('aside ghost', () => {
     expect(runningAnimations).toBe(0)
   })
 
-  test('swings the lantern gently around its handle', async ({ page }) => {
+  test.skip('swings the lantern gently around its handle', async ({ page }) => {
     await page.goto('/')
     const swing = (await revealAside(page)).getByTestId('aside-ghost-lantern-swing')
     await expect(swing).toHaveCSS('transform-box', 'view-box')
@@ -664,7 +662,7 @@ test.describe('aside ghost', () => {
     expect(motion.angles[1]).toBeCloseTo(3, 1)
   })
 
-  test('flickers the lantern flame continuously without moving it', async ({ page }) => {
+  test.skip('flickers the lantern flame continuously without moving it', async ({ page }) => {
     await page.goto('/')
 
     const flame = (await revealAside(page)).getByTestId('aside-ghost-lantern-light')
@@ -702,7 +700,7 @@ test.describe('aside ghost', () => {
     expect(new Set(opacities).size).toBeGreaterThan(1)
   })
 
-  test('keeps the lantern flame at a stable opacity for reduced motion', async ({ page }) => {
+  test.skip('keeps the lantern flame at a stable opacity for reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
 
@@ -716,7 +714,9 @@ test.describe('aside ghost', () => {
 
     await expect(flame).toHaveCSS('opacity', '0.9')
   })
-  test('draws the loaded lantern on initial Halloween with settling inertia', async ({ page }) => {
+  test.skip('draws the loaded lantern on initial Halloween with settling inertia', async ({
+    page,
+  }) => {
     await page.addInitScript(() => {
       const original = Element.prototype.animate
       Element.prototype.animate = new Proxy(original, {
@@ -804,7 +804,9 @@ test.describe('aside ghost', () => {
     expect(await ghost.screenshot()).toEqual(occluded)
   })
 
-  test('stows, reverses and redraws the lantern continuously while tickled', async ({ page }) => {
+  test.skip('stows, reverses and redraws the lantern continuously while tickled', async ({
+    page,
+  }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto('/')
@@ -849,7 +851,7 @@ test.describe('aside ghost', () => {
     expect(errors).toEqual([])
   })
 
-  test('settles lantern travel and inertia immediately when reduced motion changes live', async ({
+  test.skip('settles lantern travel and inertia immediately when reduced motion changes live', async ({
     page,
   }) => {
     await page.goto('/')
@@ -864,7 +866,7 @@ test.describe('aside ghost', () => {
     await expect(travel).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
     expect(await inertia.evaluate((node) => node.getAnimations().length)).toBe(0)
   })
-  test('preserves the same idle lantern swing phase across appearance toggles', async ({
+  test.skip('preserves the same idle lantern swing phase across appearance toggles', async ({
     page,
   }) => {
     await page.goto('/')
@@ -889,7 +891,7 @@ test.describe('aside ghost', () => {
     )
     await expect(swing).toHaveCSS('transform', before)
   })
-  test('reaches every travel waypoint on its way around the body', async ({ page }) => {
+  test.skip('reaches every travel waypoint on its way around the body', async ({ page }) => {
     await page.goto('/')
     const aside = await revealAside(page)
     const travel = aside.getByTestId('aside-ghost-lantern-travel')
@@ -916,7 +918,7 @@ test.describe('aside ghost', () => {
     expect(positions[6]).toBeCloseTo(-5)
   })
 
-  test('switches depth while the lantern is clear of the body', async ({ page }) => {
+  test.skip('switches depth while the lantern is clear of the body', async ({ page }) => {
     skipOutsidePixelProjects()
     test.slow()
     const { travel, seekGesture, rightOfGhost } = await stageLanternGesture(page)
@@ -930,7 +932,7 @@ test.describe('aside ghost', () => {
     expect((await page.screenshot({ clip: rightOfGhost })).equals(inFront)).toBe(false)
   })
 
-  test('lets the body occlude part of the lantern on the inward leg', async ({ page }) => {
+  test.skip('lets the body occlude part of the lantern on the inward leg', async ({ page }) => {
     skipOutsidePixelProjects()
     test.slow()
     const { travel, seekGesture, aroundGhost } = await stageLanternGesture(page)
@@ -946,7 +948,7 @@ test.describe('aside ghost', () => {
     expect((await capture()).equals(occluded)).toBe(false)
   })
 
-  test('leaves no lantern pixels once it is behind the body', async ({ page }) => {
+  test.skip('leaves no lantern pixels once it is behind the body', async ({ page }) => {
     skipOutsidePixelProjects()
     test.slow()
     const { ghost, travel, seekGesture, aroundGhost } = await stageLanternGesture(page)
@@ -960,7 +962,7 @@ test.describe('aside ghost', () => {
     expect(await depth.evaluate((node) => getComputedStyle(node).opacity)).toBe('1')
   })
 
-  test('carries the lantern at a continuous speed instead of stalling at each waypoint', async ({
+  test.skip('carries the lantern at a continuous speed instead of stalling at each waypoint', async ({
     page,
   }) => {
     await page.goto('/')
@@ -995,7 +997,7 @@ test.describe('aside ghost', () => {
     expect(unitsTravelledBy100Ms).toBeGreaterThan(1)
   })
 
-  test('trails the lantern behind the carrying hand without swinging at the turn', async ({
+  test.skip('trails the lantern behind the carrying hand without swinging at the turn', async ({
     page,
   }) => {
     await page.goto('/')
@@ -1026,7 +1028,7 @@ test.describe('aside ghost', () => {
     expect(atEnd).toBeCloseTo(0)
   })
 
-  test('keeps every owned gesture track at the endpoint after an immediate reversal', async ({
+  test.skip('keeps every owned gesture track at the endpoint after an immediate reversal', async ({
     page,
   }) => {
     await page.goto('/')
@@ -1065,7 +1067,7 @@ test.describe('aside ghost', () => {
         { time: 900, running: false },
       ])
   })
-  test('keeps inertia neutral at the outboard turn and swings as the lantern stops', async ({
+  test.skip('keeps inertia neutral at the outboard turn and swings as the lantern stops', async ({
     page,
   }) => {
     // Hold the short neutralization long enough to inspect it on slower WebKit workers.
