@@ -13,6 +13,7 @@ import { Tag } from '@/components/Tag/Tag'
 // Halloween is archived; the scene stays in the tree for the next season.
 // import { HalloweenArt } from '@/home-sections/Home/components/HalloweenArt/HalloweenArt'
 import { Sparkle } from '@/home-sections/Home/components/Sparkle/Sparkle'
+import { SnowText } from '@/home-sections/Home/components/SnowText/SnowText'
 import { cancelIdle, requestIdle } from '@/helpers/idleCallback'
 import { ESparkleFieldPreset } from '@/home-sections/Home/types/home.type'
 
@@ -67,13 +68,18 @@ export const Home = () => {
 
       <Tag title={t('headerTabs.home')} />
 
-      <h2 className={styles.header}>
-        {t('Im')} {t('firstName')}{' '}
+      <h2
+        className={styles.header}
+        aria-label={`${t('Im')} ${t('firstName')} ${lastName}`}
+        data-testid="home-heading"
+      >
+        <SnowText text={t('Im')} part="intro" isWinter={isWinter} />{' '}
+        <SnowText text={t('firstName')} part="firstName" isWinter={isWinter} />{' '}
         <span className={styles.lastName}>
-          {lastNameHead}
+          <SnowText text={lastNameHead} part="lastName" isWinter={isWinter} />
           {lastGlyph && (
             <span className={styles.lastGlyph}>
-              {lastGlyph}
+              <SnowText text={lastGlyph} part="lastName" isWinter={isWinter} />
               <span className={styles.sparkle}>
                 <Sparkle />
               </span>

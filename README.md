@@ -268,6 +268,7 @@ What is covered today:
 - **Home sparkle field** (`e2e/home-sparkle-field.spec.ts`) - the canvas fades in behind the hero
   without covering the headline, and holds a still frame under `prefers-reduced-motion: reduce`.
   This suite opts into the original appearance, since the sparkle field only renders there.
+- **Winter heading snow** (`e2e/winter-heading-snow.spec.ts`) - checks live localized heading text, approved winter snow details, appearance switching and viewport fit.
 - **Appearance switch** (`e2e/appearance-switch.spec.ts`) - Halloween is the default with no
   cookie set, toggling persists the `portfolio-appearance` cookie across reload and route
   navigation, toggling back restores the Halloween artwork and drops the sparkle field, the

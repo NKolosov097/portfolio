@@ -1,0 +1,43 @@
+.word {
+  white-space: nowrap;
+}
+
+.glyph {
+  position: relative;
+  display: inline-block;
+  line-height: inherit;
+  white-space: pre;
+}
+
+/* Aligns the fixed 230px raster line box with the heading's inherited line height. */
+.snow {
+  position: absolute;
+  top: calc(0.5lh - 0.695em);
+  left: -0.12em;
+  pointer-events: none;
+
+  /* Decorative SVGs otherwise insert line breaks into Firefox text selection. */
+  user-select: none;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgb(120 190 255 / 35%));
+}
+
+/* Shaded lips cast downward shadows while unaffected caps retain their original halo. */
+.snow:has([data-snow-inner-lip], [data-snow-hanging]) {
+  filter: none;
+}
+
+.snow:has([data-snow-inner-lip], [data-snow-hanging])
+  > path:not([data-snow-inner-lip], [data-snow-hanging]) {
+  filter: drop-shadow(0 1px 2px rgb(120 190 255 / 35%));
+}
+
+.snow > path[data-snow-inner-lip] {
+  fill: url('#home-snow-inner-fill');
+  filter: url('#home-snow-inner-contact');
+}
+
+.snow > path[data-snow-hanging] {
+  fill: url('#home-snow-hanging-fill');
+  filter: url('#home-snow-hanging-contact');
+}
