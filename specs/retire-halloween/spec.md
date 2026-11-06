@@ -16,3 +16,5 @@ Halloween has ended. Restore the original appearance for every visitor and remov
 ## Acceptance
 
 Cover all resolver inputs, original SSR and hydrated markup, reload and article navigation, responsive header and hero layout, and active mascot behavior. Retain image fallback, reduced-motion, and lantern occlusion coverage; archive seasonal-only assertions.
+
+- Appearance regression waits for the deferred sparkle field to mount within a bounded budget; strict flaky CI remains enabled.

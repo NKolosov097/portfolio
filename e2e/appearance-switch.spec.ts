@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test'
 
 import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
 
+// The idle-deferred sparkle chunk can mount after the default deadline on contended WebKit.
+const SPARKLE_MOUNT_TIMEOUT = 15_000
+
 test.describe('original appearance', () => {
   test('serves original HTML and hydrates without seasonal artwork or a switch', async ({
     page,
@@ -14,7 +17,9 @@ test.describe('original appearance', () => {
     await page.goto('/')
 
     await expect(page.locator('html')).toHaveAttribute('data-appearance', EAppearance.original)
-    await expect(page.getByTestId('home-sparkle-field')).toBeAttached()
+    await expect(page.getByTestId('home-sparkle-field')).toBeAttached({
+      timeout: SPARKLE_MOUNT_TIMEOUT,
+    })
     await expect(page.getByTestId('home-halloween-art')).toHaveCount(0)
     await expect(page.getByTestId('appearance-toggle-switch')).toHaveCount(0)
   })
@@ -35,7 +40,9 @@ test.describe('original appearance', () => {
 
       await page.goto('/')
       await expect(page.locator('html')).toHaveAttribute('data-appearance', EAppearance.original)
-      await expect(page.getByTestId('home-sparkle-field')).toBeAttached()
+      await expect(page.getByTestId('home-sparkle-field')).toBeAttached({
+        timeout: SPARKLE_MOUNT_TIMEOUT,
+      })
       await expect(page.getByTestId('home-halloween-art')).toHaveCount(0)
       await expect(page.getByTestId('appearance-toggle-switch')).toHaveCount(0)
 
