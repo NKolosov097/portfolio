@@ -16,10 +16,9 @@ export const enum EAppearance {
 /** Cookie key used to persist the visitor's manually selected appearance across sessions. */
 export const APPEARANCE_COOKIE_KEY = 'portfolio-appearance'
 
-/**
- * Resolves the visitor's appearance server-side from the persistence cookie. Halloween is this
- * release's default, so only an explicit `original` cookie value opts back out.
- */
-export function resolveRequestAppearance(cookieAppearance: string | null | undefined): EAppearance {
-  return cookieAppearance === EAppearance.original ? EAppearance.original : EAppearance.halloween
+/** Retired appearance cookies are ignored so every request starts in the original appearance. */
+export function resolveRequestAppearance(
+  _cookieAppearance: string | null | undefined,
+): EAppearance {
+  return EAppearance.original
 }
