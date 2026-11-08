@@ -37,9 +37,9 @@ jobs:
         shell: bash
         run: |
           status="$(
-            curl --silent --show-error --fail-with-body
-            --connect-timeout 10 --max-time 20
-            --header "Authorization: Bearer $OPERATIONS_SECRET"
+            curl --silent --show-error --fail-with-body \
+            --connect-timeout 10 --max-time 20 \
+            --header "Authorization: Bearer $OPERATIONS_SECRET" \
             "$CONTACT_BASE_URL/api/internal/contact-status"
           )"
           echo "$status" | jq -e '
