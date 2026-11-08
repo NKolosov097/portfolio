@@ -201,7 +201,14 @@ export const createSparkleController = <TImage = CanvasImageSource>(
 
       if (particles.length === 0) {
         particles.push(
-          ...createSparkleParticles(width, height, count, config, options.random, options.isEntering),
+          ...createSparkleParticles(
+            width,
+            height,
+            count,
+            config,
+            options.random,
+            options.isEntering,
+          ),
         )
       } else {
         refitSparkleParticles(particles, previous, width, height, count, config, options.random)

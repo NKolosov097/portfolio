@@ -14,6 +14,8 @@ describe('resolveRequestAppearance', () => {
 
   it('defaults to winter for an unrecognised cookie value', () => {
     expect(resolveRequestAppearance('spooky')).toBe(EAppearance.winter)
+    expect(resolveRequestAppearance('')).toBe(EAppearance.winter)
+    expect(resolveRequestAppearance(EAppearance.winter)).toBe(EAppearance.winter)
   })
 
   it('retires a cookie left over from the archived halloween season', () => {

@@ -41,7 +41,10 @@ export const renderSparkleField = <TImage>(
     const twinkle =
       1 - config.twinkleDepth + config.twinkleDepth * (Math.sin(particle.twinklePhase) * 0.5 + 0.5)
     const alpha = clampUnit(
-      particle.opacity * particle.entryAlpha * twinkle * (1 + influence.strength * config.opacityBoost),
+      particle.opacity *
+        particle.entryAlpha *
+        twinkle *
+        (1 + influence.strength * config.opacityBoost),
     )
 
     if (alpha <= 0) {

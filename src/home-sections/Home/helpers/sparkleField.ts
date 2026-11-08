@@ -71,8 +71,7 @@ export const createSparkleParticle = (
 
   // Blends a depth-dictated draw with a random one so a bias of 0 reproduces the pre-depth behaviour.
   const randomSpeed = randomBetween(random, config.minDriftSpeed, config.maxDriftSpeed)
-  const depthSpeed =
-    config.minDriftSpeed + (config.maxDriftSpeed - config.minDriftSpeed) * depth
+  const depthSpeed = config.minDriftSpeed + (config.maxDriftSpeed - config.minDriftSpeed) * depth
   const blendedSpeed = randomSpeed + (depthSpeed - randomSpeed) * config.speedDepthBias
   const driftSpeed =
     blendedSpeed * randomBetween(random, 1 - config.speedJitter, 1 + config.speedJitter)
@@ -90,8 +89,7 @@ export const createSparkleParticle = (
       : 0
 
   const randomOpacity = randomBetween(random, config.minOpacity, config.maxOpacity)
-  const depthOpacity =
-    config.minOpacity + (config.maxOpacity - config.minOpacity) * depth
+  const depthOpacity = config.minOpacity + (config.maxOpacity - config.minOpacity) * depth
   const opacity = randomOpacity + (depthOpacity - randomOpacity) * config.opacityDepthBias
 
   const isSeededAbove = isEntering && config.entrySpawnAboveRatio > 0
@@ -242,7 +240,9 @@ export const advanceSparkleParticle = (
     particle.swayAmplitude *
     particle.swaySpeed *
     (Math.cos(particle.swayPhase) +
-      config.swaySecondaryAmplitude * config.swaySecondaryFrequency * Math.cos(particle.swayPhaseSecondary))
+      config.swaySecondaryAmplitude *
+        config.swaySecondaryFrequency *
+        Math.cos(particle.swayPhaseSecondary))
 
   particle.lateralVelocity = easeTowards(
     particle.lateralVelocity,
@@ -298,7 +298,11 @@ export const advanceSparkleWind = (
 
   if (wind.retargetRemainingMs <= 0) {
     wind.target = randomBetween(random, -config.maxWindSpeed, config.maxWindSpeed)
-    wind.retargetRemainingMs = randomBetween(random, config.minWindRetargetMs, config.maxWindRetargetMs)
+    wind.retargetRemainingMs = randomBetween(
+      random,
+      config.minWindRetargetMs,
+      config.maxWindRetargetMs,
+    )
   }
 
   wind.value = easeTowards(wind.value, wind.target, deltaMs, config.windTauMs)

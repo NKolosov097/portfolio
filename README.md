@@ -1,4 +1,4 @@
-﻿# Portfolio - [NKolosov097](https://nkolosov.com)
+# Portfolio - [NKolosov097](https://nkolosov.com)
 
 A production-grade personal portfolio built on the **Next.js App Router** with **React 19** and **TypeScript** (strict): a single-page home experience plus a small set of statically generated article pages. It ships a fully internationalised (English / Russian) UI, a database-backed contact form with transactional email, and an accessibility- and performance-conscious layout shell.
 
@@ -82,7 +82,7 @@ Key architectural decisions:
 - **Section ownership.** Each section under `src/home-sections/<Section>/` owns its own types, sub-components, schemas, and server actions - no cross-section coupling.
 - **Article content as code.** Each article's body lives in `src/content/articles/<slug>/`, registered in `src/content/articles/registry.ts` by slug; article metadata (title, description, publish date, reading time) lives separately in `src/constants/articles.constants.ts` so route generation and SEO don't need to import the body component.
 - **Server-side theming.** The Gravity UI dark theme is resolved with `getRootClassName` in the root layout, so the correct theme class is present on first paint (no client flash).
-- **Seasonal appearance.** A separate `original | halloween` appearance (`src/constants/theme.constants.ts`) is resolved server-side from the `portfolio-appearance` cookie (Halloween is the default), applied as `data-appearance` on `<html>` before first paint, and flipped client-side via the Header's appearance switch, which updates state, the attribute, and a one-year cookie together.
+- **Seasonal appearance.** The public site supports original and winter, selected as `data-appearance` on `<html>` before first paint. Winter is the default; only an explicit `portfolio-appearance=original` cookie opts out. The header switch persists the selected appearance. Halloween components and assets remain archived for reuse.
 - **Server-only boundaries.** Database and mail singletons live in `src/lib/` and are guarded with `import 'server-only'`; server actions are marked `'use server'`.
 - **Path aliases.** `@/*` â†’ `src/*`, `@public/*` â†’ `public/*`, and `@tests/*` â†’ `tests/*` (configured in `tsconfig.json`, the ESLint resolver, and `vitest.config.mts`).
 
@@ -237,8 +237,7 @@ What is covered today:
   is sampled on every animation frame after navigation and must keep its compact height, gap and
   typography, guarding against a post-mount JavaScript size switch without mistaking Inter font
   loading for a size change. Resizing across 500px also checks compact and large metrics.
-- **Aside ghost** (`e2e/aside-ghost.spec.ts`) - all five animation layers run, the silhouette
-  actually moves between frames, and every animation stops under `prefers-reduced-motion: reduce`.
+- **Archived aside ghost** (`e2e/aside-ghost.spec.ts`) - the entire suite remains skipped while the winter mascot is covered by `e2e/winter-appearance.spec.ts`; its general and Halloween checks are retained for reuse.
 - **Profile drawer** (`e2e/mobile-drawer.spec.ts`) - below the breakpoint the sidebar is hidden
   and its content is reachable only through the drawer, which opens and closes on demand. The
   spec skips itself on viewports that render the sidebar.
@@ -267,18 +266,11 @@ What is covered today:
   reports success, stores the submission, and records a failed notification attempt for retry.
 - **Home sparkle field** (`e2e/home-sparkle-field.spec.ts`) - the canvas fades in behind the hero
   without covering the headline, and holds a still frame under `prefers-reduced-motion: reduce`.
-  This suite opts into the original appearance, since the sparkle field only renders there.
-- **Winter heading snow** (`e2e/winter-heading-snow.spec.ts`) - checks live localized heading text, approved winter snow details, appearance switching and viewport fit.
-- **Appearance switch** (`e2e/appearance-switch.spec.ts`) - Halloween is the default with no
-  cookie set, toggling persists the `portfolio-appearance` cookie across reload and route
-  navigation, toggling back restores the Halloween artwork and drops the sparkle field, the
-  switch responds to both Enter and Space, and on narrow viewports the switch stays a 44px tap
-  target below the language globe without overlapping the tabs.
-- **Halloween motion** (`e2e/halloween-motion.spec.ts`) - the hero combines three photographic
-  layers with 18 rising CSS sparks and candlelight confined to the carved openings. The ghost
-  carries a photographic lantern with localized light and a gentle swing. Motion tests cover
-  staged reveals, continuous spark coverage, stable pumpkin geometry and reduced motion;
-  `e2e/aside-ghost.spec.ts` covers lantern visibility, swing, light and image fallback.
+- **Winter heading snow** (`e2e/winter-heading-snow.spec.ts`) - checks live localized heading text, winter snow details, appearance switching and viewport fit.
+- **Appearance rendering** (`e2e/appearance-switch.spec.ts`) - SSR and hydration default to winter, preserve explicit original cookies, and map winter, legacy Halloween, empty, and unknown cookies to winter across reload and article navigation. Both appearances keep the sparkle field mounted; the switch remains enabled, Halloween artwork stays absent, and controls, tabs and headings fit responsive widths.
+- **Winter appearance** (`e2e/winter-appearance.spec.ts`) - covers seasonal transitions, snow, winter mascot behavior and appearance switching.
+- **Winter page garland** (`e2e/winter-page-garland.spec.ts`) - covers all public page variants, viewport anchoring, steady white lights, pinned cable attachments during decaying sag motion, appearance reversal and reduced motion.
+- **Archived Halloween coverage** (`e2e/halloween-motion.spec.ts`, `e2e/aside-ghost.spec.ts`) - both suites remain entirely skipped, retaining seasonal scenes, lantern checks and general mascot assertions for reuse.
 - **Self-hosted articles** (`e2e/articles.spec.ts`) - the article is listed on `/articles`, its
   page renders with a heading and content, an in-page anchor scrolls a section clear of the fixed
   header, the body switches language with the site's language switcher, and opening a Writing card

@@ -10,7 +10,7 @@ export interface IAppearanceContext {
 }
 
 export const AppearanceContext = createContext<IAppearanceContext>({
-  appearance: EAppearance.halloween,
+  appearance: EAppearance.winter,
   // No-op fallback for consumers rendered outside ThemeProvider; keeps setAppearance safe to call.
   setAppearance: () => {},
 })
