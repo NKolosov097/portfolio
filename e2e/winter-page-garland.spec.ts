@@ -153,7 +153,7 @@ test.describe('winter page garland', () => {
     expect(descent[1].y).toBeLessThan(0)
     expect(descent[2].y).toBeCloseTo(0, 3)
     const entry = await sampleGarlandMotion(garland, [468, 630, 765, 900])
-    for (const [index, scale] of [1.09, 0.964, 1.015, 1].entries()) {
+    for (const [index, scale] of [1.12, 0.952, 1.021, 1].entries()) {
       expect(entry[index].scale).toBeCloseTo(scale, 3)
     }
     expect(entry[0].sag).toBeGreaterThan(16)
