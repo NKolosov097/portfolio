@@ -28,16 +28,27 @@
 }
 
 .snow:has([data-snow-inner-lip], [data-snow-hanging])
-  > path:not([data-snow-inner-lip], [data-snow-hanging]) {
+  > .patch:not(:has(> path[data-snow-inner-lip], > path[data-snow-hanging])) {
   filter: drop-shadow(0 1px 2px rgb(120 190 255 / 35%));
 }
 
-.snow > path[data-snow-inner-lip] {
+.patch > path[data-snow-inner-lip] {
   fill: url('#home-snow-inner-fill');
+}
+
+.patch:has(> path[data-snow-inner-lip]) {
   filter: url('#home-snow-inner-contact');
 }
 
-.snow > path[data-snow-hanging] {
+/* These large diagonal banks keep their smooth rims without the inner material's displacement. */
+.patch:has(> path[data-snow-corner='k'], > path[data-snow-corner='K']) {
+  filter: url('#home-snow-hanging-contact');
+}
+
+.patch > path[data-snow-hanging] {
   fill: url('#home-snow-hanging-fill');
+}
+
+.patch:has(> path[data-snow-hanging]) {
   filter: url('#home-snow-hanging-contact');
 }
