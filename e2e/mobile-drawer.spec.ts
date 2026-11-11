@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 
 import { clickWhenSettled } from './helpers/interaction'
 
+import { APPEARANCE_COOKIE_KEY, EAppearance } from '@/constants/theme.constants'
+
 test.describe('profile drawer on narrow viewports', () => {
   test('replaces the sidebar and opens and closes on demand', async ({ page }) => {
     await page.goto('/')
@@ -28,6 +30,64 @@ test.describe('profile drawer on narrow viewports', () => {
     await clickWhenSettled(drawer.getByTestId('aside-close-profile'))
 
     await expect(drawer).toBeHidden()
+  })
+
+  // Exercise the real seasonal toggle while guarding the decorative layer's input pass-through.
+  test('shows winter edge frost with clearance for the close control', async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    if (!baseURL) throw new Error('Expected a configured base URL for appearance cookies.')
+    await context.addCookies([
+      { name: APPEARANCE_COOKIE_KEY, value: EAppearance.winter, url: new URL('/', baseURL).href },
+    ])
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+
+    const opener = page.getByTestId('header-open-profile')
+    await clickWhenSettled(opener)
+
+    const drawer = page.getByTestId('aside-drawer')
+    const frost = drawer.getByTestId('aside-frost-mobile')
+    const close = drawer.getByTestId('aside-close-profile')
+    await expect(frost).toBeVisible()
+    await expect(drawer).toHaveCSS('border-radius', '0px')
+    await expect(frost.locator('clipPath rect')).toHaveAttribute('rx', '0')
+    await expect(frost).toHaveCSS('opacity', '1')
+    await expect(frost).toHaveAttribute('aria-hidden', 'true')
+    await expect(frost).toHaveAttribute('focusable', 'false')
+    await expect(frost).toHaveCSS('pointer-events', 'none')
+    await expect(frost).toHaveCSS('mask-image', /radial-gradient\(.+24px.+32px\)/)
+
+    // Wait for the drawer entrance before checking which element receives the close-button tap.
+    await expect
+      .poll(() =>
+        close.evaluate((button) => {
+          const bounds = button.getBoundingClientRect()
+          return button.contains(
+            document.elementFromPoint(
+              bounds.left + bounds.width / 2,
+              bounds.top + bounds.height / 2,
+            ),
+          )
+        }),
+      )
+      .toBe(true)
+
+    const definitionIds = await page
+      .locator('svg defs [id]')
+      .evaluateAll((definitions) => definitions.map((definition) => definition.id))
+    expect(definitionIds.length).toBeGreaterThan(0)
+    expect(new Set(definitionIds).size).toBe(definitionIds.length)
+
+    await clickWhenSettled(close)
+    await expect(drawer).toBeHidden()
+    await page.getByTestId('appearance-toggle-switch').click()
+    await expect(page.locator('html')).toHaveAttribute('data-appearance', EAppearance.original)
+    await clickWhenSettled(opener)
+    await expect(drawer).toBeVisible()
+    await expect(frost).toHaveCSS('opacity', '0')
   })
 
   for (const width of [390, 834]) {

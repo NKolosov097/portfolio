@@ -23,6 +23,24 @@
   min-height: 500px;
   overflow: hidden auto;
   padding: 10px;
+  transition:
+    border-color 700ms ease-out,
+    border-radius 700ms ease-out,
+    box-shadow 700ms ease-out;
+}
+
+:global(html[data-appearance='winter']) .container {
+  --g-card-border-color: transparent;
+  --g-card-border-radius: 22px;
+  --g-card-box-shadow: 0 0 6px rgb(191 230 245 / 8%), 0 0 18px rgb(143 211 255 / 8%);
+}
+
+@starting-style {
+  :global(html[data-appearance='winter']) .container {
+    border-color: var(--g-color-line-generic);
+    border-radius: 8px;
+    box-shadow: none;
+  }
 }
 
 .titleWrapper {
@@ -254,6 +272,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .container,
   .nav > ul > li,
   .nav > ul > li img {
     transition: none;

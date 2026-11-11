@@ -8,6 +8,7 @@ import styles from '@/layout/Aside/aside.module.css'
 import { Button, Drawer } from '@gravity-ui/uikit'
 
 import { AsideContent } from '@/layout/Aside/components/AsideContent/AsideContent'
+import { AsideFrost } from '@/layout/Aside/components/AsideFrost/AsideFrost'
 
 import { AsideLightboxContext } from '@/layout/Aside/context/AsideLightbox.context'
 import { IAsideLightboxContext } from '@/layout/Aside/types/aside.type'
@@ -79,6 +80,7 @@ export const MobileAside = () => {
             <AsideContent />
           </AsideLightboxContext.Provider>
         </div>
+        <AsideFrost isMobile />
       </div>
     </Drawer>
   )

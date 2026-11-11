@@ -24,6 +24,52 @@ test.describe('seasonal appearance', () => {
     await expect(page.getByTestId('appearance-toggle-switch')).toBeEnabled()
   })
 
+  // Sample native corner transitions at a fixed time so theme switching cannot pass by snapping.
+  test('interpolates aside corners in both appearance directions', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.setViewportSize({ width: 1_440, height: 900 })
+    await page.goto('/')
+
+    const card = page.getByTestId('aside-surface')
+    await expect(page.getByTestId('appearance-toggle-switch')).toBeEnabled()
+    await expect(card).toHaveCSS('border-top-left-radius', '22px')
+
+    for (const target of [8, 22]) {
+      const radius = await card.evaluate(async (node) => {
+        const toggle = document.querySelector<HTMLElement>(
+          '[data-testid="appearance-toggle-switch"]',
+        )
+        if (!toggle) throw new Error('Expected the appearance control.')
+        getComputedStyle(node).getPropertyValue('border-top-left-radius')
+        toggle.click()
+        await Promise.resolve()
+        getComputedStyle(node).getPropertyValue('border-top-left-radius')
+        const corners = node
+          .getAnimations()
+          .filter(
+            (animation): animation is CSSTransition =>
+              animation instanceof CSSTransition &&
+              /^border-.*-radius$/.test(animation.transitionProperty),
+          )
+        const corner = corners.find(
+          (animation) => animation.transitionProperty === 'border-top-left-radius',
+        )
+        if (!corner) throw new Error('Expected the native aside corner transition.')
+        corner.pause()
+        await corner.ready
+        corner.currentTime = 350
+        const middle = Number.parseFloat(getComputedStyle(node).borderTopLeftRadius)
+        for (const animation of corners) animation.finish()
+        return { middle, end: Number.parseFloat(getComputedStyle(node).borderTopLeftRadius) }
+      })
+
+      expect(radius.middle).toBeGreaterThan(8)
+      expect(radius.middle).toBeLessThan(22)
+      expect(radius.end).toBe(target)
+      await expect(card).toHaveCSS('border-top-left-radius', `${target}px`)
+    }
+  })
+
   for (const { value, expected } of [
     { value: EAppearance.original, expected: EAppearance.original },
     { value: EAppearance.winter, expected: EAppearance.winter },
