@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 
 import { cancelIdle, requestIdle } from '@/helpers/idleCallback'
-import type { SantaRenderer } from './santaRenderer'
+import type { SantaRenderer } from './santaController'
 import styles from './SantaFlight.module.css'
 
 interface SantaFlightProps {
@@ -49,7 +49,7 @@ export function SantaFlight({ previewTime }: SantaFlightProps) {
     let idle = false
     let intersects = false
     let loading = false
-    let loaded: typeof import('./santaRenderer') | null = null
+    let loaded: typeof import('./santaController') | null = null
 
     /** Recheck every prerequisite after asynchronous imports and before creating GPU resources. */
     function eligible(): boolean {
@@ -74,8 +74,7 @@ export function SantaFlight({ previewTime }: SantaFlightProps) {
       }
       if (loaded) {
         try {
-          renderer.current = loaded.createSantaRenderer(host)
-          renderer.current.seek(selectedTime.current ?? null)
+          renderer.current = loaded.createSantaController(host, selectedTime.current ?? null)
           renderer.current.setRunning(true)
         } catch {
           renderer.current?.dispose()
@@ -87,13 +86,12 @@ export function SantaFlight({ previewTime }: SantaFlightProps) {
       }
       if (loading) return
       loading = true
-      void import('./santaRenderer')
-        .then(async (module) => {
+      void import('./santaController')
+        .then((module) => {
           if (!eligible()) {
             loading = false
             return
           }
-          await module.prepareSantaAssets()
           loaded = module
           loading = false
           reconcile()

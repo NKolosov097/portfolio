@@ -1,4 +1,4 @@
-import { Box3, Mesh, MeshStandardMaterial, Vector3 } from 'three'
+import { Box3, DataTexture, Mesh, MeshStandardMaterial, Vector3 } from 'three'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { createSantaSleigh } from './santaSleighModel'
@@ -319,6 +319,10 @@ describe('crafted sleigh factory', () => {
       expect([...sleigh.geometries, ...sleigh.materials, ...sleigh.textures]).not.toContain(
         resource,
       )
-    expect(sleigh.textures[0].image.data).toEqual(other.textures[0].image.data)
+    const texture = sleigh.textures[0]
+    const otherTexture = other.textures[0]
+    if (!(texture instanceof DataTexture) || !(otherTexture instanceof DataTexture))
+      throw new Error('Expected deterministic procedural texture data')
+    expect(texture.image.data).toEqual(otherTexture.image.data)
   })
 })

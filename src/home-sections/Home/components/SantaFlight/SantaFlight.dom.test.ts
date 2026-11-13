@@ -11,7 +11,6 @@ const mocked = vi.hoisted(() => ({
   seek: vi.fn(),
   run: vi.fn(),
   dispose: vi.fn(),
-  prepare: vi.fn<() => Promise<void>>(),
 }))
 
 vi.mock('@/helpers/idleCallback', () => ({
@@ -22,11 +21,10 @@ vi.mock('@/helpers/idleCallback', () => ({
   cancelIdle: vi.fn(),
 }))
 
-vi.mock('./santaRenderer', () => {
+vi.mock('./santaController', () => {
   mocked.imported()
   return {
-    prepareSantaAssets: mocked.prepare,
-    createSantaRenderer: mocked.create.mockImplementation(() => ({
+    createSantaController: mocked.create.mockImplementation(() => ({
       seek: mocked.seek,
       setRunning: mocked.run,
       dispose: mocked.dispose,
@@ -62,7 +60,6 @@ async function flush(): Promise<void> {
 }
 
 beforeEach(async () => {
-  mocked.prepare.mockResolvedValue(undefined)
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   vi.stubGlobal('IntersectionObserver', Observer)
   vi.stubGlobal('matchMedia', () => motion)
@@ -115,35 +112,26 @@ describe('Santa lifecycle eligibility', () => {
   })
 
   it.each(['unmount', 'motion', 'offscreen'] as const)(
-    'does not create a renderer when pending assets resolve after %s',
+    'stops the controller immediately when eligibility is lost during its preparation: %s',
     async (loss) => {
-      let finish: VoidFunction | undefined
-      mocked.prepare.mockImplementationOnce(
-        () =>
-          new Promise<void>((resolve) => {
-            finish = resolve
-          }),
-      )
       intersection?.(true)
       mocked.idle?.()
       await flush()
-      expect(mocked.prepare).toHaveBeenCalledOnce()
-      expect(mocked.create).not.toHaveBeenCalled()
+      expect(mocked.create).toHaveBeenCalledOnce()
       if (loss === 'unmount') {
         act(() => root.unmount())
         root = createRoot(section)
+        expect(mocked.dispose).toHaveBeenCalledOnce()
       } else if (loss === 'motion') {
         motion.matches = true
         motion.dispatchEvent(new Event('change'))
+        expect(mocked.dispose).toHaveBeenCalledOnce()
       } else {
         intersection?.(false)
-      }
-      finish?.()
-      await flush()
-      expect(mocked.create).not.toHaveBeenCalled()
-      if (loss === 'offscreen') {
+        expect(mocked.run).toHaveBeenLastCalledWith(false)
         intersection?.(true)
         expect(mocked.create).toHaveBeenCalledOnce()
+        expect(mocked.run).toHaveBeenLastCalledWith(true)
       }
     },
   )
@@ -172,18 +160,17 @@ describe('Santa lifecycle eligibility', () => {
     expect(host?.style.visibility).toBe('hidden')
   })
 
-  it('keeps the host usable without a renderer when one optional asset fails', async () => {
-    mocked.prepare.mockRejectedValueOnce(new Error('Natural Santa unavailable'))
+  it('keeps the host usable when controller creation fails', async () => {
+    mocked.create.mockImplementationOnce(() => {
+      throw new Error('Controller unavailable')
+    })
     intersection?.(true)
     mocked.idle?.()
     await flush()
-    expect(mocked.create).not.toHaveBeenCalled()
     expect(document.querySelector('[data-testid="santa-flight"] canvas')).toBeNull()
-    intersection?.(false)
-    motion.matches = true
-    motion.dispatchEvent(new Event('change'))
-    await flush()
-    expect(mocked.dispose).not.toHaveBeenCalled()
+    expect(
+      document.querySelector<HTMLElement>('[data-testid="santa-flight"]')?.dataset.status,
+    ).toBe('unavailable')
   })
 
   it('seeks preview changes without remounting the renderer', async () => {
@@ -194,7 +181,7 @@ describe('Santa lifecycle eligibility', () => {
     mocked.idle?.()
     await flush()
     expect(mocked.create).toHaveBeenCalledOnce()
-    expect(mocked.seek).toHaveBeenLastCalledWith(-1)
+    expect(mocked.create).toHaveBeenLastCalledWith(expect.any(HTMLDivElement), -1)
     const host = document.querySelector<HTMLElement>('[data-testid="santa-flight"]')
     expect(section.contains(host)).toBe(true)
     expect(host?.parentElement).not.toBe(document.body)

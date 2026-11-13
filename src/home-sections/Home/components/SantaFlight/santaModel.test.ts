@@ -13,6 +13,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  type Object3D,
   PerspectiveCamera,
   Points,
   PointsMaterial,
@@ -59,7 +60,7 @@ function formation(scale: number): SantaFormation {
 }
 
 /** Collect actual renderable meshes without weakening Three's object types. */
-function meshes(group: ReturnType<typeof createSantaTeam>['group']): Mesh[] {
+function meshes(group: Object3D): Mesh[] {
   const result: Mesh[] = []
   // Inspect the real scene graph, including meshes nested inside articulated limbs.
   group.traverse((object) => {
@@ -403,7 +404,8 @@ describe('textured Santa team', () => {
           expect(Math.abs(weight)).toBeLessThanOrEqual(1)
           expect(hand.position.x).toBeCloseTo(0.85 - 0.1 * weight, 12)
           expect(hand.position.y).toBeCloseTo(0.66 + 0.06 * weight, 12)
-          const wrist = sleeves[index].geometry.morphAttributes.position[0]
+          const wrist = sleeves[index].geometry.morphAttributes.position?.[0]
+          if (!wrist) throw new Error('Sleeve requires a position morph target')
           expect(wrist.getX(wrist.count - 1)).toBeCloseTo(-0.1, 7)
           expect(wrist.getY(wrist.count - 1)).toBeCloseTo(0.06, 7)
           expect(wrist.getX(0) === 0).toBe(true)
@@ -470,8 +472,10 @@ describe('textured Santa team', () => {
       for (const part of targets) {
         const geometry = part.geometry
         const base = geometry.getAttribute('position')
-        const delta = geometry.morphAttributes.position[0]
-        const normal = geometry.morphAttributes.normal[0]
+        const delta = geometry.morphAttributes.position?.[0]
+        const normal = geometry.morphAttributes.normal?.[0]
+        if (!delta || !normal)
+          throw new Error('Performance targets require position and normal morphs')
         const normalSupport = new Set<number>()
         const indices = geometry.index
         if (!indices) throw new Error('Performance targets retain indexed topology')
@@ -564,12 +568,18 @@ describe('textured Santa team', () => {
       const parts = meshes(team.group).filter(
         (part) => part.geometry.morphAttributes.position?.length,
       )
-      const buffers = parts.map((part) => ({
-        geometry: part.geometry,
-        base: Array.from(part.geometry.getAttribute('position').array),
-        target: Array.from(part.geometry.morphAttributes.position[0].array),
-        normals: Array.from(part.geometry.morphAttributes.normal[0].array),
-      }))
+      const buffers = parts.map((part) => {
+        const target = part.geometry.morphAttributes.position?.[0]
+        const normal = part.geometry.morphAttributes.normal?.[0]
+        if (!target || !normal)
+          throw new Error('Performance targets require position and normal morphs')
+        return {
+          geometry: part.geometry,
+          base: Array.from(part.geometry.getAttribute('position').array),
+          target: Array.from(target.array),
+          normals: Array.from(normal.array),
+        }
+      })
       const joints = [
         'santa',
         'santa-upper-body',
@@ -599,12 +609,12 @@ describe('textured Santa team', () => {
         expect(Array.from(part.geometry.getAttribute('position').array)).toEqual(
           buffers[index].base,
         )
-        expect(Array.from(part.geometry.morphAttributes.position[0].array)).toEqual(
-          buffers[index].target,
-        )
-        expect(Array.from(part.geometry.morphAttributes.normal[0].array)).toEqual(
-          buffers[index].normals,
-        )
+        const target = part.geometry.morphAttributes.position?.[0]
+        const normal = part.geometry.morphAttributes.normal?.[0]
+        if (!target || !normal)
+          throw new Error('Performance targets must retain both morph attributes')
+        expect(Array.from(target.array)).toEqual(buffers[index].target)
+        expect(Array.from(normal.array)).toEqual(buffers[index].normals)
       })
       const cloth = parts.find((part) => part.name === 'santa-hat-cloth')
       const fur = parts.find((part) => part.name === 'santa-hat-fur')

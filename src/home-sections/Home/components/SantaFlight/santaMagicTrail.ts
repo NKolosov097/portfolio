@@ -18,7 +18,7 @@ const PARTICLES = 192
 const BIRTHS_PER_SECOND = 128
 const LIFETIME = 1.5
 
-/** Reconstruct a short world-space stardust history without another animation loop or stored frames. */
+/** Reuse bounded birth anchors while reconstructing the same deterministic world-space stardust. */
 export function createSantaMagicTrail(): {
   object: Points<BufferGeometry, ShaderMaterial>
   update: (
@@ -93,16 +93,25 @@ export function createSantaMagicTrail(): {
   }
   const sleigh = new Object3D()
   const anchor = new Vector3()
+  const birthAnchors = new Float64Array(PARTICLES * 3)
+  const birthIds = new Float64Array(PARTICLES).fill(-1)
+  let cachedRoute: ReturnType<typeof createSantaRoutes>['near'] | undefined
+  let cachedSpacing = NaN
+  let cachedScale = NaN
+  let cachedPassStart = NaN
+  let previousSeconds = NaN
   let disposed = false
 
   return {
     object,
-    /** Rebuild fixed birth-time anchors on the current pass, including direct preview seeks. */
+    /** Sample only new births while preserving direct seeks and each particle's original drift. */
     update(seconds, routes, spacing, scale, drawingHeight, pixelRatio) {
       if (disposed) return
       const pose = sampleSantaFlight(seconds)
       object.visible = Number.isFinite(seconds) && seconds !== -1 && pose.visible
       if (!object.visible) {
+        birthIds.fill(-1)
+        cachedRoute = undefined
         geometry.setDrawRange(0, 0)
         return
       }
@@ -112,6 +121,21 @@ export function createSantaMagicTrail(): {
       const count = Math.min(PARTICLES, newest + 1)
       const route = routes[pose.phase === 'near' ? 'near' : 'distant']
       const componentScale = (spacing / 4) * scale
+      const passStart = seconds - passTime
+      if (
+        route !== cachedRoute ||
+        spacing !== cachedSpacing ||
+        scale !== cachedScale ||
+        Math.abs(passStart - cachedPassStart) > 1e-7 ||
+        seconds < previousSeconds
+      ) {
+        birthIds.fill(-1)
+      }
+      cachedRoute = route
+      cachedSpacing = spacing
+      cachedScale = scale
+      cachedPassStart = passStart
+      previousSeconds = seconds
       for (let index = 0; index < count; index += 1) {
         const birth = newest - index
         const birthTime = birth / BIRTHS_PER_SECOND
@@ -121,14 +145,24 @@ export function createSantaMagicTrail(): {
         const random = seed - Math.floor(seed)
         const phase = random * Math.PI * 2
         const spin = age * (3 + random * 3)
-        sampleSantaTimedFormation(route, birthTime / duration, spacing * scale, formation.frames)
-        placeSantaSleigh(seconds - age, formation.frames[2], componentScale, sleigh)
-        // Birth parity keeps each historical spark attached to its original rear runner tip.
-        anchor
-          .set(-1.98, -0.29, birth % 2 === 0 ? -0.68 : 0.68)
-          .multiplyScalar(componentScale)
-          .applyQuaternion(sleigh.quaternion)
-        anchor.add(sleigh.position)
+        const slot = birth % PARTICLES
+        const offset = slot * 3
+        if (birthIds[slot] !== birth) {
+          sampleSantaTimedFormation(route, birthTime / duration, spacing * scale, formation.frames)
+          placeSantaSleigh(seconds - age, formation.frames[2], componentScale, sleigh)
+          // Birth parity keeps each historical spark attached to its original rear runner tip.
+          anchor
+            .set(-1.98, -0.29, birth % 2 === 0 ? -0.68 : 0.68)
+            .multiplyScalar(componentScale)
+            .applyQuaternion(sleigh.quaternion)
+          anchor.add(sleigh.position)
+          birthAnchors[offset] = anchor.x
+          birthAnchors[offset + 1] = anchor.y
+          birthAnchors[offset + 2] = anchor.z
+          birthIds[slot] = birth
+        } else {
+          anchor.fromArray(birthAnchors, offset)
+        }
         // Birth positions stay on their historical arc; only restrained dust drift grows with age.
         anchor.x += Math.sin(birth * 2.4) * age * 0.25 * componentScale
         anchor.y += (Math.cos(birth * 1.7) * age * 0.9 - age * age * 0.18) * componentScale

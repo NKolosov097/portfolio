@@ -8,6 +8,7 @@ test.describe('winter Santa flight', () => {
     await page.goto('/santa-preview')
     const host = page.getByTestId('santa-flight')
     await expect(host).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+    await expect(host).toHaveAttribute('data-backend', 'worker')
     await expect(host).toHaveAttribute('data-phase', 'model')
     const original = await host.locator('canvas').elementHandle()
     await expect(host).toHaveAttribute('aria-hidden', 'true')
@@ -60,6 +61,8 @@ test.describe('winter Santa flight', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     const rendererPayloads: Promise<string>[] = []
     const modelRequests: string[] = []
+    const workers: string[] = []
+    page.on('worker', (worker) => workers.push(worker.url()))
     page.on('request', (request) => {
       if (/natural-(deer|santa).*\.glb/i.test(request.url())) modelRequests.push(request.url())
     })
@@ -80,6 +83,7 @@ test.describe('winter Santa flight', () => {
     await page.goto('/')
     await expect(page.getByTestId('santa-flight')).toHaveCount(0)
     expect(modelRequests).toEqual([])
+    expect(workers).toEqual([])
   })
 
   test('puts the body portal above the heading and below usable shell controls, then cleans up', async ({
@@ -100,5 +104,34 @@ test.describe('winter Santa flight', () => {
     await expect(host).toHaveCSS('visibility', 'visible')
     await page.getByTestId('appearance-toggle-switch').click()
     await expect(host).toHaveCount(0)
+  })
+  test('uses the same model and canvas when worker rendering is unsupported', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(HTMLCanvasElement.prototype, 'transferControlToOffscreen', {
+        value: undefined,
+        configurable: true,
+      })
+    })
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    const errors: string[] = []
+    const workers: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('worker', (worker) => workers.push(worker.url()))
+    await page.goto('/santa-preview')
+    const host = page.getByTestId('santa-flight')
+    await expect(host).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+    await expect(host).toHaveAttribute('data-backend', 'main')
+    await expect(host).toHaveAttribute('data-phase', 'model')
+    const canvas = await host.locator('canvas').elementHandle()
+    await page.getByRole('button', { name: 'Near', exact: true }).click()
+    await expect(host).toHaveAttribute('data-phase', 'near')
+    await expect(host.locator('canvas')).toHaveCount(1)
+    expect(
+      await host.locator('canvas').evaluate((node, original) => node === original, canvas),
+    ).toBe(true)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await expect(host.locator('canvas')).toHaveCount(0)
+    expect(workers).toEqual([])
+    expect(errors).toEqual([])
   })
 })

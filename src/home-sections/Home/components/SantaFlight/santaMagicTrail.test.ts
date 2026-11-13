@@ -19,6 +19,86 @@ function formation(): SantaFormation {
 }
 
 describe('Santa magic trail', () => {
+  it('matches fresh seeks after fractional frames, reversals, cycles, and layout changes', () => {
+    const warmed = createSantaMagicTrail()
+    const desktop = createSantaRoutes(1_440, 900)
+    const portrait = createSantaRoutes(390, 844)
+    const steps = [
+      { seconds: 5.123, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 5.123 + 1 / 60, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 5.123 + 2 / 60, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 5.123 + 2 / 60, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 10.874, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 6.234, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 18.234, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 66.234, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: -29.765, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: -29.765 + 1 / 60, routes: desktop, spacing: 3, scale: 0.7 },
+      { seconds: 18.234, routes: portrait, spacing: 3, scale: 0.7 },
+      { seconds: 18.25, routes: portrait, spacing: 4, scale: 0.7 },
+      { seconds: 18.267, routes: portrait, spacing: 4, scale: 0.4 },
+      { seconds: 23, routes: portrait, spacing: 4, scale: 0.4 },
+      { seconds: 18.284, routes: portrait, spacing: 4, scale: 0.4 },
+      { seconds: -1, routes: portrait, spacing: 4, scale: 0.4 },
+      { seconds: 18.301, routes: portrait, spacing: 4, scale: 0.4 },
+      { seconds: 48, routes: portrait, spacing: 4, scale: 0.4 },
+    ]
+    try {
+      for (const { seconds, routes, spacing, scale } of steps) {
+        const fresh = createSantaMagicTrail()
+        try {
+          warmed.update(seconds, routes, spacing, scale, 844, 1)
+          fresh.update(seconds, routes, spacing, scale, 844, 1)
+          expect(warmed.object.visible).toBe(fresh.object.visible)
+          const count = fresh.object.geometry.drawRange.count
+          expect(warmed.object.geometry.drawRange.count).toBe(count)
+          for (const name of ['position', 'appearance']) {
+            const expected = fresh.object.geometry.getAttribute(name).array
+            const actual = warmed.object.geometry.getAttribute(name).array
+            for (let index = 0; index < count * 3; index += 1) {
+              expect(Math.abs(actual[index] - expected[index])).toBeLessThanOrEqual(
+                Math.max(1, Math.abs(expected[index])) * 1.2e-7,
+              )
+            }
+          }
+        } finally {
+          fresh.dispose()
+        }
+      }
+    } finally {
+      warmed.dispose()
+    }
+  })
+
+  it('samples only two or three new births per normal frame and bounds large forward seeks', () => {
+    const trail = createSantaMagicTrail()
+    const routes = createSantaRoutes(1_440, 900)
+    const getPoint = vi.spyOn(routes.near, 'getPoint')
+    try {
+      trail.update(18.123, routes, 3, 0.7, 900, 1)
+      // The existing formation sampler reads three route positions for each birth.
+      expect(getPoint).toHaveBeenCalledTimes(192 * 3)
+      const positions = trail.object.geometry.getAttribute('position')
+      const appearance = trail.object.geometry.getAttribute('appearance')
+      for (let frame = 1; frame <= 60; frame += 1) {
+        getPoint.mockClear()
+        trail.update(18.123 + frame / 60, routes, 3, 0.7, 900, 1)
+        expect([2 * 3, 3 * 3]).toContain(getPoint.mock.calls.length)
+      }
+      getPoint.mockClear()
+      trail.update(19.123, routes, 3, 0.7, 900, 1)
+      expect(getPoint).not.toHaveBeenCalled()
+      trail.update(22.8, routes, 3, 0.7, 900, 1)
+      expect(getPoint).toHaveBeenCalledTimes(192 * 3)
+      expect(trail.object.geometry.getAttribute('position')).toBe(positions)
+      expect(trail.object.geometry.getAttribute('appearance')).toBe(appearance)
+      expect(positions.count).toBe(192)
+      expect(appearance.count).toBe(192)
+    } finally {
+      trail.dispose()
+    }
+  })
+
   it('attaches consecutive births to both scaled rear runner tips in both directions and viewport aspects', () => {
     const trail = createSantaMagicTrail()
     const display = formation()
