@@ -14,6 +14,7 @@ import { Tag } from '@/components/Tag/Tag'
 // import { HalloweenArt } from '@/home-sections/Home/components/HalloweenArt/HalloweenArt'
 import { Sparkle } from '@/home-sections/Home/components/Sparkle/Sparkle'
 import { SnowText } from '@/home-sections/Home/components/SnowText/SnowText'
+import { SantaFlight } from '@/home-sections/Home/components/SantaFlight/SantaFlight'
 import { cancelIdle, requestIdle } from '@/helpers/idleCallback'
 import { ESparkleFieldPreset } from '@/home-sections/Home/types/home.type'
 
@@ -52,6 +53,7 @@ export const Home = () => {
 
   return (
     <section id={ETabID.home} className={styles.section}>
+      {isWinter && <SantaFlight />}
       {/* Archived Halloween scene; restore this slot together with the import above.
       <div
         className={
