@@ -7,6 +7,7 @@
   height: 44px;
   padding: 0;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -30,8 +31,8 @@
 }
 
 .switch[aria-checked='true'] .track {
-  border-color: var(--halloween-ember, #ffb565);
-  box-shadow: 0 0 6px 0 rgb(255 181 101 / 45%);
+  border-color: var(--winter-frost, #8fd3ff);
+  box-shadow: 0 0 6px 0 rgb(143 211 255 / 45%);
 }
 
 .thumb {
@@ -53,14 +54,26 @@
 
 .switch[aria-checked='true'] .thumb {
   transform: translateX(2px);
-  color: var(--halloween-ember, #ffb565);
+  color: var(--winter-frost, #8fd3ff);
 }
 
-/* Checked (halloween) rests at the left; unchecked slides right across the track. */
+/* Checked (winter) rests at the left; unchecked slides right across the track. */
 .switch[aria-checked='false'] .thumb {
   transform: translateX(28px);
 }
 
+.snowflake {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: filter 0.15s ease-out;
+}
+
+.switch[aria-checked='false'] .snowflake {
+  filter: grayscale(0.85) brightness(0.72);
+}
+
+/* Archived Halloween thumb sizing; the photographic pumpkin overflowed its 24px thumb on purpose.
 .pumpkin {
   width: 30px;
   height: 30px;
@@ -72,12 +85,12 @@
 
 .switch[aria-checked='false'] .pumpkin {
   filter: grayscale(0.85) brightness(0.72);
-}
+} */
 
 @media (prefers-reduced-motion: reduce) {
   .track,
   .thumb,
-  .pumpkin {
+  .snowflake {
     transition: none;
   }
 }

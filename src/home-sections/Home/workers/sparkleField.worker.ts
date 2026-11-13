@@ -62,6 +62,9 @@ const onInit = (
         devicePixelRatio,
         color: message.color,
         hasGlow: tier.hasGlow,
+        glyphPaths: message.config.glyphPaths,
+        glyphStrokeWidth: message.config.glyphStrokeWidth,
+        glyphGlowRatio: message.config.glyphGlowRatio,
       }),
     resizeSurface: (widthPx, heightPx) => {
       target.width = Math.max(1, Math.round(widthPx))
@@ -70,6 +73,8 @@ const onInit = (
     requestFrame: requestWorkerFrame,
     cancelFrame: cancelWorkerFrame,
     initialTier: message.tier,
+    config: message.config,
+    isEntering: message.isEntering,
     onTierChange: (tier) => postMessage({ type: ESparkleWorkerOutboundType.tier, tier }),
   })
 
@@ -98,6 +103,10 @@ addEventListener('message', (event: MessageEvent<TSparkleWorkerInbound>) => {
       } else {
         controller?.stop()
       }
+
+      return
+    case ESparkleWorkerInboundType.exit:
+      controller?.beginExit()
 
       return
     case ESparkleWorkerInboundType.destroy:

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { SPARKLE_FIELD_CONFIG, SPARKLE_ROTATION_STEPS } from '@/constants/home.constants'
+import { SPARKLE_FIELD_CONFIG } from '@/constants/home.constants'
 import {
   createSparkleInfluence,
   createSparkleParticle,
@@ -9,47 +9,64 @@ import {
 import { renderSparkleField } from '@/home-sections/Home/helpers/sparkleRenderer'
 import {
   ISparkleDrawContext,
+  ISparkleFieldConfig,
   ISparkleSpriteAtlas,
   ISparkleViewport,
 } from '@/home-sections/Home/types/home.type'
 
+interface IRecordedTransform {
+  /** Horizontal scale/rotation component. */
+  a: number
+  /** Horizontal skew/rotation component. */
+  b: number
+  /** Vertical skew/rotation component. */
+  c: number
+  /** Vertical scale/rotation component. */
+  d: number
+  /** Horizontal translation, in device pixels. */
+  e: number
+  /** Vertical translation, in device pixels. */
+  f: number
+}
+
 interface IRecordedDraw {
-  /** Sprite frame the renderer chose. */
+  /** Sprite the renderer chose. */
   image: string
-  /** Destination left edge in device pixels. */
-  x: number
-  /** Destination top edge in device pixels. */
-  y: number
   /** Destination edge length in device pixels. */
   size: number
   /** Alpha in force at the moment of the call. */
   alpha: number
+  /** Transform in force at the moment of the call, which carries the particle's position and tilt. */
+  transform: IRecordedTransform
 }
 
-/** Records draw calls so the renderer's decisions can be asserted without a real canvas. */
+const IDENTITY_TRANSFORM: IRecordedTransform = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }
+
+/** Records draw and transform calls so the renderer's decisions can be asserted without a real canvas. */
 const createRecordingContext = () => {
   const draws: IRecordedDraw[] = []
   const clears: number[] = []
+  let currentTransform = IDENTITY_TRANSFORM
 
   const context: ISparkleDrawContext<string> = {
     globalAlpha: 1,
     clearRect: (_x, _y, width) => {
       clears.push(width)
     },
-    drawImage: (image, x, y, dWidth) => {
-      draws.push({ image, x, y, size: dWidth, alpha: context.globalAlpha })
+    setTransform: (a, b, c, d, e, f) => {
+      currentTransform = { a, b, c, d, e, f }
+    },
+    drawImage: (image, _x, _y, dWidth) => {
+      draws.push({ image, size: dWidth, alpha: context.globalAlpha, transform: currentTransform })
     },
   }
 
   return { context, draws, clears }
 }
 
-/** Two size buckets × the configured rotation steps, labelled so assertions can name a frame. */
+/** One unrotated sprite per size bucket for a single variant, labelled so assertions can name a frame. */
 const createTestAtlas = (): ISparkleSpriteAtlas<string> => ({
-  frames: [
-    Array.from({ length: SPARKLE_ROTATION_STEPS }, (_value, step) => `small-${step}`),
-    Array.from({ length: SPARKLE_ROTATION_STEPS }, (_value, step) => `large-${step}`),
-  ],
+  frames: [['small', 'large']],
   bucketSizes: [4, 16],
   paddingFactor: 1.5,
 })
@@ -118,8 +135,32 @@ describe('renderSparkleField', () => {
     const expectedSize = 16 * VIEW.devicePixelRatio * 1.5
 
     expect(drawn.size).toBeCloseTo(expectedSize)
-    expect(drawn.x).toBeCloseTo(100 * VIEW.devicePixelRatio - expectedSize / 2)
-    expect(drawn.y).toBeCloseTo(50 * VIEW.devicePixelRatio - expectedSize / 2)
+    expect(drawn.transform.e).toBeCloseTo(100 * VIEW.devicePixelRatio)
+    expect(drawn.transform.f).toBeCloseTo(50 * VIEW.devicePixelRatio)
+  })
+
+  it('scales a particle still fading in by its entry weight', () => {
+    const { context, draws } = createRecordingContext()
+    const lit = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)
+    const arriving = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)
+
+    lit.opacity = 1
+    lit.twinklePhase = Math.PI / 2
+    arriving.opacity = 1
+    arriving.twinklePhase = Math.PI / 2
+    arriving.entryAlpha = 0.25
+
+    renderSparkleField(
+      context,
+      createTestAtlas(),
+      [lit, arriving],
+      createSparklePointer(),
+      VIEW,
+      SPARKLE_FIELD_CONFIG,
+      createSparkleInfluence(),
+    )
+
+    expect(draws[1].alpha).toBeCloseTo(draws[0].alpha * 0.25)
   })
 
   it('chooses the bucket nearest the particle size', () => {
@@ -142,8 +183,8 @@ describe('renderSparkleField', () => {
       createSparkleInfluence(),
     )
 
-    expect(draws[0].image).toBe('small-0')
-    expect(draws[1].image).toBe('large-0')
+    expect(draws[0].image).toBe('small')
+    expect(draws[1].image).toBe('large')
   })
 
   it('brightens and enlarges a particle under the pointer', () => {
@@ -232,7 +273,7 @@ describe('renderSparkleField', () => {
       createSparkleInfluence(),
     )
 
-    expect(pushedRun.draws[0].x).toBeGreaterThan(restingRun.draws[0].x)
+    expect(pushedRun.draws[0].transform.e).toBeGreaterThan(restingRun.draws[0].transform.e)
   })
 
   it('never lets alpha exceed one, however strong the boost', () => {
@@ -297,5 +338,61 @@ describe('renderSparkleField', () => {
     )
 
     expect(draws).toHaveLength(0)
+  })
+
+  it('tumbles particles out of plane when the config carries a tumble depth', () => {
+    const { context, draws } = createRecordingContext()
+    const config: ISparkleFieldConfig = { ...SPARKLE_FIELD_CONFIG, tumbleDepth: 0.75 }
+    const flat = createSparkleParticle(600, 400, config)
+    const edgeOn = createSparkleParticle(600, 400, config)
+
+    flat.rotation = 0
+    flat.tiltPhase = 0
+    edgeOn.rotation = 0
+    edgeOn.tiltPhase = Math.PI / 2
+
+    renderSparkleField(
+      context,
+      createTestAtlas(),
+      [flat, edgeOn],
+      createSparklePointer(),
+      VIEW,
+      config,
+      createSparkleInfluence(),
+    )
+
+    expect(draws[0].transform.a).not.toBeCloseTo(draws[1].transform.a)
+  })
+
+  it('draws sprites from a different variant row for a particle with a different variant index', () => {
+    const { context, draws } = createRecordingContext()
+    const atlas: ISparkleSpriteAtlas<string> = {
+      frames: [
+        ['variant-0-small', 'variant-0-large'],
+        ['variant-1-small', 'variant-1-large'],
+      ],
+      bucketSizes: [4, 16],
+      paddingFactor: 1.5,
+    }
+    const first = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)
+    const second = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)
+
+    first.size = 4
+    first.variantIndex = 0
+    second.size = 4
+    second.variantIndex = 1
+
+    renderSparkleField(
+      context,
+      atlas,
+      [first, second],
+      createSparklePointer(),
+      VIEW,
+      SPARKLE_FIELD_CONFIG,
+      createSparkleInfluence(),
+    )
+
+    expect(draws[0].image).toBe('variant-0-small')
+    expect(draws[1].image).toBe('variant-1-small')
   })
 })

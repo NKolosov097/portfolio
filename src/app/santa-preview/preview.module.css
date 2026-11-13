@@ -1,0 +1,48 @@
+.preview {
+  padding-block: 20px 40px;
+}
+
+.preview h1 {
+  margin-block: 8px 12px;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.eyebrow,
+.note {
+  color: var(--g-color-text-secondary);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 20px;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: clamp(250px, 47vh, 540px);
+  overflow: clip;
+}
+
+.heading {
+  position: absolute;
+  inset: 65% 8% auto;
+  margin: 0;
+  color: #c3e7ff;
+  font-size: clamp(1.6rem, 4vw, 4rem);
+  line-height: 1;
+}
+
+.heading h2,
+.heading h3 {
+  margin: 0;
+  font: inherit;
+}
+
+.note {
+  max-width: 65ch;
+  line-height: 1.6;
+}

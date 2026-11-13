@@ -5,6 +5,10 @@
   initial-value: 0deg;
 }
 
+.aside {
+  z-index: 1;
+}
+
 .container {
   --g-card-background-color: var(--aside-bg-color);
 
@@ -19,6 +23,24 @@
   min-height: 500px;
   overflow: hidden auto;
   padding: 10px;
+  transition:
+    border-color 700ms ease-out,
+    border-radius 700ms ease-out,
+    box-shadow 700ms ease-out;
+}
+
+:global(html[data-appearance='winter']) .container {
+  --g-card-border-color: transparent;
+  --g-card-border-radius: 22px;
+  --g-card-box-shadow: 0 0 6px rgb(191 230 245 / 8%), 0 0 18px rgb(143 211 255 / 8%);
+}
+
+@starting-style {
+  :global(html[data-appearance='winter']) .container {
+    border-color: var(--g-color-line-generic);
+    border-radius: 8px;
+    box-shadow: none;
+  }
 }
 
 .titleWrapper {
@@ -250,6 +272,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .container,
   .nav > ul > li,
   .nav > ul > li img {
     transition: none;
@@ -284,29 +307,37 @@
 
 .drawerItemContent {
   position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
+  touch-action: pan-y;
+  background-color: var(--aside-bg-color);
+}
+
+.drawerScrollContent {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
+  height: 100%;
   padding: 10px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  touch-action: pan-y;
-  background-color: var(--aside-bg-color);
 }
 
-.closeIcon {
-  position: absolute !important ;
+.drawerItemContent .closeIcon {
+  --g-button-height: 24px;
+
+  position: absolute;
+  z-index: 1;
   top: 10px;
   right: 10px;
   width: 24px;
-  height: 24px !important;
 }
 
 .closeIcon > span {

@@ -309,9 +309,50 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         data-testid="aside-ghost"
-        className={styles.ghost}
+        className={
+          appearance === EAppearance.winter ? `${styles.ghost} ${styles.winter}` : styles.ghost
+        }
       >
         <defs>
+          {appearance === EAppearance.winter && (
+            <>
+              <radialGradient id={`${lanternId}-winter-red`} cx="30%" cy="20%" r="80%">
+                <stop offset="0%" stopColor="#ff7580" />
+                <stop offset="50%" stopColor="#d93645" />
+                <stop offset="100%" stopColor="#951b34" />
+              </radialGradient>
+              <linearGradient id={`${lanternId}-winter-white`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fff" />
+                <stop offset="65%" stopColor="#f1eeee" />
+                <stop offset="100%" stopColor="#bfc2c7" />
+              </linearGradient>
+              <radialGradient id={`${lanternId}-winter-pompom`} cx="30%" cy="25%" r="75%">
+                <stop offset="0%" stopColor="#fff" />
+                <stop offset="55%" stopColor="#eef2f5" />
+                <stop offset="100%" stopColor="#b8c6d1" />
+              </radialGradient>
+              <clipPath id={`${lanternId}-winter-outline`} clipPathUnits="userSpaceOnUse">
+                <rect
+                  x="-8"
+                  y="5.3"
+                  width="32"
+                  height="32"
+                  className={styles.winterHat}
+                  data-testid="aside-ghost-winter-clip"
+                />
+              </clipPath>
+              <clipPath id={`${lanternId}-winter-hand-reveal`} clipPathUnits="userSpaceOnUse">
+                <rect
+                  x="15"
+                  y="-8"
+                  width="32"
+                  height="40"
+                  className={styles.winterHandReveal}
+                  data-testid="aside-ghost-winter-hand-reveal"
+                />
+              </clipPath>
+            </>
+          )}
           <image
             key={lanternSource}
             id={`${lanternId}-image`}
@@ -353,6 +394,12 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
           <g className={styles.sway} data-idle-layer="sway">
             <g className={styles.breathe}>
               <path
+                data-testid="aside-ghost-outline"
+                clipPath={
+                  appearance === EAppearance.winter
+                    ? `url(#${lanternId}-winter-outline)`
+                    : undefined
+                }
                 fill="currentColor"
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -365,6 +412,66 @@ export const AnimatedGhost = ({ width = 50, height = 50 }: IAnimatedGhostProps) 
                   <circle cx="11" cy="7" r="0.7" fill="currentColor" />
                 </g>
               </g>
+              {appearance === EAppearance.winter && (
+                <>
+                  <g className={styles.winterHat} data-testid="aside-ghost-winter-hat">
+                    <path
+                      d="M2 4.25C1.65 2.65 2.1.45 3.8-.6C5.85-1.9 9.25-1.5 11.15.15C12.65 1.45 13.25 3.25 14.2 3.85C13.8 4.65 12.2 4.7 11.7 4.15Q7.5 4.8 2 4.25Z"
+                      fill="#dc2429"
+                    />
+                    <path
+                      d="M11.15.15C12.65 1.45 13.25 3.25 14.2 3.85C13.8 4.65 12.2 4.7 11.7 4.15C12.6 3.6 12.1 2.1 11.15.15Z"
+                      fill="#b51923"
+                    />
+                    <path
+                      d="M10.1 1.05C11.65 1.8 12.1 2.95 12.25 3.9"
+                      stroke="#7f1720"
+                      strokeWidth="0.22"
+                      strokeLinecap="round"
+                    />
+                    <rect
+                      x="1.5"
+                      y="3.8"
+                      width="13"
+                      height="1.5"
+                      rx="0.7"
+                      fill={`url(#${lanternId}-winter-white)`}
+                      data-testid="aside-ghost-winter-brim"
+                    />
+                    <path
+                      d="M1.6 4.8Q7.8 5.15 14.4 4.8Q14.2 5.3 13.8 5.3H2.2Q1.8 5.3 1.6 4.8Z"
+                      fill="#c4c6ca"
+                    />
+                    <circle
+                      cx="14.25"
+                      cy="3.85"
+                      r="1.2"
+                      fill={`url(#${lanternId}-winter-pompom)`}
+                      stroke="#85888f"
+                      strokeWidth="0.12"
+                      data-testid="aside-ghost-winter-pompom"
+                    />
+                  </g>
+                  <g clipPath={`url(#${lanternId}-winter-hand-reveal)`}>
+                    <g className={styles.winterHand} data-testid="aside-ghost-winter-hand">
+                      <path
+                        d="M13.55 10.6l-.4-.55Q13 9.75 13.25 9.62q.2-.07.4.21l-.05-.28C13.5 8.9 14.65 8.85 14.8 9.5l.15 1.05Z"
+                        fill={`url(#${lanternId}-winter-red)`}
+                        data-testid="aside-ghost-winter-mitten"
+                      />
+                      <rect
+                        x="13.5"
+                        y="10.45"
+                        width="1.55"
+                        height="0.5"
+                        rx="0.2"
+                        fill={`url(#${lanternId}-winter-white)`}
+                        data-testid="aside-ghost-winter-cuff"
+                      />
+                    </g>
+                  </g>
+                </>
+              )}
             </g>
           </g>
 

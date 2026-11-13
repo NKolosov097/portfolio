@@ -42,7 +42,7 @@ const applyTier = (state: ISparkleGovernorState, tier: ESparkleTier): ESparkleTi
 
 /**
  * Picks the starting tier from whatever the device reveals; a withheld signal is skipped rather than
- * read as a low value. Seeding stays conservative because only one upgrade is ever granted.
+ * read as a low value.
  */
 export const resolveInitialSparkleTier = (signals: ISparkleDeviceSignals): ESparkleTier => {
   const { hardwareConcurrency, deviceMemory, devicePixelRatio, isCoarsePointer } = signals
@@ -71,7 +71,6 @@ export const createSparkleGovernorState = (tier: ESparkleTier): ISparkleGovernor
   tier,
   frameDurations: [],
   framesSinceChange: 0,
-  hasUpgraded: false,
 })
 
 /**
@@ -113,15 +112,12 @@ export const recordSparkleFrame = (
   }
 
   if (
-    !state.hasUpgraded &&
     worstTypicalFrame < thresholds.healthyFrameMs &&
     state.framesSinceChange >= thresholds.upgradeAfterFrames
   ) {
     const richer = RICHER_TIER[state.tier]
 
     if (richer) {
-      state.hasUpgraded = true
-
       return applyTier(state, richer)
     }
   }

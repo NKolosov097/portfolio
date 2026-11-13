@@ -1,5 +1,7 @@
 # Retire Halloween appearance
 
+> Historical note: the original-only appearance policy below is superseded by the [winter appearance specification](../winter-ghost/spec.md).
+
 ## Intent
 
 Halloween has ended. Restore the original appearance for every visitor and remove the seasonal switch from the public header.

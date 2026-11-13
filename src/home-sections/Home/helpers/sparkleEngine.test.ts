@@ -1,14 +1,42 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { SPARKLE_FIELD_CONFIG, SPARKLE_GOVERNOR_THRESHOLDS } from '@/constants/home.constants'
+import {
+  SNOW_FIELD_CONFIG,
+  SPARKLE_FIELD_CONFIG,
+  SPARKLE_GOVERNOR_THRESHOLDS,
+} from '@/constants/home.constants'
 import { createSparkleEngine, ISparkleEngine } from '@/home-sections/Home/helpers/sparkleEngine'
 import { createSparkleParticles } from '@/home-sections/Home/helpers/sparkleField'
 import { createSparkleGovernorState } from '@/home-sections/Home/helpers/sparkleGovernor'
 import {
   ESparkleTier,
   ISparkleDrawContext,
+  ISparkleFieldConfig,
   ISparkleSpriteAtlas,
 } from '@/home-sections/Home/types/home.type'
+
+/** Deterministic stand-in for `Math.random`, cycling through fixed draws so wind retargeting is reproducible. */
+const createSequenceRandom = (values: number[]): (() => number) => {
+  let index = 0
+
+  return () => {
+    const value = values[index % values.length]
+    index += 1
+
+    return value
+  }
+}
+
+/** Deterministic stand-in for the engine's clock: each call advances by a fixed step, so a frame's measured work duration is exactly `stepMs`. */
+const createSteppingNow = (stepMs: number): (() => number) => {
+  let current = 0
+
+  return () => {
+    current += stepMs
+
+    return current
+  }
+}
 
 /** Hand-driven frame scheduler, so the loop can be stepped deterministically. */
 const createManualScheduler = () => {
@@ -52,6 +80,7 @@ const createCountingContext = () => {
     drawImage: () => {
       drawCount += 1
     },
+    setTransform: () => {},
   }
 
   return {
@@ -66,12 +95,12 @@ const createCountingContext = () => {
 }
 
 const createTestAtlas = (): ISparkleSpriteAtlas<string> => ({
-  frames: [['a-0', 'a-1']],
+  frames: [['a-0']],
   bucketSizes: [8],
   paddingFactor: 1.5,
 })
 
-const createEngineHarness = (tier: ESparkleTier = ESparkleTier.high) => {
+const createEngineHarness = (tier: ESparkleTier = ESparkleTier.high, now?: () => number) => {
   const scheduler = createManualScheduler()
   const painter = createCountingContext()
   const particles = createSparkleParticles(600, 400, 10, SPARKLE_FIELD_CONFIG)
@@ -87,6 +116,7 @@ const createEngineHarness = (tier: ESparkleTier = ESparkleTier.high) => {
     requestFrame: scheduler.requestFrame,
     cancelFrame: scheduler.cancelFrame,
     onTierChange,
+    now,
   })
 
   return { scheduler, painter, particles, engine, onTierChange }
@@ -162,8 +192,9 @@ describe('createSparkleEngine', () => {
     expect(engine.isRunning).toBe(false)
   })
 
-  it('reports a tier change once frames are consistently slow', () => {
-    const { scheduler, engine, onTierChange } = createEngineHarness()
+  it('reports a tier change once the field spends consistently slow frames on its own work', () => {
+    const now = createSteppingNow(SPARKLE_GOVERNOR_THRESHOLDS.degradedFrameMs + 2)
+    const { scheduler, engine, onTierChange } = createEngineHarness(ESparkleTier.high, now)
 
     engine.start()
 
@@ -171,14 +202,15 @@ describe('createSparkleEngine', () => {
 
     for (let frame = 0; frame <= SPARKLE_GOVERNOR_THRESHOLDS.windowSize + 1; frame += 1) {
       scheduler.step(timestamp)
-      timestamp += 30
+      timestamp += 16
     }
 
     expect(onTierChange).toHaveBeenCalledWith(ESparkleTier.medium)
   })
 
-  it('does not blame a backgrounded tab for a slow frame', () => {
-    const { scheduler, engine, onTierChange } = createEngineHarness()
+  it('does not blame a backgrounded tab for a slow frame interval the field itself did not spend', () => {
+    const now = createSteppingNow(1)
+    const { scheduler, engine, onTierChange } = createEngineHarness(ESparkleTier.high, now)
 
     engine.start()
 
@@ -224,6 +256,7 @@ describe('createSparkleEngine', () => {
         engine?.stop()
         engine?.start()
       },
+      now: createSteppingNow(SPARKLE_GOVERNOR_THRESHOLDS.degradedFrameMs + 2),
     })
 
     engine = created
@@ -233,7 +266,7 @@ describe('createSparkleEngine', () => {
 
     for (let frame = 0; frame <= SPARKLE_GOVERNOR_THRESHOLDS.windowSize + 1; frame += 1) {
       scheduler.step(timestamp)
-      timestamp += 30
+      timestamp += 16
     }
 
     expect(scheduler.pendingCount).toBe(1)
@@ -253,5 +286,50 @@ describe('createSparkleEngine', () => {
     }
 
     expect(() => engine.stop()).not.toThrow()
+  })
+
+  it('advances a shared wind once per frame, displacing particles beyond their own drift', () => {
+    const windConfig: ISparkleFieldConfig = {
+      ...SNOW_FIELD_CONFIG,
+      maxWindSpeed: 0.05,
+      minWindRetargetMs: 100000,
+      maxWindRetargetMs: 100000,
+    }
+    const noWindConfig: ISparkleFieldConfig = { ...windConfig, maxWindSpeed: 0 }
+
+    const buildHarness = (config: ISparkleFieldConfig) => {
+      const scheduler = createManualScheduler()
+      const particles = createSparkleParticles(600, 400, 5, config, createSequenceRandom([0.3]))
+      const engine = createSparkleEngine({
+        context: createCountingContext().context,
+        atlas: createTestAtlas(),
+        particles,
+        view: { width: 600, height: 400, devicePixelRatio: 1 },
+        config,
+        governor: createSparkleGovernorState(ESparkleTier.high),
+        thresholds: SPARKLE_GOVERNOR_THRESHOLDS,
+        requestFrame: scheduler.requestFrame,
+        cancelFrame: scheduler.cancelFrame,
+        onTierChange: () => {},
+        random: createSequenceRandom([0.3]),
+      })
+
+      return { scheduler, particles, engine }
+    }
+
+    const withWind = buildHarness(windConfig)
+    const withoutWind = buildHarness(noWindConfig)
+
+    withWind.engine.start()
+    withoutWind.engine.start()
+
+    for (let frame = 0; frame <= 40; frame += 1) {
+      const timestamp = frame * 500
+
+      withWind.scheduler.step(timestamp)
+      withoutWind.scheduler.step(timestamp)
+    }
+
+    expect(Math.abs(withWind.particles[0].x - withoutWind.particles[0].x)).toBeGreaterThan(1)
   })
 })

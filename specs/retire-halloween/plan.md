@@ -1,5 +1,7 @@
 # Implementation plan
 
+> Historical note: the original-only appearance policy below is superseded by the [winter appearance specification](../winter-ghost/spec.md).
+
 - [x] Preserve the appearance enum and resolver API; always resolve original, including legacy cookies, and update resolver tests.
 - [x] Default the appearance context to original; remove the header switch and reserve only the language control footprint.
 - [x] Replace switch tests with SSR, hydration, cookie, reload, navigation, and responsive original-appearance regressions.

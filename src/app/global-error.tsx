@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 
 import { Button } from '@gravity-ui/uikit'
 
+import { EAppearance } from '@/constants/theme.constants'
+import { WinterGarland } from '@/layout/WinterGarland/WinterGarland'
+
 interface IErrorBoundaryProps {
   error: Error & { digest?: string }
 }
@@ -18,9 +21,11 @@ const ErrorBoundary = ({ error }: IErrorBoundaryProps) => {
     console.error('Global handling error: \n', error)
   }, [error])
 
+  // Rendered outside the root layout, so this document stamps the season itself.
   return (
-    <html lang={i18n.language}>
+    <html lang={i18n.language} data-appearance={EAppearance.winter}>
       <body className="error-body">
+        <WinterGarland />
         <section className="error-section">
           <h2 className="error-header">{t('error.wentWrong')}</h2>
 

@@ -4,6 +4,7 @@ import styles from './SparkleField.module.css'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { SPARKLE_FIELD_PRESETS } from '@/constants/home.constants'
 import { prefersReducedMotion } from '@/helpers/prefersReducedMotion'
 import {
   createSparkleController,
@@ -16,6 +17,7 @@ import {
   isSparkleWorkerMessage,
 } from '@/home-sections/Home/helpers/sparkleTransport'
 import {
+  ESparkleFieldPreset,
   ESparkleTier,
   ESparkleWorkerInboundType,
   ESparkleWorkerOutboundType,
@@ -75,6 +77,8 @@ interface ISparkleFieldSink {
   setRunning(isRunning: boolean): boolean
   /** Forwards the pointer in field-local CSS pixels, or `null` once it leaves. */
   setPointerTarget(target: IPointerPosition | null): void
+  /** Lets the field run out of frame instead of looping, once this preset is being replaced. */
+  beginExit(): void
   /** Releases every resource the transport owns; called exactly once, on unmount. */
   dispose(): void
 }
@@ -179,8 +183,19 @@ const observeSparkleField = (options: IObserveSparkleFieldOptions): (() => void)
   }
 }
 
-export const SparkleField = () => {
+interface ISparkleLayerProps {
+  /** Motion preset this layer is driven with; one layer never changes preset. */
+  preset: ESparkleFieldPreset
+  /** Whether this layer replaced another one, so its population arrives rather than simply existing. */
+  isEntering: boolean
+  /** Whether this layer is the outgoing one, dimming while its replacement arrives. */
+  isLeaving: boolean
+}
+
+/** One field instance: its own canvas, transport and loop, mounted for as long as its preset is on screen. */
+const SparkleLayer = ({ preset, isEntering, isLeaving }: ISparkleLayerProps) => {
   const fieldRef = useRef<HTMLDivElement | null>(null)
+  const sinkRef = useRef<ISparkleFieldSink | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rectRef = useRef<DOMRect | null>(null)
   const isRectStaleRef = useRef(true)
@@ -223,6 +238,51 @@ export const SparkleField = () => {
     return () => query.removeEventListener('change', onChange)
   }, [])
 
+  // Keep snow viewport-wide even when the centered section has reached its maximum width.
+  useEffect(() => {
+    const field = fieldRef.current
+    const section = field?.parentElement
+
+    if (preset !== ESparkleFieldPreset.snow || !field || !section) {
+      return
+    }
+
+    const header = document.getElementById('page-header')
+
+    // Measure the section instead of the field to avoid resize feedback from our own width updates.
+    const syncSnowBounds = () => {
+      const rect = section.getBoundingClientRect()
+      const bodyBottom = document.body.getBoundingClientRect().bottom
+      const fieldTop = field.getBoundingClientRect().top
+      const viewportWidth = document.documentElement.clientWidth
+      const headerBottom = header?.getBoundingClientRect().bottom ?? 0
+
+      field.style.left = `${-rect.left}px`
+      field.style.width = `${viewportWidth}px`
+      field.style.maxHeight = `${Math.max(0, bodyBottom - fieldTop)}px`
+      field.style.setProperty('--snow-header-bottom', `${Math.max(0, headerBottom)}px`)
+      field.style.setProperty(
+        '--snow-fade-height',
+        `${field.getBoundingClientRect().height * 0.18}px`,
+      )
+      markRectStale()
+    }
+
+    syncSnowBounds()
+
+    const resizeObserver = new ResizeObserver(syncSnowBounds)
+
+    resizeObserver.observe(section)
+    resizeObserver.observe(document.body)
+    if (header) resizeObserver.observe(header)
+    window.addEventListener('resize', syncSnowBounds)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', syncSnowBounds)
+    }
+  }, [preset, markRectStale])
+
   useEffect(() => {
     const field = fieldRef.current
     const canvas = canvasRef.current
@@ -230,6 +290,8 @@ export const SparkleField = () => {
     if (!field || !canvas) {
       return
     }
+
+    const config = SPARKLE_FIELD_PRESETS[preset]
 
     const initialTier = isReducedMotion
       ? ESparkleTier.static
@@ -297,6 +359,8 @@ export const SparkleField = () => {
               devicePixelRatio: window.devicePixelRatio,
               tier: initialTier,
               color: window.getComputedStyle(canvas).color,
+              config,
+              isEntering,
             } satisfies TSparkleWorkerInbound,
             [offscreen],
           )
@@ -368,6 +432,11 @@ export const SparkleField = () => {
             pointerFrame = window.requestAnimationFrame(flushPointer)
           }
         },
+        beginExit: () => {
+          if (isTransferred) {
+            postToWorker({ type: ESparkleWorkerInboundType.exit })
+          }
+        },
         dispose: () => {
           clearHandshakeTimer()
 
@@ -382,6 +451,8 @@ export const SparkleField = () => {
           worker.terminate()
         },
       }
+
+      sinkRef.current = sink
 
       return observeSparkleField({
         field,
@@ -407,6 +478,9 @@ export const SparkleField = () => {
           devicePixelRatio,
           color: window.getComputedStyle(canvas).color,
           hasGlow: tier.hasGlow,
+          glyphPaths: config.glyphPaths,
+          glyphStrokeWidth: config.glyphStrokeWidth,
+          glyphGlowRatio: config.glyphGlowRatio,
         }),
       resizeSurface: (widthPx, heightPx) => {
         canvas.width = Math.max(1, Math.round(widthPx))
@@ -415,6 +489,8 @@ export const SparkleField = () => {
       requestFrame: (callback) => window.requestAnimationFrame(callback),
       cancelFrame: (handle) => window.cancelAnimationFrame(handle),
       initialTier,
+      config,
+      isEntering,
     })
 
     const sink: ISparkleFieldSink = {
@@ -430,8 +506,11 @@ export const SparkleField = () => {
         return controller.isRunning
       },
       setPointerTarget: (target) => controller.setPointerTarget(target),
+      beginExit: () => controller.beginExit(),
       dispose: () => controller.destroy(),
     }
+
+    sinkRef.current = sink
 
     return observeSparkleField({
       field,
@@ -442,7 +521,15 @@ export const SparkleField = () => {
       onReady: () => setIsReady(true),
       onRunningChange: setIsRunning,
     })
-  }, [isReducedMotion, isWorkerEnabled, markRectStale, readFieldRect])
+  }, [preset, isEntering, isReducedMotion, isWorkerEnabled, markRectStale, readFieldRect])
+
+  // Told once, the moment the appearance moved on: the loop stops wrapping particles back into the
+  // frame, so a snowfall runs out through the bottom instead of seeding new flakes over the top.
+  useEffect(() => {
+    if (isLeaving) {
+      sinkRef.current?.beginExit()
+    }
+  }, [isLeaving])
 
   return (
     <div
@@ -452,14 +539,71 @@ export const SparkleField = () => {
       data-motion={isReducedMotion ? 'static' : 'animated'}
       data-running={isRunning ? 'true' : 'false'}
       data-ready={isReady ? 'true' : 'false'}
+      data-preset={preset}
+      data-leaving={isLeaving ? 'true' : undefined}
     >
+      {/* Only the live layer carries the selector, so a crossfade never exposes two fields to QA. */}
       <canvas
         key={canvasKey}
         ref={canvasRef}
         className={styles.canvas}
-        data-testid="home-sparkle-field"
+        data-testid={isLeaving ? undefined : 'home-sparkle-field'}
       />
     </div>
+  )
+}
+
+interface ISparkleFieldProps {
+  /** Motion preset to drive the field with; the appearance picks sparkles or snow. */
+  preset?: ESparkleFieldPreset
+}
+
+/** How long the outgoing preset stays mounted, which has to outlast the longest departure. */
+const PRESET_CROSSFADE_MS = 4400
+
+interface ISparkleLayerState {
+  /** Preset the layer draws. */
+  preset: ESparkleFieldPreset
+  /** Whether the field arrives rather than simply exists, fixed at creation; true for the first one too. */
+  isEntering: boolean
+}
+
+/** Crossfades between presets: the previous field dims while the new one is revealed from the top. */
+export const SparkleField = ({ preset = ESparkleFieldPreset.sparkles }: ISparkleFieldProps) => {
+  const [layers, setLayers] = useState<ISparkleLayerState[]>([{ preset, isEntering: true }])
+
+  // Adjusted during render so the incoming preset joins the list in the same commit the switch
+  // happens in, leaving the outgoing layer painting underneath instead of being torn out at once.
+  // `isEntering` is settled here and never revised, since the layer reads it as it seeds itself.
+  if (layers.at(-1)?.preset !== preset) {
+    setLayers([...layers.filter((layer) => layer.preset !== preset), { preset, isEntering: true }])
+  }
+
+  // Drops the stale layer once it has finished dimming; re-armed on every switch, so toggling
+  // mid-crossfade extends the overlap rather than cutting the previous one short.
+  useEffect(() => {
+    const handle = window.setTimeout(
+      () =>
+        setLayers((current) =>
+          current.length > 1 ? current.filter((layer) => layer.preset === preset) : current,
+        ),
+      PRESET_CROSSFADE_MS,
+    )
+
+    return () => window.clearTimeout(handle)
+  }, [preset])
+
+  return (
+    <>
+      {layers.map((layer) => (
+        <SparkleLayer
+          key={layer.preset}
+          preset={layer.preset}
+          isEntering={layer.isEntering}
+          isLeaving={layer.preset !== preset}
+        />
+      ))}
+    </>
   )
 }
 

@@ -1,19 +1,24 @@
 import { describe, expect, it } from 'vitest'
 
-import { SPARKLE_FIELD_CONFIG, SPARKLE_TIERS } from '@/constants/home.constants'
+import { SPARKLE_FIELD_CONFIG, SPARKLE_TIERS, SNOW_FIELD_CONFIG } from '@/constants/home.constants'
 import {
   advanceSparkleParticle,
   advanceSparklePointer,
+  advanceSparkleWind,
   clampSparkleFrameDelta,
   createSparkleInfluence,
   createSparkleParticle,
   createSparkleParticles,
   createSparklePointer,
+  createSparkleWind,
   readSparkleInfluence,
   refitSparkleParticles,
   resolveSparkleParticleCount,
 } from '@/home-sections/Home/helpers/sparkleField'
-import { ESparkleTier } from '@/home-sections/Home/types/home.type'
+import { ESparkleTier, ISparkleFieldConfig } from '@/home-sections/Home/types/home.type'
+
+/** Shared no-op wind for tests that exercise unrelated motion; zero value and zero magnitude target. */
+const NO_WIND = { value: 0, target: 0, retargetRemainingMs: 1000 }
 
 /** Deterministic stand-in for `Math.random`, cycling through fixed draws so particles are reproducible. */
 const createSequenceRandom = (values: number[]): (() => number) => {
@@ -25,6 +30,14 @@ const createSequenceRandom = (values: number[]): (() => number) => {
 
     return value
   }
+}
+
+/** Random stub whose first draw (which decides size) is distinct; every later draw is held fixed. */
+const createSizeOnlyRandom = (sizeDraw: number, restDraw: number): (() => number) => {
+  const draws = new Array<number>(64).fill(restDraw)
+  draws[0] = sizeDraw
+
+  return createSequenceRandom(draws)
 }
 
 describe('resolveSparkleParticleCount', () => {
@@ -123,9 +136,98 @@ describe('createSparkleParticles', () => {
     expect(largest.depth).toBeCloseTo(1)
   })
 
+  it('makes a far, small flake fall slower than a near, large one when speedDepthBias is 1', () => {
+    const config: ISparkleFieldConfig = {
+      ...SNOW_FIELD_CONFIG,
+      speedDepthBias: 1,
+      speedJitter: 0,
+    }
+
+    const smallest = createSparkleParticle(600, 400, config, createSequenceRandom([0]))
+    const largest = createSparkleParticle(600, 400, config, createSequenceRandom([1]))
+
+    const smallestSpeed = Math.hypot(smallest.velocityX, smallest.velocityY)
+    const largestSpeed = Math.hypot(largest.velocityX, largest.velocityY)
+
+    expect(largestSpeed).toBeGreaterThan(smallestSpeed)
+  })
+
+  it('randomises the sign of the rotation rate across particles', () => {
+    const particles = Array.from({ length: 20 }, (_, index) =>
+      createSparkleParticle(
+        600,
+        400,
+        SNOW_FIELD_CONFIG,
+        createSequenceRandom(index % 2 === 0 ? [0.1] : [0.9]),
+      ),
+    )
+
+    expect(particles.some((particle) => particle.rotationSpeed > 0)).toBe(true)
+    expect(particles.some((particle) => particle.rotationSpeed < 0)).toBe(true)
+  })
+
   it('returns nothing when the count is not positive', () => {
     expect(createSparkleParticles(600, 400, 0, SPARKLE_FIELD_CONFIG)).toEqual([])
     expect(createSparkleParticles(600, 400, -5, SPARKLE_FIELD_CONFIG)).toEqual([])
+  })
+
+  it('keeps the fall path yaw the same at every depth', () => {
+    const config: ISparkleFieldConfig = { ...SNOW_FIELD_CONFIG, maxSwayRatio: 0.35 }
+
+    // Peak sideways speed over fall speed is the yaw the flutter bends the path to; it must not depend on depth.
+    const peakYawRatio = (particle: ReturnType<typeof createSparkleParticle>): number =>
+      (particle.swayAmplitude *
+        Math.abs(particle.swaySpeed) *
+        (1 + config.swaySecondaryAmplitude * config.swaySecondaryFrequency)) /
+      Math.abs(particle.velocityY)
+
+    const smallest = createSparkleParticle(600, 400, config, createSizeOnlyRandom(0, 0.5))
+    const largest = createSparkleParticle(600, 400, config, createSizeOnlyRandom(1, 0.5))
+
+    const smallestRatio = peakYawRatio(smallest)
+    const largestRatio = peakYawRatio(largest)
+
+    expect(smallestRatio).toBeCloseTo(largestRatio)
+    expect(smallestRatio).toBeLessThanOrEqual(config.maxSwayRatio)
+    expect(largestRatio).toBeLessThanOrEqual(config.maxSwayRatio)
+  })
+
+  it('keeps a zero sway speed from producing a broken amplitude', () => {
+    const config: ISparkleFieldConfig = { ...SNOW_FIELD_CONFIG, minSwaySpeed: 0, maxSwaySpeed: 0 }
+
+    const particle = createSparkleParticle(600, 400, config)
+
+    expect(particle.swayAmplitude).toBe(0)
+    expect(Number.isFinite(particle.swayAmplitude)).toBe(true)
+  })
+})
+
+describe('createSparkleParticle entry', () => {
+  it('seeds an arriving snowfall above the field so the first flakes come over the top edge', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG, Math.random, true)
+
+    expect(particle.y).toBeLessThanOrEqual(0)
+    expect(particle.y).toBeGreaterThanOrEqual(-400 * SNOW_FIELD_CONFIG.entrySpawnAboveRatio)
+    expect(particle.isFallingIn).toBe(true)
+    expect(particle.entryAlpha).toBe(1)
+  })
+
+  it('lights an arriving sparkle field up in place, each glyph on its own delay', () => {
+    const particle = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG, Math.random, true)
+
+    expect(particle.y).toBeGreaterThanOrEqual(0)
+    expect(particle.isFallingIn).toBe(false)
+    expect(particle.entryAlpha).toBe(0)
+    expect(particle.entryDelayMs).toBeGreaterThanOrEqual(0)
+    expect(particle.entryDelayMs).toBeLessThanOrEqual(SPARKLE_FIELD_CONFIG.entryStaggerMs)
+  })
+
+  it('leaves a field that replaces nothing fully lit and in place', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    expect(particle.y).toBeGreaterThanOrEqual(0)
+    expect(particle.entryAlpha).toBe(1)
+    expect(particle.isFallingIn).toBe(false)
   })
 })
 
@@ -199,7 +301,7 @@ describe('advanceSparkleParticle', () => {
     particle.velocityX = 0.01
     particle.velocityY = 0.02
 
-    advanceSparkleParticle(particle, 100, 600, 400, SPARKLE_FIELD_CONFIG)
+    advanceSparkleParticle(particle, 100, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
 
     expect(particle.x).toBeCloseTo(101)
     expect(particle.y).toBeCloseTo(102)
@@ -212,10 +314,12 @@ describe('advanceSparkleParticle', () => {
     particle.velocityX = 1
     particle.velocityY = 0
 
-    advanceSparkleParticle(particle, 100, 600, 400, SPARKLE_FIELD_CONFIG)
+    advanceSparkleParticle(particle, 100, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
+
+    const margin = SPARKLE_FIELD_CONFIG.maxSize + SPARKLE_FIELD_CONFIG.displacement
 
     expect(particle.x).toBeLessThan(600)
-    expect(particle.x).toBeGreaterThanOrEqual(-SPARKLE_FIELD_CONFIG.maxSize)
+    expect(particle.x).toBeGreaterThanOrEqual(-margin)
   })
 
   it('wraps a particle that drifts off the top edge back to the bottom', () => {
@@ -225,7 +329,7 @@ describe('advanceSparkleParticle', () => {
     particle.velocityX = 0
     particle.velocityY = -1
 
-    advanceSparkleParticle(particle, 100, 600, 400, SPARKLE_FIELD_CONFIG)
+    advanceSparkleParticle(particle, 100, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
 
     expect(particle.y).toBeGreaterThan(300)
   })
@@ -234,9 +338,147 @@ describe('advanceSparkleParticle', () => {
     const particle = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG)
     const before = particle
 
-    advanceSparkleParticle(particle, 16, 600, 400, SPARKLE_FIELD_CONFIG)
+    advanceSparkleParticle(particle, 16, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
 
     expect(particle).toBe(before)
+  })
+
+  it('lags the lateral velocity behind an abrupt flutter reversal instead of jumping to it', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    particle.lateralVelocity = 5
+    particle.swayAmplitude = 50
+    particle.swaySpeed = 0.05
+    particle.swayPhase = Math.PI
+    particle.swayPhaseSecondary = Math.PI
+
+    advanceSparkleParticle(particle, 16, 600, 400, SNOW_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.lateralVelocity).toBeGreaterThan(0)
+  })
+
+  it('converges the lateral velocity onto a frozen flutter target', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    particle.lateralVelocity = 5
+    particle.swayAmplitude = 50
+    particle.swaySpeed = 0
+    particle.swayPhase = Math.PI
+    particle.swayPhaseSecondary = Math.PI
+
+    for (let frame = 0; frame < 500; frame += 1) {
+      advanceSparkleParticle(particle, 16, 600, 400, SNOW_FIELD_CONFIG, NO_WIND)
+    }
+
+    expect(particle.lateralVelocity).toBeCloseTo(0, 1)
+  })
+
+  it('holds a staggered particle dark until its delay runs out, then fades it in', () => {
+    const particle = createSparkleParticle(600, 400, SPARKLE_FIELD_CONFIG, Math.random, true)
+
+    particle.entryDelayMs = 100
+
+    advanceSparkleParticle(particle, 50, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.entryAlpha).toBe(0)
+
+    advanceSparkleParticle(particle, 50, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
+    advanceSparkleParticle(particle, 50, 600, 400, SPARKLE_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.entryAlpha).toBeGreaterThan(0)
+    expect(particle.entryAlpha).toBeLessThan(1)
+
+    advanceSparkleParticle(
+      particle,
+      SPARKLE_FIELD_CONFIG.entryFadeMs,
+      600,
+      400,
+      SPARKLE_FIELD_CONFIG,
+      NO_WIND,
+    )
+
+    expect(particle.entryAlpha).toBe(1)
+  })
+
+  it('lets a flake seeded above the field fall in instead of wrapping it straight into view', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG, Math.random, true)
+
+    particle.y = -300
+    particle.velocityX = 0
+    particle.velocityY = 0.05
+    particle.speedScale = 1
+    particle.targetSpeedScale = 1
+    particle.retargetRemainingMs = 100_000
+    particle.swayAmplitude = 0
+    particle.lateralVelocity = 0
+
+    advanceSparkleParticle(particle, 100, 600, 400, SNOW_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.y).toBeCloseTo(-295)
+    expect(particle.isFallingIn).toBe(true)
+
+    advanceSparkleParticle(particle, 8000, 600, 400, SNOW_FIELD_CONFIG, NO_WIND)
+
+    expect(particle.isFallingIn).toBe(false)
+  })
+
+  it('lets a departing field run out through the bottom instead of wrapping it back in', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    particle.y = 399
+    particle.velocityX = 0
+    particle.velocityY = 1
+    particle.speedScale = 1
+    particle.targetSpeedScale = 1
+    particle.swayAmplitude = 0
+    particle.lateralVelocity = 0
+
+    advanceSparkleParticle(particle, 100, 600, 400, SNOW_FIELD_CONFIG, NO_WIND, Math.random, 1)
+
+    expect(particle.y).toBeGreaterThan(400)
+  })
+
+  it('carries the last flakes out faster once the departure speed is ramped in', () => {
+    const particle = createSparkleParticle(600, 400, SNOW_FIELD_CONFIG)
+
+    particle.y = 100
+    particle.velocityX = 0
+    particle.velocityY = 0.05
+    particle.speedScale = 1
+    particle.targetSpeedScale = 1
+    particle.swayAmplitude = 0
+    particle.lateralVelocity = 0
+
+    advanceSparkleParticle(particle, 100, 600, 400, SNOW_FIELD_CONFIG, NO_WIND, Math.random, 3)
+
+    expect(particle.y).toBeCloseTo(115)
+  })
+})
+
+describe('advanceSparkleWind', () => {
+  it('leaves the wind at zero when the config disables it', () => {
+    const wind = createSparkleWind(SPARKLE_FIELD_CONFIG)
+
+    advanceSparkleWind(wind, 1000, SPARKLE_FIELD_CONFIG)
+
+    expect(wind.value).toBe(0)
+  })
+
+  it('eases the wind toward a non-zero target when the config enables it', () => {
+    const config: ISparkleFieldConfig = {
+      ...SNOW_FIELD_CONFIG,
+      maxWindSpeed: 0.05,
+      minWindRetargetMs: 100000,
+      maxWindRetargetMs: 100000,
+    }
+    const random = createSequenceRandom([1])
+    const wind = createSparkleWind(config, random)
+
+    advanceSparkleWind(wind, 500, config, random)
+
+    expect(wind.target).toBeCloseTo(config.maxWindSpeed)
+    expect(wind.value).toBeGreaterThan(0)
+    expect(wind.value).toBeLessThan(wind.target)
   })
 })
 

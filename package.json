@@ -46,6 +46,7 @@
     "react-i18next": "17.0.7",
     "react-toastify": "11.1.0",
     "server-only": "0.0.1",
+    "three": "0.187.0",
     "zod": "4.4.3",
     "zustand": "5.0.13"
   },
@@ -62,6 +63,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@types/three": "0.187.0",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
@@ -69,6 +71,7 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-prettier": "5.5.5",
     "jsdom": "30.0.1",
+    "meshoptimizer": "0.25.0",
     "prettier": "3.8.3",
     "stylelint": "17.11.0",
     "stylelint-config-prettier-scss": "1.0.0",

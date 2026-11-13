@@ -13,6 +13,7 @@ import { Aside } from '@/layout/Aside/Aside'
 import { Header } from '@/layout/Header/Header'
 import { Main } from '@/layout/Main/Main'
 import { Footer } from '@/layout/Footer/Footer'
+import { WinterGarland } from '@/layout/WinterGarland/WinterGarland'
 
 import { SkipToNavigationLink } from '@/components/SkipToNavigationLink/SkipToNavigationLink'
 import { LANG_COOKIE_KEY, resolveRequestLanguage } from '@/helpers/language'
@@ -97,6 +98,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang={initialLanguage} data-appearance={initialAppearance} suppressHydrationWarning>
       <body className={rootClassName} suppressHydrationWarning>
+        <WinterGarland />
         <script
           id="structured-data"
           type="application/ld+json"

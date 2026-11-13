@@ -5,7 +5,7 @@
 }
 
 .shapes :global(.g-skeleton) {
-  --g-color-base-generic: rgb(255 255 255 / 6%);
+  --g-color-base-generic: var(--skeleton-base-color);
 
   display: block;
 }

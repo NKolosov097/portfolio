@@ -92,6 +92,6 @@
 }
 
 .touchControls button:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--g-color-line-focus);
   outline-offset: 2px;
 }

@@ -1,0 +1,47 @@
+{
+ "slug": "santa-hat",
+ "triangles": 4528,
+ "texture_px": 2048,
+ "triangles_light": null,
+ "texture_px_light": null,
+ "files": {
+  "glb": {
+   "name": "santa-hat.glb",
+   "bytes": 674492
+  },
+  "blend": {
+   "name": "santa-hat.blend",
+   "bytes": 730764
+  },
+  "fbx": {
+   "name": "santa-hat.fbx",
+   "bytes": 978188
+  },
+  "obj": {
+   "name": "santa-hat-obj.zip",
+   "bytes": 637405
+  },
+  "usdz": {
+   "name": "santa-hat.usdz",
+   "bytes": 898297
+  }
+ },
+ "extras": {
+  "license": "CC0-1.0",
+  "source": "grab3d.com",
+  "dimensions_m": "0.319 x 0.251 x 0.272",
+  "triangles": 4528,
+  "textures": "PBR 2048px: base color, roughness, metallic, normal (baked)",
+  "generator": "Created by grab3d",
+  "created": "2026-10-20",
+  "real_size": "Santa style knitted Christmas hat, about 35 cm from brim to pompom, brim 25 cm across",
+  "notes": "front faces -Y; berry red knitted hat resting flat on its thick white plush brim, the soft tip folds over towards +X and the fluffy white pompom hangs down; closed cream lining at the bottom; single object, no figure, no text",
+  "set": "Cozy Christmas & Winter Kit"
+ },
+ "origin": {
+  "method": "procedural",
+  "detail": "Built procedurally with Blender scripts. The scripts were written with the help of an AI coding assistant. No generative AI model produced the geometry or textures directly.",
+  "ai_content": false,
+  "ai_assisted_code": true
+ }
+}

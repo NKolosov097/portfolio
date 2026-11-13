@@ -1,4 +1,4 @@
-﻿# Portfolio - [NKolosov097](https://nkolosov.com)
+# Portfolio - [NKolosov097](https://nkolosov.com)
 
 A production-grade personal portfolio built on the **Next.js App Router** with **React 19** and **TypeScript** (strict): a single-page home experience plus a small set of statically generated article pages. It ships a fully internationalised (English / Russian) UI, a database-backed contact form with transactional email, and an accessibility- and performance-conscious layout shell.
 
@@ -82,7 +82,7 @@ Key architectural decisions:
 - **Section ownership.** Each section under `src/home-sections/<Section>/` owns its own types, sub-components, schemas, and server actions - no cross-section coupling.
 - **Article content as code.** Each article's body lives in `src/content/articles/<slug>/`, registered in `src/content/articles/registry.ts` by slug; article metadata (title, description, publish date, reading time) lives separately in `src/constants/articles.constants.ts` so route generation and SEO don't need to import the body component.
 - **Server-side theming.** The Gravity UI dark theme is resolved with `getRootClassName` in the root layout, so the correct theme class is present on first paint (no client flash).
-- **Seasonal appearance.** The public site always serves the original appearance, applied as `data-appearance` on `<html>` before first paint. Legacy `portfolio-appearance` cookies are ignored and the header has no seasonal switch; seasonal components and assets remain archived for reuse.
+- **Seasonal appearance.** The public site supports original and winter, selected as `data-appearance` on `<html>` before first paint. Winter is the default; only an explicit `portfolio-appearance=original` cookie opts out. The header switch persists the selected appearance. Halloween components and assets remain archived for reuse. The winter Santa flight uses a lazily loaded textured Grab3D CC0 deer model, simplified and rigged locally; source, license and preparation steps are in `public/assets/models/winter/SOURCE.md`. Eligible browsers run the unchanged Santa scene in an OffscreenCanvas worker after a lightweight handshake, with a single main-thread fallback, asynchronous shader warmup, a 60 FPS live cap and adaptive resolution (30 FPS only at the lowest quality tier). Static previews keep their original resolution. Focused Santa tests cover deterministic trails, quality cadence, worker startup/fallback and visibility/disposal races; the winter Santa browser suite checks actual worker rendering and forced fallback.
 - **Server-only boundaries.** Database and mail singletons live in `src/lib/` and are guarded with `import 'server-only'`; server actions are marked `'use server'`.
 - **Path aliases.** `@/*` â†’ `src/*`, `@public/*` â†’ `public/*`, and `@tests/*` â†’ `tests/*` (configured in `tsconfig.json`, the ESLint resolver, and `vitest.config.mts`).
 
@@ -230,12 +230,14 @@ What is covered today:
   the jsdom environment.
 - **E2E smoke** (`e2e/smoke.spec.ts`) - every section anchor the header navigates to exists, the
   aside renders, the page loads without uncaught errors, and clicking a tab scrolls to its section.
+- **Keyboard focus** (`e2e/focus-consistency.spec.ts`) - all six public route variants retain
+  active-accent indicators in both appearances, including Gravity child/pseudo-element rings,
+  contact underlines, rounded controls, language menu, profile drawer and avatar dialog.
 - **Header tabs layout stability** (`e2e/header-tabs.spec.ts`) - on a 393px viewport the tab strip
   is sampled on every animation frame after navigation and must keep its compact height, gap and
   typography, guarding against a post-mount JavaScript size switch without mistaking Inter font
   loading for a size change. Resizing across 500px also checks compact and large metrics.
-- **Aside ghost** (`e2e/aside-ghost.spec.ts`) - all five animation layers run, the silhouette
-  actually moves between frames, and every animation stops under `prefers-reduced-motion: reduce`.
+- **Archived aside ghost** (`e2e/aside-ghost.spec.ts`) - the entire suite remains skipped while the winter mascot is covered by `e2e/winter-appearance.spec.ts`; its general and Halloween checks are retained for reuse.
 - **Profile drawer** (`e2e/mobile-drawer.spec.ts`) - below the breakpoint the sidebar is hidden
   and its content is reachable only through the drawer, which opens and closes on demand. The
   spec skips itself on viewports that render the sidebar.
@@ -264,14 +266,11 @@ What is covered today:
   reports success, stores the submission, and records a failed notification attempt for retry.
 - **Home sparkle field** (`e2e/home-sparkle-field.spec.ts`) - the canvas fades in behind the hero
   without covering the headline, and holds a still frame under `prefers-reduced-motion: reduce`.
-- **Original appearance** (`e2e/appearance-switch.spec.ts`) - server rendering and hydration
-  use original with missing, original, legacy Halloween, empty, or unknown cookies; reload and
-  article navigation preserve it. The sparkle field remains, seasonal artwork and the switch
-  are absent, and language controls, tabs, and hero headings fit narrow and desktop viewports.
-- **Archived Halloween coverage** (`e2e/halloween-motion.spec.ts`, seasonal cases in
-  `e2e/aside-ghost.spec.ts`) - seasonal hero and lantern interactions remain skipped for reuse.
-  General mascot interactions, lantern image fallback, reduced motion, and original lantern
-  occlusion remain active.
+- **Winter heading snow** (`e2e/winter-heading-snow.spec.ts`) - checks live localized heading text, winter snow details, appearance switching and viewport fit.
+- **Appearance rendering** (`e2e/appearance-switch.spec.ts`) - SSR and hydration default to winter, preserve explicit original cookies, and map winter, legacy Halloween, empty, and unknown cookies to winter across reload and article navigation. Both appearances keep the sparkle field mounted; the switch remains enabled, Halloween artwork stays absent, and controls, tabs and headings fit responsive widths.
+- **Winter appearance** (`e2e/winter-appearance.spec.ts`) - covers seasonal transitions, snow, winter mascot behavior and appearance switching.
+- **Winter page garland** (`e2e/winter-page-garland.spec.ts`) - covers all public page variants, viewport anchoring, steady white lights, pinned cable attachments during decaying sag motion, appearance reversal and reduced motion.
+- **Archived Halloween coverage** (`e2e/halloween-motion.spec.ts`, `e2e/aside-ghost.spec.ts`) - both suites remain entirely skipped, retaining seasonal scenes, lantern checks and general mascot assertions for reuse.
 - **Self-hosted articles** (`e2e/articles.spec.ts`) - the article is listed on `/articles`, its
   page renders with a heading and content, an in-page anchor scrolls a section clear of the fixed
   header, the body switches language with the site's language switcher, and opening a Writing card

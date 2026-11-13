@@ -1,5 +1,9 @@
+/* Positioned and isolated so the decorative field behind the copy has a box to fill. */
 .section {
+  position: relative;
+  min-height: calc(100svh - var(--header-height) - 4 * var(--body-padding));
   margin-top: 2rem;
+  isolation: isolate;
 }
 
 .header {
@@ -16,4 +20,22 @@
 
 .description {
   margin: 1rem 0;
+}
+
+/* Gravity's Link stylesheet is never bundled here, so the anchor would fall back to the UA colour. */
+.link {
+  color: var(--g-color-text-link);
+  text-decoration: underline;
+  transition: color 0.2s ease-out;
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--g-color-text-link-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link {
+    transition: none;
+  }
 }

@@ -8,6 +8,7 @@ import styles from '@/layout/Aside/aside.module.css'
 import { Button, Drawer } from '@gravity-ui/uikit'
 
 import { AsideContent } from '@/layout/Aside/components/AsideContent/AsideContent'
+import { AsideFrost } from '@/layout/Aside/components/AsideFrost/AsideFrost'
 
 import { AsideLightboxContext } from '@/layout/Aside/context/AsideLightbox.context'
 import { IAsideLightboxContext } from '@/layout/Aside/types/aside.type'
@@ -15,6 +16,7 @@ import { useSwipeToClose } from '@/layout/Aside/hooks/useSwipeToClose'
 import { useAsideStore } from '@/providers/stores/AsideStore.provider'
 import { CircleXmark } from '@gravity-ui/icons'
 
+// Keep drawer controls outside the scrolling profile while preserving their keyboard order.
 export const MobileAside = () => {
   const { t } = useTranslation()
 
@@ -73,9 +75,12 @@ export const MobileAside = () => {
         >
           <CircleXmark />
         </Button>
-        <AsideLightboxContext.Provider value={lightboxContextValue}>
-          <AsideContent />
-        </AsideLightboxContext.Provider>
+        <div className={styles.drawerScrollContent} tabIndex={-1}>
+          <AsideLightboxContext.Provider value={lightboxContextValue}>
+            <AsideContent />
+          </AsideLightboxContext.Provider>
+        </div>
+        <AsideFrost isMobile />
       </div>
     </Drawer>
   )

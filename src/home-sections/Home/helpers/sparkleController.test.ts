@@ -40,7 +40,18 @@ const createManualScheduler = () => {
   }
 }
 
-const createHarness = (initialTier: ESparkleTier = ESparkleTier.high) => {
+/** Deterministic stand-in for the engine's clock: each call advances by a fixed step, so a frame's measured work duration is exactly `stepMs`. */
+const createSteppingNow = (stepMs: number): (() => number) => {
+  let current = 0
+
+  return () => {
+    current += stepMs
+
+    return current
+  }
+}
+
+const createHarness = (initialTier: ESparkleTier = ESparkleTier.high, now?: () => number) => {
   const scheduler = createManualScheduler()
   const resizes: Array<{ width: number; height: number }> = []
   const atlasRequests: Array<{ tier: ISparkleTierConfig; devicePixelRatio: number }> = []
@@ -54,6 +65,7 @@ const createHarness = (initialTier: ESparkleTier = ESparkleTier.high) => {
     drawImage: () => {
       drawCount += 1
     },
+    setTransform: () => {},
   }
 
   const buildAtlas = (
@@ -62,7 +74,7 @@ const createHarness = (initialTier: ESparkleTier = ESparkleTier.high) => {
   ): ISparkleSpriteAtlas<string> | null => {
     atlasRequests.push({ tier, devicePixelRatio })
 
-    return { frames: [['frame-0', 'frame-1']], bucketSizes: [8], paddingFactor: 1.5 }
+    return { frames: [['frame-0']], bucketSizes: [8], paddingFactor: 1.5 }
   }
 
   const controller = createSparkleController<string>({
@@ -75,6 +87,7 @@ const createHarness = (initialTier: ESparkleTier = ESparkleTier.high) => {
     cancelFrame: scheduler.cancelFrame,
     initialTier,
     onTierChange,
+    now,
   })
 
   return {
@@ -162,13 +175,14 @@ describe('createSparkleController', () => {
   })
 
   it('drops a tier and tells its host once frames are consistently slow', () => {
-    const harness = createHarness(ESparkleTier.high)
+    const now = createSteppingNow(SPARKLE_GOVERNOR_THRESHOLDS.degradedFrameMs + 2)
+    const harness = createHarness(ESparkleTier.high, now)
 
     harness.controller.setViewport(600, 400, 2)
     harness.controller.start()
 
     for (let frame = 0; frame <= SPARKLE_GOVERNOR_THRESHOLDS.windowSize + 1; frame += 1) {
-      harness.scheduler.step(frame * 30)
+      harness.scheduler.step(frame * 16)
     }
 
     expect(harness.controller.tier).toBe(ESparkleTier.medium)
@@ -176,7 +190,8 @@ describe('createSparkleController', () => {
   })
 
   it('recaps the pixel ratio when a tier change tightens the cap', () => {
-    const harness = createHarness(ESparkleTier.high)
+    const now = createSteppingNow(SPARKLE_GOVERNOR_THRESHOLDS.degradedFrameMs + 2)
+    const harness = createHarness(ESparkleTier.high, now)
 
     harness.controller.setViewport(600, 400, 3)
 
@@ -185,7 +200,7 @@ describe('createSparkleController', () => {
     harness.controller.start()
 
     for (let frame = 0; frame <= SPARKLE_GOVERNOR_THRESHOLDS.windowSize + 1; frame += 1) {
-      harness.scheduler.step(frame * 30)
+      harness.scheduler.step(frame * 16)
     }
 
     expect(harness.resizes.at(-1)).toEqual({ width: 900, height: 600 })

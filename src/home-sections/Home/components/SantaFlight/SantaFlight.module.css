@@ -1,0 +1,27 @@
+.marker {
+  display: none;
+}
+
+/* A body sibling paints above the isolated sticky main, below the fixed shell at z-index 1. */
+.portal {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.stage,
+.preview {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.preview canvas,
+.portal canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

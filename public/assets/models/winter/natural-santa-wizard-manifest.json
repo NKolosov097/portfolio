@@ -1,0 +1,51 @@
+{
+ "slug": "wizard",
+ "triangles": 800000,
+ "texture_px": 4096,
+ "triangles_light": 400000,
+ "texture_px_light": 1024,
+ "files": {
+  "glb": {
+   "name": "wizard.glb",
+   "bytes": 28327080
+  },
+  "blend": {
+   "name": "wizard.blend",
+   "bytes": 35720465
+  },
+  "fbx": {
+   "name": "wizard.fbx",
+   "bytes": 51022588
+  },
+  "obj": {
+   "name": "wizard-obj.zip",
+   "bytes": 22414340
+  },
+  "usdz": {
+   "name": "wizard.usdz",
+   "bytes": 45500559
+  },
+  "glb_light": {
+   "name": "wizard-light.glb",
+   "bytes": 12448612
+  },
+  "fbx_light": {
+   "name": "wizard-light.fbx",
+   "bytes": 24788188
+  }
+ },
+ "extras": {
+  "license": "CC0-1.0",
+  "source": "grab3d.com",
+  "dimensions_m": "1.215 x 0.602 x 2.050",
+  "triangles": 800000,
+  "variant": "download",
+  "generator": "Created by grab3d",
+  "created": "2026-09-28"
+ },
+ "origin": {
+  "method": "ai-assisted",
+  "detail": "Base mesh and textures generated with an AI image-to-3D tool (Meshy), then cleaned up, scaled, textured and checked in Blender.",
+  "ai_content": true
+ }
+}

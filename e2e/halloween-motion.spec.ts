@@ -35,7 +35,7 @@ async function layerOpacity(page: import('@playwright/test').Page, testId: strin
     .evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))
 }
 
-// Archived seasonal coverage: the public appearance is original and has no switch.
+// Archived with the Halloween appearance: the scene no longer renders.
 test.describe.skip('halloween hero motion', () => {
   test('stages ground, pumpkin, ignition and sparks in order', async ({ page }) => {
     await page.goto('/')
